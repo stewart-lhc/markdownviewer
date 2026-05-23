@@ -15,13 +15,14 @@ describe("landing hero layout styles", () => {
     const heroPreviewRule = getRule(".hero-preview");
     const previewWindowRule = getRule(".preview-window");
 
-    expect(css).toContain("--hero-panel-height: 560px;");
+    expect(css).toContain("--hero-panel-height: 600px;");
     expect(heroRule).toContain("height: var(--hero-panel-height);");
     expect(heroRule).toContain("min-height: 0;");
-    expect(heroCopyRule).toContain("grid-template-rows: auto auto;");
+    expect(heroCopyRule).toContain("grid-template-rows: minmax(0, 1fr) auto;");
+    expect(heroCopyRule).toContain("justify-items: start;");
     expect(heroCopyRule).toContain("align-content: space-between;");
     expect(heroCopyRule).toContain("height: 100%;");
-    expect(heroCopyRule).toContain("overflow: hidden;");
+    expect(heroCopyRule).toContain("overflow: visible;");
     expect(heroPreviewRule).toContain("height: 100%;");
     expect(heroPreviewRule).not.toContain("background:");
     expect(previewWindowRule).toContain("border-radius: var(--radius-xl);");
@@ -30,11 +31,20 @@ describe("landing hero layout styles", () => {
 
   it("lets the landing preview window fill the hero card while keeping the scroll inside the card", () => {
     const previewWindowRule = getRule(".preview-window");
+    const previewWindowScrollRule = getRule(".preview-window-scroll");
 
     expect(previewWindowRule).toContain("flex: 1;");
     expect(previewWindowRule).toContain("height: 100%;");
-    expect(previewWindowRule).toContain("overflow: auto;");
+    expect(previewWindowRule).toContain("padding: 20px 10px 20px 22px;");
+    expect(previewWindowRule).toContain("overflow: hidden;");
+    expect(previewWindowScrollRule).toContain("height: 100%;");
+    expect(previewWindowScrollRule).toContain("padding: 0 10px 0 0;");
+    expect(previewWindowScrollRule).toContain("overflow: auto;");
+    expect(previewWindowScrollRule).toContain("scrollbar-gutter: stable;");
     expect(previewWindowRule).not.toContain("max-height:");
+    expect(css).toContain(".preview-window .markdown-body--compact {");
+    expect(css).toContain("overflow: visible;");
+    expect(css).not.toContain(".preview-window .markdown-body--compact::-webkit-scrollbar");
   });
 
   it("keeps supported source labels compact on a single desktop row", () => {
@@ -42,18 +52,20 @@ describe("landing hero layout styles", () => {
     const supportPillRule = getRule(".support-pill");
 
     expect(supportStripRule).toContain("flex-wrap: nowrap;");
-    expect(supportStripRule).toContain("overflow: hidden;");
+    expect(supportStripRule).toContain("justify-content: space-between;");
+    expect(supportStripRule).toContain("width: min(100%, 580px);");
+    expect(supportStripRule).toContain("overflow: visible;");
     expect(supportPillRule).toContain("white-space: nowrap;");
-    expect(supportPillRule).toContain("font-size: clamp(0.72rem, 0.85vw, 0.86rem);");
+    expect(supportPillRule).toContain("font-size: clamp(0.68rem, 0.78vw, 0.78rem);");
   });
 
   it("styles the landing preview scrollbar as a dark control without arrow buttons", () => {
-    expect(css).toContain(".preview-window {");
+    expect(css).toContain(".preview-window-scroll {");
     expect(css).toContain("scrollbar-width: thin;");
     expect(css).toContain("scrollbar-color:");
-    expect(css).toContain(".preview-window::-webkit-scrollbar-track,");
-    expect(css).toContain(".preview-window::-webkit-scrollbar-thumb,");
-    expect(css).toContain(".preview-window::-webkit-scrollbar-button,");
+    expect(css).toContain(".preview-window-scroll::-webkit-scrollbar-track {");
+    expect(css).toContain(".preview-window-scroll::-webkit-scrollbar-thumb {");
+    expect(css).toContain(".preview-window-scroll::-webkit-scrollbar-button {");
     expect(css).toContain("display: none;");
   });
 

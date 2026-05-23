@@ -12,7 +12,7 @@
   --radius-xl: 32px;
   --radius-lg: 24px;
   --radius-md: 18px;
-  --hero-panel-height: 560px;
+  --hero-panel-height: 600px;
   --mono: var(--font-mono, "SFMono-Regular"), Consolas, monospace;
   --display: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
   --body: "Segoe UI", "Helvetica Neue", sans-serif;
@@ -807,20 +807,22 @@ button {
 
 .hero-copy {
   background: linear-gradient(180deg, rgba(255, 250, 242, 0.92), rgba(248, 240, 228, 0.88));
-  padding: clamp(28px, 2.6vw, 36px);
+  padding: clamp(26px, 2.25vw, 32px);
   display: grid;
-  grid-template-rows: auto auto;
+  grid-template-rows: minmax(0, 1fr) auto;
+  justify-items: start;
   align-content: space-between;
-  gap: clamp(20px, 3vw, 34px);
+  gap: 16px;
   height: 100%;
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .hero-copy > div:first-child {
   display: grid;
   align-content: start;
-  gap: 14px;
+  gap: 12px;
+  width: min(100%, 580px);
   min-height: auto;
 }
 
@@ -852,36 +854,39 @@ button {
 }
 
 .hero-copy h1 {
-  font-size: clamp(3rem, 6vw, 5.25rem);
+  font-size: clamp(3rem, 5.4vw, 4.75rem);
   margin: 0;
   max-width: 10.5ch;
 }
 
 .hero-copy p {
   color: var(--muted);
-  font-size: 1rem;
-  line-height: 1.62;
+  font-size: 0.98rem;
+  line-height: 1.52;
   max-width: 48ch;
   margin: 0;
 }
 
 .hero-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, max-content) minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
   margin: 4px 0 0;
+  width: 100%;
 }
 
 .hero-url-form {
-  display: flex;
-  flex: 1 1 100%;
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 10px;
   min-width: 0;
+  width: 100%;
 }
 
 .hero-url-input {
-  min-width: min(100%, 280px);
-  flex: 1 1 320px;
+  min-width: 0;
   border-radius: 999px;
   padding-inline: 16px;
 }
@@ -908,7 +913,8 @@ button {
   background: var(--ink);
   color: #fff;
   border-radius: 999px;
-  padding: 14px 20px;
+  padding: 12px 18px;
+  white-space: nowrap;
 }
 
 .button-secondary {
@@ -916,15 +922,17 @@ button {
   color: var(--ink);
   border-color: var(--line);
   border-radius: 999px;
-  padding: 14px 20px;
+  padding: 12px 18px;
 }
 
 .support-strip {
   display: flex;
   flex-wrap: nowrap;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 7px;
+  width: min(100%, 580px);
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .support-pill,
@@ -939,8 +947,8 @@ button {
 .support-pill {
   flex: 0 1 auto;
   min-width: 0;
-  padding: 8px 11px;
-  font-size: clamp(0.72rem, 0.85vw, 0.86rem);
+  padding: 7px 10px;
+  font-size: clamp(0.68rem, 0.78vw, 0.78rem);
   line-height: 1;
   white-space: nowrap;
 }
@@ -971,15 +979,23 @@ button {
   height: 100%;
   min-height: 0;
   min-width: 0;
+  padding: 20px 10px 20px 22px;
   border-radius: var(--radius-xl);
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: var(--shadow);
   background:
     linear-gradient(140deg, rgba(23, 23, 26, 0.94), rgba(35, 35, 42, 0.94)),
     linear-gradient(180deg, rgba(210, 91, 49, 0.22), transparent);
-  padding: 22px;
-  overflow: auto;
+  overflow: hidden;
   backdrop-filter: blur(18px);
+}
+
+.preview-window-scroll {
+  height: 100%;
+  min-height: 0;
+  padding: 0 10px 0 0;
+  overflow: auto;
+  scrollbar-gutter: stable;
   scrollbar-width: thin;
   scrollbar-color: rgba(203, 225, 247, 0.88) rgba(10, 20, 34, 0.78);
 }
@@ -994,19 +1010,17 @@ button {
 
 .preview-window .markdown-body--compact {
   padding-right: 2px;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(203, 225, 247, 0.88) rgba(10, 20, 34, 0.78);
+  overflow: visible;
+  scrollbar-width: auto;
 }
 
-.preview-window::-webkit-scrollbar,
-.preview-window .markdown-body--compact::-webkit-scrollbar {
+.preview-window-scroll::-webkit-scrollbar {
   width: 12px;
   height: 12px;
   background: rgba(10, 20, 34, 0.78);
 }
 
-.preview-window::-webkit-scrollbar-track,
-.preview-window .markdown-body--compact::-webkit-scrollbar-track {
+.preview-window-scroll::-webkit-scrollbar-track {
   background:
     linear-gradient(180deg, rgba(11, 20, 33, 0.98), rgba(20, 35, 55, 0.94)),
     rgba(10, 20, 34, 0.9);
@@ -1014,8 +1028,7 @@ button {
   border: 1px solid rgba(167, 192, 220, 0.08);
 }
 
-.preview-window::-webkit-scrollbar-thumb,
-.preview-window .markdown-body--compact::-webkit-scrollbar-thumb {
+.preview-window-scroll::-webkit-scrollbar-thumb {
   border-radius: 999px;
   border: 2px solid rgba(10, 20, 34, 0.9);
   background:
@@ -1024,22 +1037,19 @@ button {
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
 }
 
-.preview-window::-webkit-scrollbar-thumb:hover,
-.preview-window .markdown-body--compact::-webkit-scrollbar-thumb:hover {
+.preview-window-scroll::-webkit-scrollbar-thumb:hover {
   background:
     linear-gradient(180deg, rgba(228, 239, 250, 0.98), rgba(184, 209, 232, 0.96)),
     rgba(205, 223, 241, 0.96);
 }
 
-.preview-window::-webkit-scrollbar-button,
-.preview-window .markdown-body--compact::-webkit-scrollbar-button {
+.preview-window-scroll::-webkit-scrollbar-button {
   display: none;
   width: 0;
   height: 0;
 }
 
-.preview-window::-webkit-scrollbar-corner,
-.preview-window .markdown-body--compact::-webkit-scrollbar-corner {
+.preview-window-scroll::-webkit-scrollbar-corner {
   background: rgba(10, 20, 34, 0.88);
 }
 
@@ -2581,15 +2591,14 @@ html[data-theme="night"] .workspace-editor-surface--stackedit .token.md-token--l
 }
 
 .markdown-body--compact {
-  height: 100%;
+  height: auto;
   align-content: start;
   gap: 0.72rem;
   color: rgba(244, 240, 233, 0.92);
   line-height: 1.45;
   font-size: 0.94rem;
   padding-right: 6px;
-  overflow: auto;
-  scrollbar-width: thin;
+  overflow: visible;
 }
 
 .markdown-body > * {
@@ -2634,7 +2643,7 @@ html[data-theme="night"] .workspace-editor-surface--stackedit .token.md-token--l
 }
 
 .markdown-body--compact h1 {
-  font-size: clamp(2rem, 3.2vw, 2.6rem);
+  font-size: clamp(1.9rem, 3vw, 2.4rem);
 }
 
 .markdown-body--compact h2 {
@@ -3191,7 +3200,11 @@ html[data-theme="night"] .workspace-editor-surface--stackedit .token.md-token--l
 
   .preview-window {
     min-height: 420px;
-    padding: 18px;
+    padding: 16px 8px 16px 18px;
+  }
+
+  .preview-window-scroll {
+    padding: 0 8px 0 0;
   }
 
   .site-footer__nav {
