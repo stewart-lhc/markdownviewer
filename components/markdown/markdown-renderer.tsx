@@ -1,7 +1,10 @@
 "use client";
 
+import { Children, isValidElement, memo, useMemo } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
+import rehypeHighlight from "rehype-highlight";
 import rehypeKatex from "rehype-katex";
 import rehypeSlug from "rehype-slug";
 import remarkBreaks from "remark-breaks";
@@ -12,37 +15,181 @@ import { MermaidBlock } from "@/components/markdown/mermaid-block";
 
 type MarkdownRendererProps = {
   markdown: string;
+  variant?: "default" | "compact";
 };
 
-export function MarkdownRenderer({ markdown }: MarkdownRendererProps) {
+type CodeElementProps = {
+  children?: ReactNode;
+  className?: string;
+};
+
+type NodePosition = {
+  end?: {
+    column?: number;
+    line?: number;
+  };
+  start?: {
+    column?: number;
+    line?: number;
+  };
+};
+
+type MarkdownNodeWithPosition = {
+  position?: NodePosition;
+};
+
+type HastNodeWithProperties = MarkdownNodeWithPosition & {
+  children?: HastNodeWithProperties[];
+  properties?: Record<string, unknown>;
+  tagName?: string;
+  type?: string;
+};
+
+const sourcePositionTags = new Set([
+  "blockquote",
+  "details",
+  "div",
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6",
+  "hr",
+  "li",
+  "ol",
+  "p",
+  "pre",
+  "table",
+  "ul"
+]);
+
+const remarkPlugins: ComponentProps<typeof ReactMarkdown>["remarkPlugins"] = [
+  remarkGfm,
+  remarkMath,
+  remarkBreaks
+];
+
+const rehypePlugins: ComponentProps<typeof ReactMarkdown>["rehypePlugins"] = [
+  rehypeSlug,
+  rehypeSourcePositions,
+  [rehypeAutolinkHeadings, { behavior: "append" }],
+  [rehypeHighlight, { detect: false, ignoreMissing: true }],
+  rehypeKatex
+];
+
+function serializeSourcePosition(position?: NodePosition) {
+  const startLine = position?.start?.line;
+  const startColumn = position?.start?.column;
+  const endLine = position?.end?.line;
+  const endColumn = position?.end?.column;
+
+  if (!startLine || !startColumn || !endLine || !endColumn) {
+    return undefined;
+  }
+
+  return `${startLine}:${startColumn}-${endLine}:${endColumn}`;
+}
+
+function readSourcePosition(node?: HastNodeWithProperties) {
+  const serializedFromProperties = node?.properties?.["data-sourcepos"] ?? node?.properties?.dataSourcepos;
+
+  if (typeof serializedFromProperties === "string" && serializedFromProperties.length > 0) {
+    return serializedFromProperties;
+  }
+
+  return serializeSourcePosition(node?.position);
+}
+
+function rehypeSourcePositions() {
+  return function annotateSourcePositions(tree: HastNodeWithProperties) {
+    function visit(node: HastNodeWithProperties) {
+      if (node.type === "element" && node.tagName && sourcePositionTags.has(node.tagName)) {
+        const sourcePosition = serializeSourcePosition(node.position);
+
+        if (sourcePosition) {
+          node.properties ??= {};
+          node.properties.dataSourcepos = sourcePosition;
+          node.properties["data-sourcepos"] = sourcePosition;
+        }
+      }
+
+      node.children?.forEach(visit);
+    }
+
+    visit(tree);
+  };
+}
+
+function getNodeText(node: ReactNode): string {
+  if (typeof node === "string" || typeof node === "number") {
+    return String(node);
+  }
+
+  if (Array.isArray(node)) {
+    return node.map(getNodeText).join("");
+  }
+
+  if (isValidElement<{ children?: ReactNode }>(node)) {
+    return getNodeText(node.props.children);
+  }
+
+  return "";
+}
+
+export const MarkdownRenderer = memo(function MarkdownRenderer({
+  markdown,
+  variant = "default"
+}: MarkdownRendererProps) {
+  const className =
+    variant === "compact" ? "markdown-body markdown-body--compact" : "markdown-body";
+  const components = useMemo<ComponentProps<typeof ReactMarkdown>["components"]>(
+    () => ({
+      pre({ children, node }) {
+        const [firstChild] = Children.toArray(children);
+        const sourcePosition = readSourcePosition(node as HastNodeWithProperties | undefined);
+
+        if (!isValidElement<CodeElementProps>(firstChild)) {
+          return <pre data-sourcepos={sourcePosition}>{children}</pre>;
+        }
+
+        const className = typeof firstChild.props.className === "string" ? firstChild.props.className : "";
+        const language = className
+          .split(" ")
+          .find((name: string) => name.startsWith("language-"))
+          ?.replace("language-", "") ?? "";
+        const code = getNodeText(firstChild.props.children).replace(/\n$/, "");
+
+        if (language === "mermaid") {
+          return <MermaidBlock chart={code} sourcePosition={sourcePosition} variant={variant} />;
+        }
+
+        if (language) {
+          return (
+            <CodeBlock className={className} code={code} language={language} sourcePosition={sourcePosition}>
+              {firstChild.props.children}
+            </CodeBlock>
+          );
+        }
+
+        return <pre data-sourcepos={sourcePosition}>{children}</pre>;
+      },
+      code({ children, className }) {
+        return <code className={className}>{children}</code>;
+      }
+    }),
+    [variant]
+  );
+
   return (
-    <div className="markdown-body">
+    <div className={className}>
       <ReactMarkdown
-        rehypePlugins={[
-          rehypeSlug,
-          [rehypeAutolinkHeadings, { behavior: "append" }],
-          rehypeKatex
-        ]}
-        remarkPlugins={[remarkGfm, remarkMath, remarkBreaks]}
-        components={{
-          code({ children, className }) {
-            const code = String(children).replace(/\n$/, "");
-            const language = className?.replace("language-", "") ?? "";
-
-            if (language === "mermaid") {
-              return <MermaidBlock chart={code} />;
-            }
-
-            if (language) {
-              return <CodeBlock code={code} language={language} />;
-            }
-
-            return <code>{children}</code>;
-          }
-        }}
+        components={components}
+        rehypePlugins={rehypePlugins}
+        remarkPlugins={remarkPlugins}
       >
         {markdown}
       </ReactMarkdown>
     </div>
   );
-}
+});

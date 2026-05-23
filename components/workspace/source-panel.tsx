@@ -1,80 +1,673 @@
+"use client";
+
+import {
+  type KeyboardEvent as ReactKeyboardEvent,
+  type MutableRefObject,
+  type RefObject,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState
+} from "react";
+import { applyMarkdownAction, type MarkdownEditorAction } from "@/lib/workspace/editor-actions";
+import { getEditorActionShortcutLabel, getEditorShortcutCommand } from "@/lib/workspace/editor-shortcuts";
+import {
+  bindStackeditEditor,
+  ensureStackeditTrailingLf,
+  getBoundStackeditEditor,
+  getStackeditEditorFactory,
+  getStackeditPrism,
+  unbindStackeditEditor,
+  makeStackeditMarkdownGrammar,
+  normalizeStackeditContent,
+  parseStackeditSections,
+  type StackeditEditor
+} from "@/lib/workspace/stackedit-cledit";
+
+export type SourcePanelMode = "paste" | "file" | "url";
+export type EditorPresentationMode = "rich" | "raw";
+
 type SourcePanelProps = {
+  editorPresentationMode: EditorPresentationMode;
+  editorRef?: RefObject<HTMLElement | null>;
   markdown: string;
-  sourceValue: string;
   visible: boolean;
+  onEditorPresentationModeChange: (mode: EditorPresentationMode) => void;
+  onEditorKeyboardNavigation?: (selectionStart: number, element: HTMLTextAreaElement | HTMLDivElement) => void;
+  onEditorSelectionChange?: (selectionStart: number) => void;
+  onEditorScroll?: (element: HTMLTextAreaElement | HTMLDivElement) => void;
   onMarkdownChange: (value: string) => void;
-  onSourceChange: (value: string) => void;
-  onParseSource: () => void;
-  onPasteIntoEditor: () => void;
-  onFileImport: (file: File) => void;
 };
 
+const editorActions: Array<{
+  action: MarkdownEditorAction;
+  ariaLabel: string;
+  icon: string;
+}> = [
+  { action: "bold", ariaLabel: "Bold", icon: "B" },
+  { action: "italic", ariaLabel: "Italic", icon: "I" },
+  { action: "heading", ariaLabel: "Heading", icon: "Tt" },
+  { action: "strike", ariaLabel: "Strikethrough", icon: "S" },
+  { action: "bulletList", ariaLabel: "Bulleted list", icon: "•" },
+  { action: "orderedList", ariaLabel: "Numbered list", icon: "1." },
+  { action: "taskList", ariaLabel: "Task list", icon: "☑" },
+  { action: "quote", ariaLabel: "Quote", icon: "❞" },
+  { action: "code", ariaLabel: "Code", icon: "</>" },
+  { action: "table", ariaLabel: "Table", icon: "▦" },
+  { action: "link", ariaLabel: "Link", icon: "∞" },
+  { action: "image", ariaLabel: "Image", icon: "▣" }
+];
+
+const editorToolButtonEstimateWidth = 40;
+const editorToolOverflowEstimateWidth = 40;
+
+function setEditorSurfaceRef(editorRef: SourcePanelProps["editorRef"], node: HTMLElement | null) {
+  if (!editorRef) {
+    return;
+  }
+
+  (editorRef as MutableRefObject<HTMLElement | null>).current = node;
+}
+
+function getRichEditorContentLength(editor: StackeditEditor) {
+  return Math.max(0, editor.getContent().length - 1);
+}
+
+const editorScrollSyncSuppressionKeys = new Set([
+  "ArrowUp",
+  "ArrowDown",
+  "ArrowLeft",
+  "ArrowRight",
+  "PageUp",
+  "PageDown",
+  "Home",
+  "End"
+]);
+
 export function SourcePanel({
+  editorPresentationMode,
+  editorRef,
   markdown,
-  sourceValue,
   visible,
-  onMarkdownChange,
-  onSourceChange,
-  onParseSource,
-  onPasteIntoEditor,
-  onFileImport
+  onEditorPresentationModeChange,
+  onEditorKeyboardNavigation,
+  onEditorSelectionChange,
+  onEditorScroll,
+  onMarkdownChange
 }: SourcePanelProps) {
+  const rawEditorRef = useRef<HTMLTextAreaElement | null>(null);
+  const richEditorRef = useRef<HTMLDivElement | null>(null);
+  const editorToolbarRef = useRef<HTMLDivElement | null>(null);
+  const editorToolsMenuRef = useRef<HTMLDivElement | null>(null);
+  const stackeditEditorRef = useRef<StackeditEditor | null>(null);
+  const latestMarkdownRef = useRef(markdown);
+  const lastSyncedEditorMarkdownRef = useRef(markdown);
+  const onEditorKeyboardNavigationRef = useRef(onEditorKeyboardNavigation);
+  const onEditorScrollRef = useRef(onEditorScroll);
+  const onEditorSelectionChangeRef = useRef(onEditorSelectionChange);
+  const onMarkdownChangeRef = useRef(onMarkdownChange);
+  const suppressEditorScrollSyncRef = useRef(false);
+  const suppressEditorScrollSyncTimerRef = useRef<number | null>(null);
+  const restoreWindowScrollFrameRef = useRef<number | null>(null);
+  const [editorToolsMenuOpen, setEditorToolsMenuOpen] = useState(false);
+  const [visibleEditorActionCount, setVisibleEditorActionCount] = useState(editorActions.length);
+  const visibleEditorActions = editorActions.slice(0, visibleEditorActionCount);
+  const overflowEditorActions = editorActions.slice(visibleEditorActionCount);
+
+  latestMarkdownRef.current = markdown;
+  onEditorKeyboardNavigationRef.current = onEditorKeyboardNavigation;
+  onEditorScrollRef.current = onEditorScroll;
+  onEditorSelectionChangeRef.current = onEditorSelectionChange;
+  onMarkdownChangeRef.current = onMarkdownChange;
+
+  useLayoutEffect(() => {
+    setEditorSurfaceRef(editorRef, editorPresentationMode === "rich" ? richEditorRef.current : rawEditorRef.current);
+  }, [editorPresentationMode, editorRef]);
+
+  useLayoutEffect(() => {
+    const toolbarElement = editorToolbarRef.current;
+
+    if (!toolbarElement) {
+      return;
+    }
+
+    const toolbarNode: HTMLDivElement = toolbarElement;
+
+    function updateVisibleEditorActions() {
+      const width = toolbarNode.clientWidth;
+
+      if (width <= 0) {
+        return;
+      }
+
+      const fullWidth = editorActions.length * editorToolButtonEstimateWidth;
+
+      if (width >= fullWidth) {
+        setVisibleEditorActionCount(editorActions.length);
+        return;
+      }
+
+      const nextVisibleCount = Math.max(
+        1,
+        Math.min(
+          editorActions.length - 1,
+          Math.floor((width - editorToolOverflowEstimateWidth) / editorToolButtonEstimateWidth)
+        )
+      );
+
+      setVisibleEditorActionCount(nextVisibleCount);
+    }
+
+    updateVisibleEditorActions();
+
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", updateVisibleEditorActions);
+
+      return () => {
+        window.removeEventListener("resize", updateVisibleEditorActions);
+      };
+    }
+
+    const observer = new ResizeObserver(updateVisibleEditorActions);
+    observer.observe(toolbarNode);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (overflowEditorActions.length === 0) {
+      setEditorToolsMenuOpen(false);
+    }
+  }, [overflowEditorActions.length]);
+
+  useEffect(() => {
+    function handlePointerDown(event: MouseEvent) {
+      if (editorToolsMenuRef.current && !editorToolsMenuRef.current.contains(event.target as Node)) {
+        setEditorToolsMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (editorPresentationMode !== "rich" || !richEditorRef.current) {
+      return;
+    }
+
+    let cancelled = false;
+    const surface = richEditorRef.current;
+    let removeSelectionSync: (() => void) | null = null;
+    let initTimer = 0;
+
+    function setupSelectionSync(editor: StackeditEditor) {
+      const syncSelection = () => {
+        const selection = window.getSelection();
+
+        if (!selection || selection.rangeCount === 0) {
+          return;
+        }
+
+        const anchorNode = selection.anchorNode;
+        const focusNode = selection.focusNode;
+
+        if (
+          (anchorNode && surface.contains(anchorNode)) ||
+          (focusNode && surface.contains(focusNode)) ||
+          document.activeElement === surface
+        ) {
+          editor.selectionMgr.saveSelectionState(true, false);
+          onEditorSelectionChangeRef.current?.(editor.selectionMgr.selectionStart);
+        }
+      };
+
+      const handleKeyup = () => {
+        syncSelection();
+      };
+
+      document.addEventListener("selectionchange", syncSelection);
+      surface.addEventListener("keyup", handleKeyup);
+
+      return () => {
+        document.removeEventListener("selectionchange", syncSelection);
+        surface.removeEventListener("keyup", handleKeyup);
+      };
+    }
+
+    initTimer = window.setTimeout(() => {
+      Promise.all([getStackeditEditorFactory(), getStackeditPrism()]).then(([cledit, Prism]) => {
+        if (cancelled || !richEditorRef.current || richEditorRef.current !== surface) {
+          return;
+        }
+
+        const existingEditor = getBoundStackeditEditor(surface);
+
+        if (existingEditor) {
+          stackeditEditorRef.current = existingEditor;
+          lastSyncedEditorMarkdownRef.current = normalizeStackeditContent(existingEditor.getContent());
+          existingEditor.toggleEditable(true);
+          removeSelectionSync = setupSelectionSync(existingEditor);
+          return;
+        }
+
+        const grammar = makeStackeditMarkdownGrammar();
+        const editor = cledit(surface, surface, true);
+
+        editor.on("contentChanged", (content: unknown) => {
+          const nextMarkdown = normalizeStackeditContent(String(content ?? ""));
+
+          if (nextMarkdown !== latestMarkdownRef.current) {
+            latestMarkdownRef.current = nextMarkdown;
+            lastSyncedEditorMarkdownRef.current = nextMarkdown;
+            onMarkdownChangeRef.current(nextMarkdown);
+          }
+
+          onEditorSelectionChangeRef.current?.(editor.selectionMgr.selectionStart);
+        });
+        lastSyncedEditorMarkdownRef.current = latestMarkdownRef.current;
+        editor.init({
+          content: ensureStackeditTrailingLf(latestMarkdownRef.current),
+          sectionHighlighter: (section: { text: string }) => Prism.highlight(section.text, grammar, "markdown"),
+          sectionParser: parseStackeditSections
+        });
+        stackeditEditorRef.current = editor;
+        bindStackeditEditor(surface, editor);
+        removeSelectionSync = setupSelectionSync(editor);
+        editor.toggleEditable(true);
+      });
+    }, 0);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(initTimer);
+      removeSelectionSync?.();
+
+      const currentEditor = stackeditEditorRef.current;
+
+      queueMicrotask(() => {
+        if (!surface.isConnected) {
+          unbindStackeditEditor(surface);
+
+          if (stackeditEditorRef.current === currentEditor) {
+            stackeditEditorRef.current = null;
+          }
+
+          if (typeof window !== "undefined" && typeof window.dispatchEvent === "function") {
+            window.dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));
+          }
+        }
+      });
+    };
+  }, [editorPresentationMode]);
+
+  useEffect(() => {
+    const editor = stackeditEditorRef.current;
+
+    if (editorPresentationMode !== "rich" || !editor) {
+      return;
+    }
+
+    if (lastSyncedEditorMarkdownRef.current === markdown) {
+      return;
+    }
+
+    const currentContent = normalizeStackeditContent(editor.getContent());
+
+    if (currentContent !== markdown) {
+      editor.setContent(ensureStackeditTrailingLf(markdown), true);
+    }
+
+    lastSyncedEditorMarkdownRef.current = markdown;
+  }, [editorPresentationMode, markdown]);
+
+  useEffect(() => {
+    return () => {
+      if (suppressEditorScrollSyncTimerRef.current !== null) {
+        window.clearTimeout(suppressEditorScrollSyncTimerRef.current);
+      }
+
+      if (restoreWindowScrollFrameRef.current !== null) {
+        window.cancelAnimationFrame(restoreWindowScrollFrameRef.current);
+      }
+    };
+  }, []);
+
+  function isPlainEditorScrollNavigation(event: ReactKeyboardEvent<HTMLElement>) {
+    return (
+      !event.altKey &&
+      !event.ctrlKey &&
+      !event.metaKey &&
+      editorScrollSyncSuppressionKeys.has(event.key)
+    );
+  }
+
+  function scheduleEditorScrollSyncSuppression() {
+    if (suppressEditorScrollSyncTimerRef.current !== null) {
+      window.clearTimeout(suppressEditorScrollSyncTimerRef.current);
+    }
+
+    suppressEditorScrollSyncRef.current = true;
+    suppressEditorScrollSyncTimerRef.current = window.setTimeout(() => {
+      suppressEditorScrollSyncRef.current = false;
+      suppressEditorScrollSyncTimerRef.current = null;
+    }, 250);
+  }
+
+  function preserveWindowScrollAfterNavigation(afterNavigation?: () => void) {
+    const scrollX = window.scrollX;
+    const scrollY = window.scrollY;
+
+    if (restoreWindowScrollFrameRef.current !== null) {
+      window.cancelAnimationFrame(restoreWindowScrollFrameRef.current);
+    }
+
+    restoreWindowScrollFrameRef.current = window.requestAnimationFrame(() => {
+      restoreWindowScrollFrameRef.current = null;
+
+      if (window.scrollX !== scrollX || window.scrollY !== scrollY) {
+        const rootStyle = document.documentElement.style;
+        const previousScrollBehavior = rootStyle.scrollBehavior;
+
+        rootStyle.scrollBehavior = "auto";
+        window.scrollTo(scrollX, scrollY);
+        rootStyle.scrollBehavior = previousScrollBehavior;
+      }
+
+      afterNavigation?.();
+    });
+  }
+
+  function handleRichEditorNavigation(editor: StackeditEditor, element: HTMLDivElement) {
+    const previousScrollTop = element.scrollTop;
+
+    preserveWindowScrollAfterNavigation(() => {
+      editor.selectionMgr.saveSelectionState(true, false);
+      onEditorSelectionChangeRef.current?.(editor.selectionMgr.selectionStart);
+
+      if (Math.abs(element.scrollTop - previousScrollTop) > 1) {
+        onEditorKeyboardNavigationRef.current?.(editor.selectionMgr.selectionStart, element);
+      }
+    });
+  }
+
+  function handleRawEditorNavigation(element: HTMLTextAreaElement) {
+    const previousScrollTop = element.scrollTop;
+
+    preserveWindowScrollAfterNavigation(() => {
+      onEditorSelectionChangeRef.current?.(element.selectionStart);
+
+      if (Math.abs(element.scrollTop - previousScrollTop) > 1) {
+        onEditorKeyboardNavigationRef.current?.(element.selectionStart, element);
+      }
+    });
+  }
+
+  function maybeHandleEditorScroll(element: HTMLTextAreaElement | HTMLDivElement) {
+    if (suppressEditorScrollSyncRef.current) {
+      return;
+    }
+
+    onEditorScrollRef.current?.(element);
+  }
+
+  function handleEditorAction(action: MarkdownEditorAction) {
+    setEditorToolsMenuOpen(false);
+
+    if (editorPresentationMode === "rich") {
+      const editor = stackeditEditorRef.current;
+
+      if (!editor) {
+        return;
+      }
+
+      const currentMarkdown = normalizeStackeditContent(editor.getContent());
+      const result = applyMarkdownAction(currentMarkdown, {
+        action,
+        selectionStart: editor.selectionMgr.selectionStart,
+        selectionEnd: editor.selectionMgr.selectionEnd
+      });
+
+      latestMarkdownRef.current = result.markdown;
+      lastSyncedEditorMarkdownRef.current = result.markdown;
+      editor.setContent(ensureStackeditTrailingLf(result.markdown), true);
+      editor.selectionMgr.setSelectionStartEnd(result.selectionStart, result.selectionEnd);
+      editor.focus();
+      onMarkdownChangeRef.current(result.markdown);
+      return;
+    }
+
+    const editor = rawEditorRef.current;
+    const result = applyMarkdownAction(markdown, {
+      action,
+      selectionStart: editor?.selectionStart ?? markdown.length,
+      selectionEnd: editor?.selectionEnd ?? markdown.length
+    });
+
+    onMarkdownChangeRef.current(result.markdown);
+
+    requestAnimationFrame(() => {
+      if (!rawEditorRef.current) {
+        return;
+      }
+
+      rawEditorRef.current.focus();
+      rawEditorRef.current.setSelectionRange(result.selectionStart, result.selectionEnd);
+    });
+  }
+
+  function handleRichEditorShortcut(event: ReactKeyboardEvent<HTMLDivElement>) {
+    const editor = stackeditEditorRef.current;
+
+    if (!editor || event.nativeEvent.isComposing) {
+      return;
+    }
+
+    if (isPlainEditorScrollNavigation(event)) {
+      event.stopPropagation();
+      scheduleEditorScrollSyncSuppression();
+      handleRichEditorNavigation(editor, event.currentTarget);
+    }
+
+    const command = getEditorShortcutCommand(event);
+
+    if (!command) {
+      return;
+    }
+
+    if (command.type === "history") {
+      event.preventDefault();
+      window.setTimeout(() => {
+        editor.focus();
+        if (command.direction === "undo") {
+          editor.undoMgr.undo();
+        } else {
+          editor.undoMgr.redo();
+        }
+      }, 10);
+      return;
+    }
+
+    if (command.type === "selectAll") {
+      event.preventDefault();
+      editor.focus();
+      editor.selectionMgr.setSelectionStartEnd(0, getRichEditorContentLength(editor));
+      return;
+    }
+
+    event.preventDefault();
+    editor.selectionMgr.saveSelectionState(true, false);
+    handleEditorAction(command.action);
+  }
+
+  function handleRawEditorShortcut(event: ReactKeyboardEvent<HTMLTextAreaElement>) {
+    if (event.nativeEvent.isComposing) {
+      return;
+    }
+
+    if (isPlainEditorScrollNavigation(event)) {
+      event.stopPropagation();
+      scheduleEditorScrollSyncSuppression();
+      handleRawEditorNavigation(event.currentTarget);
+    }
+
+    const command = getEditorShortcutCommand(event);
+
+    if (!command || command.type === "history") {
+      return;
+    }
+
+    if (command.type === "selectAll") {
+      event.preventDefault();
+      event.currentTarget.focus();
+      event.currentTarget.setSelectionRange(0, event.currentTarget.value.length);
+      return;
+    }
+
+    event.preventDefault();
+    handleEditorAction(command.action);
+  }
+
   return (
-    <section className="workspace-card" data-visible={visible} data-testid="source-panel">
-      <h2 className="panel-title">Drop markdown, paste text, or open a URL</h2>
-      <p className="panel-copy">
-        The first version keeps input direct: local files, pasted text, GitHub blobs, Gists,
-        and raw `.md` links all start from the same panel.
-      </p>
-      <div className="stack">
-        <input
-          aria-label="Markdown source URL"
-          className="input"
-          onChange={(event) => onSourceChange(event.currentTarget.value)}
-          placeholder="https://github.com/acme/repo/blob/main/README.md"
-          value={sourceValue}
-        />
-        <label className="sr-only" htmlFor="workspace-file-input">
-          Upload markdown file
-        </label>
-        <input
-          className="sr-only"
-          id="workspace-file-input"
-          onChange={(event) => {
-            const file = event.currentTarget.files?.[0];
-
-            if (file) {
-              onFileImport(file);
-            }
-
-            event.currentTarget.value = "";
-          }}
-          type="file"
-          accept=".md,.markdown,.mdx,.txt,text/markdown,text/plain"
-        />
-        <div className="chip-row">
-          <button
-            className="chip-button"
-            onClick={() => {
-              document.getElementById("workspace-file-input")?.click();
-            }}
-            type="button"
+    <section
+      className="workspace-card workspace-pane workspace-pane--editor"
+      data-editor-view={editorPresentationMode}
+      data-visible={visible}
+      data-testid="source-panel"
+    >
+      <div className="workspace-pane-header workspace-pane-header--editor">
+        <div className="source-pane-controls">
+          <div
+            className="workspace-editor-toolbar"
+            ref={editorToolbarRef}
+            role="toolbar"
+            aria-label="Markdown formatting"
           >
-            Drop file
-          </button>
-          <button className="chip-button" onClick={onPasteIntoEditor} type="button">
-            Paste Markdown
-          </button>
-          <button className="chip-button" onClick={onParseSource} type="button">
-            Parse URL
-          </button>
+            {visibleEditorActions.map((entry) => (
+              <button
+                aria-label={entry.ariaLabel}
+                className="editor-tool-button"
+                key={entry.action}
+                onClick={() => handleEditorAction(entry.action)}
+                onMouseDown={(event) => event.preventDefault()}
+                title={getEditorActionShortcutLabel(entry.action) ? `${entry.ariaLabel} (${getEditorActionShortcutLabel(entry.action)})` : entry.ariaLabel}
+                type="button"
+              >
+                <span aria-hidden="true">{entry.icon}</span>
+              </button>
+            ))}
+            {overflowEditorActions.length ? (
+              <div className="editor-tools-overflow" ref={editorToolsMenuRef}>
+                <button
+                  aria-expanded={editorToolsMenuOpen}
+                  aria-haspopup="menu"
+                  aria-label="More formatting tools"
+                  className="editor-tool-button editor-tool-button--overflow"
+                  onClick={() => setEditorToolsMenuOpen((open) => !open)}
+                  onMouseDown={(event) => event.preventDefault()}
+                  title="More formatting tools"
+                  type="button"
+                >
+                  <span aria-hidden="true">…</span>
+                </button>
+                {editorToolsMenuOpen ? (
+                  <div aria-label="More formatting tools" className="editor-tools-menu" role="menu">
+                    {overflowEditorActions.map((entry) => (
+                      <button
+                        className="editor-tools-menu-button"
+                        key={entry.action}
+                        onClick={() => handleEditorAction(entry.action)}
+                        role="menuitem"
+                        type="button"
+                      >
+                        <span aria-hidden="true" className="editor-tools-menu-icon">
+                          {entry.icon}
+                        </span>
+                        <span>{entry.ariaLabel}</span>
+                        {getEditorActionShortcutLabel(entry.action) ? (
+                          <span className="editor-tools-menu-shortcut">
+                            {getEditorActionShortcutLabel(entry.action)}
+                          </span>
+                        ) : null}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+          <div className="editor-mode-toggle" role="group" aria-label="Editor mode">
+            <button
+              className="editor-mode-button"
+              data-active={editorPresentationMode === "rich"}
+              onClick={() => onEditorPresentationModeChange("rich")}
+              type="button"
+            >
+              Rich
+            </button>
+            <button
+              className="editor-mode-button"
+              data-active={editorPresentationMode === "raw"}
+              onClick={() => onEditorPresentationModeChange("raw")}
+              type="button"
+            >
+              Raw
+            </button>
+          </div>
         </div>
-        <textarea
-          aria-label="Markdown editor"
-          className="textarea"
-          onChange={(event) => onMarkdownChange(event.currentTarget.value)}
-          value={markdown}
-        />
+      </div>
+      <div className="workspace-editor-shell" data-editor-view={editorPresentationMode}>
+        {editorPresentationMode === "rich" ? (
+          <div
+            aria-label="Markdown editor"
+            aria-multiline="true"
+            className="workspace-editor-surface workspace-editor-surface--stackedit"
+            data-testid="editor-rich-surface"
+            id="workspace-markdown-editor"
+            onKeyDown={handleRichEditorShortcut}
+            onScroll={(event) => maybeHandleEditorScroll(event.currentTarget)}
+            ref={(node) => {
+              richEditorRef.current = node;
+
+              if (editorPresentationMode === "rich") {
+                setEditorSurfaceRef(editorRef, node);
+              }
+            }}
+            role="textbox"
+            spellCheck={false}
+            tabIndex={0}
+          />
+        ) : (
+          <textarea
+            aria-label="Markdown editor"
+            className="textarea workspace-editor-input"
+            id="workspace-markdown-editor"
+            onChange={(event) => {
+              onMarkdownChangeRef.current(event.currentTarget.value);
+              onEditorSelectionChangeRef.current?.(event.currentTarget.selectionStart);
+            }}
+            onClick={(event) => onEditorSelectionChangeRef.current?.(event.currentTarget.selectionStart)}
+            onKeyDown={handleRawEditorShortcut}
+            onKeyUp={(event) => onEditorSelectionChangeRef.current?.(event.currentTarget.selectionStart)}
+            onScroll={(event) => maybeHandleEditorScroll(event.currentTarget)}
+            onSelect={(event) => onEditorSelectionChangeRef.current?.(event.currentTarget.selectionStart)}
+            placeholder="# Start writing"
+            ref={(node) => {
+              rawEditorRef.current = node;
+
+              if (editorPresentationMode === "raw") {
+                setEditorSurfaceRef(editorRef, node);
+              }
+            }}
+            spellCheck={false}
+            value={markdown}
+          />
+        )}
       </div>
     </section>
   );

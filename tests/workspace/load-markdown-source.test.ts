@@ -1,5 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import { loadMarkdownSource } from "@/lib/workspace/load-markdown-source";
+import {
+  loadMarkdownSource,
+  loadMarkdownSourceViaApi
+} from "@/lib/workspace/load-markdown-source";
 
 describe("loadMarkdownSource", () => {
   it("loads markdown text from normalized GitHub blob URLs", async () => {
@@ -38,5 +41,36 @@ describe("loadMarkdownSource", () => {
     expect(fetcher).toHaveBeenCalledWith("https://api.github.com/gists/123456");
     expect(result.markdown).toBe("# Gist content");
     expect(result.label).toBe("Gist import");
+  });
+
+  it("loads remote sources through the same-origin import api in the browser path", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        markdown: "# Imported through API",
+        label: "Remote source",
+        resolvedUrl: "https://example.com/readme.md"
+      })
+    });
+
+    const result = await loadMarkdownSourceViaApi("https://example.com/readme.md", fetcher);
+
+    expect(fetcher).toHaveBeenCalledWith(
+      "/api/import",
+      expect.objectContaining({
+        body: JSON.stringify({ source: "https://example.com/readme.md" }),
+        method: "POST"
+      })
+    );
+    expect(result.markdown).toBe("# Imported through API");
+  });
+
+  it("rejects private network urls before fetching", async () => {
+    const fetcher = vi.fn();
+
+    await expect(loadMarkdownSource("http://127.0.0.1/readme.md", fetcher)).rejects.toThrow(
+      /public HTTP\(S\) Markdown URLs/
+    );
+    expect(fetcher).not.toHaveBeenCalled();
   });
 });

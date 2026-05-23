@@ -8,7 +8,7 @@ describe("app shell", () => {
     expect(
       screen.getByRole("heading", {
         level: 1,
-        name: /open markdown like it deserves/i
+        name: /markdown viewer online/i
       })
     ).toBeInTheDocument();
   });

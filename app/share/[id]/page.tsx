@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { MarkdownRenderer } from "@/components/markdown/markdown-renderer";
 import { getSharedDocument } from "@/lib/share/mock-share-store";
@@ -5,6 +6,23 @@ import { getSharedDocument } from "@/lib/share/mock-share-store";
 type SharePageProps = {
   params: Promise<{ id: string }>;
 };
+
+export async function generateMetadata({ params }: SharePageProps): Promise<Metadata> {
+  const { id } = await params;
+  const document = getSharedDocument(id);
+
+  return {
+    title: document ? `${document.title} - Shared Markdown` : "Shared Markdown",
+    description: "A shared Markdown preview rendered by markdownviewer.run.",
+    alternates: {
+      canonical: `/share/${id}`
+    },
+    robots: {
+      index: false,
+      follow: false
+    }
+  };
+}
 
 export default async function SharePage({ params }: SharePageProps) {
   const { id } = await params;

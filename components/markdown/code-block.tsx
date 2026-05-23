@@ -1,13 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useState } from "react";
+import type { ReactNode } from "react";
 
 type CodeBlockProps = {
+  children: ReactNode;
+  className?: string;
   code: string;
   language: string;
+  sourcePosition?: string;
 };
 
-export function CodeBlock({ code, language }: CodeBlockProps) {
+export const CodeBlock = memo(function CodeBlock({ children, className, code, language, sourcePosition }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
 
   async function handleCopy() {
@@ -21,7 +25,7 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
   }
 
   return (
-    <div className="code-frame">
+    <div className="code-frame" data-sourcepos={sourcePosition}>
       <div className="code-toolbar">
         <span>{language}</span>
         <button
@@ -34,8 +38,8 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
         </button>
       </div>
       <pre>
-        <code>{code}</code>
+        <code className={className}>{children}</code>
       </pre>
     </div>
   );
-}
+});

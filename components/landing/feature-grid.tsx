@@ -1,19 +1,19 @@
 const features = [
   {
-    title: "Reader-first",
-    description: "Editorial typography, balanced spacing, and calm controls that stay out of the way."
+    title: "Live preview",
+    description: "Edit or paste Markdown and watch the rendered document update in the workspace."
   },
   {
     title: "Technical-ready",
-    description: "Code fences, tables, math, and Mermaid stay readable instead of collapsing into plain text."
+    description: "Code fences, tables, KaTeX math, and Mermaid diagrams stay readable instead of collapsing into plain text."
   },
   {
     title: "Fast import",
-    description: "Open local files, pasted Markdown, GitHub blobs, Gists, and raw URLs from the same surface."
+    description: "Open local files, pasted Markdown, GitHub content, Gists, and raw URLs from the same surface."
   },
   {
-    title: "Shareable output",
-    description: "The workspace is designed to feed clean public pages and export flows without a docs-site setup."
+    title: "README friendly",
+    description: "Preview README.md files, changelogs, API docs, and AI-generated Markdown without a docs-site setup."
   }
 ];
 

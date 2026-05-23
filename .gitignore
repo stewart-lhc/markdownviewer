@@ -1,3 +1,9 @@
 .vercel
 .next
 node_modules
+*.tsbuildinfo
+.codex/
+.codex-temp/
+.playwright-mcp/
+.codex-*.png
+test-results/

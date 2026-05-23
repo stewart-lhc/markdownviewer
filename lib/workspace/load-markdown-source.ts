@@ -1,4 +1,8 @@
-import { detectSourceType, normalizeSourceInput } from "@/lib/workspace/source-parser";
+import {
+  detectSourceType,
+  isAllowedRemoteUrl,
+  normalizeSourceInput
+} from "@/lib/workspace/source-parser";
 
 export type LoadedMarkdownSource = {
   markdown: string;
@@ -8,8 +12,52 @@ export type LoadedMarkdownSource = {
 
 type Fetcher = typeof fetch;
 
+export const maxImportedMarkdownCharacters = 2_000_000;
+
+const importApiPath = "/api/import";
+
 function isMarkdownLikeFile(filename: string) {
   return /\.(md|markdown|mdx|txt)$/i.test(filename);
+}
+
+function assertRemoteUrlAllowed(value: string) {
+  if (!isAllowedRemoteUrl(value)) {
+    throw new Error("Only public HTTP(S) Markdown URLs can be imported.");
+  }
+}
+
+function assertMarkdownSize(markdown: string) {
+  if (markdown.length > maxImportedMarkdownCharacters) {
+    throw new Error("The requested Markdown file is too large to import.");
+  }
+}
+
+async function readMarkdownResponse(response: Response) {
+  const contentLength = response.headers?.get("content-length");
+
+  if (contentLength && Number.parseInt(contentLength, 10) > maxImportedMarkdownCharacters) {
+    throw new Error("The requested Markdown file is too large to import.");
+  }
+
+  const markdown = await response.text();
+
+  assertMarkdownSize(markdown);
+
+  return markdown;
+}
+
+async function readImportError(response: Response) {
+  try {
+    const payload = (await response.json()) as { error?: string };
+
+    if (payload.error) {
+      return payload.error;
+    }
+  } catch {
+    // Fall through to the generic error below.
+  }
+
+  return "Failed to import the requested Markdown source.";
 }
 
 export async function loadMarkdownSource(
@@ -33,6 +81,8 @@ export async function loadMarkdownSource(
       throw new Error("Could not parse the Gist URL.");
     }
 
+    assertRemoteUrlAllowed(`https://api.github.com/gists/${gistId}`);
+
     const response = await fetcher(`https://api.github.com/gists/${gistId}`);
 
     if (!response.ok) {
@@ -50,6 +100,8 @@ export async function loadMarkdownSource(
       throw new Error("The Gist did not contain readable Markdown content.");
     }
 
+    assertMarkdownSize(preferred.content);
+
     return {
       markdown: preferred.content,
       label: "Gist import"
@@ -60,6 +112,8 @@ export async function loadMarkdownSource(
     throw new Error("Could not resolve the requested Markdown source.");
   }
 
+  assertRemoteUrlAllowed(normalized.resolvedUrl);
+
   const response = await fetcher(normalized.resolvedUrl);
 
   if (!response.ok) {
@@ -67,8 +121,31 @@ export async function loadMarkdownSource(
   }
 
   return {
-    markdown: await response.text(),
+    markdown: await readMarkdownResponse(response),
     label: type === "github" ? "GitHub source" : "Remote source",
     resolvedUrl: normalized.resolvedUrl
   };
+}
+
+export async function loadMarkdownSourceViaApi(
+  input: string,
+  fetcher: Fetcher = fetch
+): Promise<LoadedMarkdownSource> {
+  if (detectSourceType(input) === "markdown") {
+    return loadMarkdownSource(input, fetcher);
+  }
+
+  const response = await fetcher(importApiPath, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json"
+    },
+    body: JSON.stringify({ source: input })
+  });
+
+  if (!response.ok) {
+    throw new Error(await readImportError(response));
+  }
+
+  return (await response.json()) as LoadedMarkdownSource;
 }

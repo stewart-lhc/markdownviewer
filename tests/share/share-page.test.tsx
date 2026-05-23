@@ -9,7 +9,7 @@ describe("share page", () => {
 
     render(page);
 
-    expect(screen.getByRole("heading", { level: 1, name: /starter handbook/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: /markdown feature atlas/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /open in workspace/i })).toHaveAttribute(
       "href",
       "/workspace?share=starter-doc"

@@ -10,12 +10,12 @@ type SharedDocument = {
 const documents: Record<string, SharedDocument> = {
   "starter-doc": {
     id: "starter-doc",
-    title: "Starter Handbook",
+    title: "Markdown Feature Atlas",
     markdown: starterDocument
   },
   starter: {
     id: "starter",
-    title: "Starter Handbook",
+    title: "Markdown Feature Atlas",
     markdown: starterDocument
   }
 };

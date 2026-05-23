@@ -1,4 +1,4 @@
-const sources = ["Local files", "GitHub", "Gist", "Raw URLs", "Pasted Markdown"];
+const sources = ["Local files", "GitHub", "Gist", "Raw URLs", "Pasted Markdown", "AI output"];
 
 export function SourceStrip() {
   return (

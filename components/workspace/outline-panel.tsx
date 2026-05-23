@@ -1,25 +1,122 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
 import { ExtractedHeading } from "@/lib/markdown/extract-headings";
 
 type OutlinePanelProps = {
   headings: ExtractedHeading[];
+  documentTitle: string;
+  open: boolean;
+  onNavigate: (id: string) => void;
+  onToggle: () => void;
 };
 
-export function OutlinePanel({ headings }: OutlinePanelProps) {
+export function OutlinePanel({ headings, documentTitle, onNavigate, onToggle, open }: OutlinePanelProps) {
+  const [activeId, setActiveId] = useState<string | null>(headings[0]?.id ?? null);
+  const hasHeadings = headings.length > 0;
+  const headingIds = useMemo(() => headings.map((heading) => heading.id), [headings]);
+
+  useEffect(() => {
+    if (!hasHeadings) {
+      return;
+    }
+
+    setActiveId((current) => current ?? headings[0]?.id ?? null);
+  }, [hasHeadings, headings]);
+
+  useEffect(() => {
+    if (!hasHeadings || typeof window === "undefined") {
+      return;
+    }
+
+    function syncFromHash() {
+      const nextId = window.location.hash.replace(/^#/, "");
+
+      if (nextId && headingIds.includes(nextId)) {
+        setActiveId(nextId);
+      }
+    }
+
+    syncFromHash();
+    window.addEventListener("hashchange", syncFromHash);
+
+    return () => {
+      window.removeEventListener("hashchange", syncFromHash);
+    };
+  }, [hasHeadings, headingIds]);
+
+  useEffect(() => {
+    if (!hasHeadings || typeof window === "undefined" || typeof IntersectionObserver === "undefined") {
+      return;
+    }
+
+    const elements = headingIds
+      .map((id) => document.getElementById(id))
+      .filter((element): element is HTMLElement => Boolean(element));
+
+    if (elements.length === 0) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+        if (visible?.target.id) {
+          setActiveId(visible.target.id);
+        }
+      },
+      {
+        root: document.querySelector("[data-testid='preview-scroll-region']"),
+        rootMargin: "-15% 0px -65% 0px",
+        threshold: [0.1, 0.4, 0.8]
+      }
+    );
+
+    elements.forEach((element) => observer.observe(element));
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [hasHeadings, headingIds]);
+
+  if (!hasHeadings) {
+    return null;
+  }
+
   return (
-    <aside className="workspace-card">
-      <h2 className="panel-title">Document outline</h2>
-      <div className="outline-list">
-        {headings.map((heading) => (
-          <a
-            className="outline-item"
-            data-depth={heading.depth}
-            href={`#${heading.id}`}
-            key={`${heading.id}-${heading.depth}`}
-          >
-            {heading.text}
-          </a>
-        ))}
-      </div>
-    </aside>
+    <div className="workspace-toc" data-open={open} data-testid="floating-toc">
+      <button
+        aria-expanded={open}
+        aria-label={open ? "Close contents" : "Contents"}
+        className="workspace-toc-trigger"
+        onClick={onToggle}
+        type="button"
+      >
+        {open ? "Close" : "Contents"}
+      </button>
+      <aside aria-hidden={!open} className="workspace-toc-panel" aria-label="Contents">
+        <div className="workspace-toc-title">{documentTitle}</div>
+        <div className="outline-list">
+          {headings.map((heading) => (
+            <button
+              aria-current={activeId === heading.id ? "location" : undefined}
+              className="outline-item"
+              data-depth={heading.depth}
+              key={`${heading.id}-${heading.depth}`}
+              onClick={() => {
+                setActiveId(heading.id);
+                onNavigate(heading.id);
+              }}
+              type="button"
+            >
+              {heading.text}
+            </button>
+          ))}
+        </div>
+      </aside>
+    </div>
   );
 }
