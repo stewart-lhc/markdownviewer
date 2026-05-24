@@ -3,10 +3,13 @@ import { IBM_Plex_Mono } from "next/font/google";
 import type { ReactNode } from "react";
 import "@/app/globals.css";
 import "katex/dist/katex.min.css";
+import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 
 const siteUrl = "https://markdownviewer.run";
 const siteDescription =
   "Free online Markdown viewer with live preview for README.md, GitHub Flavored Markdown, Mermaid diagrams, KaTeX math, code blocks, and raw URLs.";
+const googleSiteVerification = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION;
+const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
 const mono = IBM_Plex_Mono({
   display: "swap",
@@ -51,6 +54,13 @@ export const metadata: Metadata = {
     title: "Markdown Viewer Online - Live Preview",
     description: siteDescription
   },
+  ...(googleSiteVerification
+    ? {
+        verification: {
+          google: googleSiteVerification
+        }
+      }
+    : {}),
   robots: {
     index: true,
     follow: true
@@ -64,7 +74,10 @@ type RootLayoutProps = {
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en">
-      <body className={mono.variable}>{children}</body>
+      <body className={mono.variable}>
+        {children}
+        <GoogleAnalytics measurementId={gaMeasurementId} />
+      </body>
     </html>
   );
 }

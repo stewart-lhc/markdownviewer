@@ -1,6 +1,7 @@
 .vercel
 .next
 node_modules
+.env*.local
 *.tsbuildinfo
 .codex/
 .codex-temp/
