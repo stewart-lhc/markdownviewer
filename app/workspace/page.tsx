@@ -26,9 +26,14 @@ type WorkspacePageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
+function takeFirst(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
 export default async function WorkspacePage({ searchParams }: WorkspacePageProps) {
   const resolvedParams = await searchParams;
   const initialDocument = await resolveInitialWorkspaceDocument(resolvedParams);
+  const hasExplicitDocument = Boolean(takeFirst(resolvedParams.share) || takeFirst(resolvedParams.source));
 
   return (
     <main>
@@ -36,6 +41,7 @@ export default async function WorkspacePage({ searchParams }: WorkspacePageProps
         initialStatusMessage={initialDocument.statusMessage}
         markdown={initialDocument.markdown}
         sourceInput={initialDocument.sourceInput}
+        tabRestoreStrategy={hasExplicitDocument ? "merge" : "restore"}
       />
     </main>
   );

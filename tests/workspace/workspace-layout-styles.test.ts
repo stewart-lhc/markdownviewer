@@ -7,7 +7,7 @@ describe("workspace core canvas styles", () => {
   it("uses a resizable split layout without a dedicated outline column", () => {
     expect(css).toContain('.workspace-grid[data-mode="split"] {');
     expect(css).toContain("minmax(280px, var(--workspace-editor-fr, 1fr))");
-    expect(css).toContain("10px");
+    expect(css).toContain("6px");
     expect(css).toContain("minmax(280px, var(--workspace-preview-fr, 1fr));");
     expect(css).toContain(".workspace-split-resizer {");
     expect(css).toContain("cursor: col-resize;");
@@ -15,8 +15,18 @@ describe("workspace core canvas styles", () => {
   });
 
   it("locks the workspace into an app-like fixed-height shell with matched panes", () => {
+    expect(css).toContain(".workspace-tabs-rail {");
+    expect(css).toContain("grid-template-columns: 190px minmax(0, 1fr);");
+    expect(css).toContain(".workspace-page[data-tabs-collapsed=\"true\"] {");
+    expect(css).toContain("grid-template-columns: minmax(0, 1fr);");
     expect(css).toContain(".workspace-shell-card {");
-    expect(css).toContain("height: calc(100vh - 36px);");
+    expect(css).toContain("position: relative;");
+    expect(css).toContain("height: calc(100vh - 16px);");
+    expect(css).toContain(".workspace-tabs-list {");
+    expect(css).toContain(".workspace-tab-row[data-active=\"true\"] {");
+    expect(css).toContain(".workspace-tabs-toggle-button {");
+    expect(css).toContain("top: 50%;");
+    expect(css).toContain("left: -2px;");
     expect(css).toContain(".workspace-pane {");
     expect(css).toContain("height: 100%;");
   });
@@ -27,11 +37,13 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain(".workspace-editor-surface {");
     expect(css).toContain(".toolbar-cluster--imports {");
     expect(css).toContain(".workspace-pane-header {");
-    expect(css).toContain("min-height: 42px;");
+    expect(css).toContain("min-height: 38px;");
     expect(css).toContain(".workspace-pane-header--editor {");
     expect(css).toContain(".workspace-pane-header--preview {");
     expect(css).toContain("justify-content: space-between;");
     expect(css).toContain("align-items: center;");
+    expect(css).toContain(".workspace-header-title {");
+    expect(css).toContain("justify-self: center;");
     expect(css).toContain(".workspace-preview-template .theme-menu {");
     expect(css).toContain("left: 0;");
     expect(css).toContain(".workspace-preview-header-controls {");

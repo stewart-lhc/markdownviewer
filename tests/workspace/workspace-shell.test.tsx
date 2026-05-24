@@ -7,6 +7,8 @@ import { getBoundStackeditEditor } from "@/lib/workspace/stackedit-cledit";
 import { serializeRichEditorSurface } from "@/lib/workspace/rich-editor-surface";
 import { pendingWorkspaceImportKey } from "@/lib/workspace/pending-import";
 
+const workspaceTabsStorageKey = "markdownviewer.workspace.tabs.v1";
+
 function getStackeditEditor(richEditor: HTMLElement) {
   const editor = getBoundStackeditEditor(richEditor);
 
@@ -25,6 +27,9 @@ describe("WorkspaceShell interactions", () => {
   it("defaults to split mode, renders a syntax-visible rich editor, and updates the live preview while editing", async () => {
     render(<WorkspaceShell markdown="# First draft" sourceInput="" />);
 
+    expect(screen.getByRole("tablist", { name: /open tabs/i })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /first draft/i })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("button", { name: /new tab/i })).toBeInTheDocument();
     const sourcePanel = screen.getByTestId("source-panel");
     const richEditor = screen.getByTestId("editor-rich-surface");
 
@@ -69,6 +74,127 @@ describe("WorkspaceShell interactions", () => {
         })
       ).toBeInTheDocument();
     }, { timeout: 10000 });
+  });
+
+  it("lets the user create and switch workspace tabs without losing each tab's document", async () => {
+    const user = userEvent.setup();
+
+    render(<WorkspaceShell markdown="# First draft" sourceInput="" />);
+
+    await user.click(screen.getByRole("button", { name: /new tab/i }));
+
+    expect(screen.getByRole("tab", { name: /untitled document/i })).toHaveAttribute("aria-selected", "true");
+    expect(screen.queryByRole("heading", { level: 1, name: "First draft" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("tab", { name: /first draft/i }));
+
+    expect(screen.getByRole("tab", { name: /first draft/i })).toHaveAttribute("aria-selected", "true");
+    expect(
+      within(screen.getByTestId("preview-panel")).getByRole("heading", {
+        level: 1,
+        name: "First draft"
+      })
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole("tab", { name: /untitled document/i }));
+
+    expect(screen.getByRole("tab", { name: /untitled document/i })).toHaveAttribute("aria-selected", "true");
+  });
+
+  it("collapses the tabs sidebar and keeps the active tab title centered in the workspace header", async () => {
+    const user = userEvent.setup();
+
+    const { container } = render(<WorkspaceShell markdown="# First draft" sourceInput="" />);
+
+    expect(screen.getByText("First draft", { selector: ".workspace-header-title" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /collapse tabs sidebar/i }));
+
+    expect(screen.getByText("First draft", { selector: ".workspace-header-title" })).toBeInTheDocument();
+    expect(container.querySelector(".workspace-tabs-rail")).toBeNull();
+    expect(container.querySelector(".workspace-page")).toHaveAttribute("data-tabs-collapsed", "true");
+    expect(screen.queryByRole("tablist", { name: /open tabs/i })).not.toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(window.localStorage.getItem("markdownviewer.workspace.tabs.collapsed")).toBe("true");
+    });
+
+    await user.click(screen.getByRole("button", { name: /expand tabs sidebar/i }));
+
+    expect(screen.getByRole("tablist", { name: /open tabs/i })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(window.localStorage.getItem("markdownviewer.workspace.tabs.collapsed")).toBe("false");
+    });
+  });
+
+  it("restores persisted workspace tabs from browser storage", async () => {
+    window.localStorage.setItem(
+      workspaceTabsStorageKey,
+      JSON.stringify({
+        version: 1,
+        activeTabId: "tab-beta",
+        tabs: [
+          {
+            createdAt: 1,
+            id: "tab-alpha",
+            markdown: "# Persisted alpha",
+            sourceInput: "",
+            updatedAt: 1
+          },
+          {
+            createdAt: 2,
+            id: "tab-beta",
+            markdown: "# Persisted beta",
+            sourceInput: "https://example.com/beta.md",
+            updatedAt: 2
+          }
+        ]
+      })
+    );
+
+    render(<WorkspaceShell markdown="# Starter" sourceInput="" />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("tab", { name: /persisted beta/i })).toHaveAttribute("aria-selected", "true");
+    });
+
+    expect(screen.getByRole("tab", { name: /persisted alpha/i })).toBeInTheDocument();
+    expect(screen.getAllByText("example.com")).toHaveLength(2);
+    expect(
+      within(screen.getByTestId("preview-panel")).getByRole("heading", {
+        level: 1,
+        name: "Persisted beta"
+      })
+    ).toBeInTheDocument();
+  });
+
+  it("persists open workspace tabs before the page is hidden", async () => {
+    const user = userEvent.setup();
+
+    render(<WorkspaceShell markdown="# First draft" sourceInput="" />);
+
+    await user.click(screen.getByRole("button", { name: /new tab/i }));
+    await waitFor(() => {
+      expect(screen.getByRole("tab", { name: /untitled document/i })).toHaveAttribute("aria-selected", "true");
+    });
+
+    window.dispatchEvent(new Event("pagehide"));
+
+    const storedTabs = JSON.parse(window.localStorage.getItem(workspaceTabsStorageKey) ?? "{}");
+
+    expect(storedTabs.activeTabId).toEqual(expect.stringMatching(/^workspace-tab-/));
+    expect(storedTabs.tabs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          markdown: "# First draft",
+          sourceInput: ""
+        }),
+        expect.objectContaining({
+          markdown: "",
+          sourceInput: ""
+        })
+      ])
+    );
   });
 
   it("lets the user resize editor and preview panes in split mode", async () => {
@@ -723,7 +849,7 @@ describe("WorkspaceShell interactions", () => {
         ).toBeInTheDocument();
       });
 
-      expect(screen.getByTitle("Homepage file")).toBeInTheDocument();
+      expect(screen.getByRole("tab", { name: /homepage file/i })).toHaveAttribute("aria-selected", "true");
       expect(window.localStorage.getItem(pendingWorkspaceImportKey)).toBeNull();
     } finally {
       window.history.pushState(null, "", "/");

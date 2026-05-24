@@ -38,6 +38,22 @@ type WorkspaceShellProps = {
   mode?: WorkspaceMode;
   initialStatusMessage?: string;
   loadSource?: (input: string) => Promise<LoadedMarkdownSource>;
+  tabRestoreStrategy?: WorkspaceTabRestoreStrategy;
+};
+
+type WorkspaceTabRestoreStrategy = "restore" | "merge";
+
+type WorkspaceTab = {
+  createdAt: number;
+  id: string;
+  markdown: string;
+  sourceInput: string;
+  updatedAt: number;
+};
+
+type StoredWorkspaceTabs = {
+  activeTabId: string;
+  tabs: WorkspaceTab[];
 };
 
 type PreviewSourcePositionTarget = {
@@ -55,6 +71,11 @@ const workspaceDraftStorageKey = "markdownviewer.workspace.current";
 const workspacePreviewFontStorageKey = "markdownviewer.workspace.preview.font";
 const workspacePreviewFontSizeStorageKey = "markdownviewer.workspace.preview.fontSize";
 const workspaceSplitStorageKey = "markdownviewer.workspace.split";
+const workspaceTabsCollapsedStorageKey = "markdownviewer.workspace.tabs.collapsed";
+const workspaceTabsStorageKey = "markdownviewer.workspace.tabs.v1";
+const workspaceTabsStorageVersion = 1;
+const initialWorkspaceTabId = "workspace-tab-initial";
+const maxStoredWorkspaceTabs = 24;
 const splitMinPercent = 28;
 const splitMaxPercent = 72;
 const defaultPreviewFont: WorkspacePreviewFont = "system";
@@ -90,6 +111,157 @@ function deriveDocumentTitle(markdown: string, sourceInput: string, headings: Re
   const firstLine = markdown.split("\n").find((line) => line.trim().length > 0);
 
   return firstLine ? firstLine.replace(/^#+\s*/, "").trim() : "Untitled document";
+}
+
+function createWorkspaceTabId() {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return `workspace-tab-${crypto.randomUUID()}`;
+  }
+
+  return `workspace-tab-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function createWorkspaceTab(markdown = "", sourceInput = "", id = createWorkspaceTabId()): WorkspaceTab {
+  const now = Date.now();
+
+  return {
+    createdAt: now,
+    id,
+    markdown,
+    sourceInput,
+    updatedAt: now
+  };
+}
+
+function createInitialWorkspaceTab(markdown: string, sourceInput: string) {
+  return createWorkspaceTab(markdown, sourceInput, initialWorkspaceTabId);
+}
+
+function normalizeStoredWorkspaceTab(value: unknown, index: number): WorkspaceTab | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const record = value as Record<string, unknown>;
+  const markdown = typeof record.markdown === "string" ? record.markdown : null;
+
+  if (markdown === null) {
+    return null;
+  }
+
+  const id = typeof record.id === "string" && record.id ? record.id : `stored-workspace-tab-${index + 1}`;
+  const sourceInput = typeof record.sourceInput === "string" ? record.sourceInput : "";
+  const createdAt = typeof record.createdAt === "number" && Number.isFinite(record.createdAt)
+    ? record.createdAt
+    : Date.now();
+  const updatedAt = typeof record.updatedAt === "number" && Number.isFinite(record.updatedAt)
+    ? record.updatedAt
+    : createdAt;
+
+  return {
+    createdAt,
+    id,
+    markdown,
+    sourceInput,
+    updatedAt
+  };
+}
+
+function parseStoredWorkspaceTabs(value: string | null): StoredWorkspaceTabs | null {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(value) as Record<string, unknown>;
+    const rawTabs = Array.isArray(parsed.tabs) ? parsed.tabs : [];
+    const seenIds = new Set<string>();
+    const tabs = rawTabs
+      .map((tab, index) => normalizeStoredWorkspaceTab(tab, index))
+      .filter((tab): tab is WorkspaceTab => Boolean(tab))
+      .map((tab, index) => {
+        if (!seenIds.has(tab.id)) {
+          seenIds.add(tab.id);
+          return tab;
+        }
+
+        const dedupedId = `${tab.id}-${index + 1}`;
+        seenIds.add(dedupedId);
+        return {
+          ...tab,
+          id: dedupedId
+        };
+      })
+      .slice(0, maxStoredWorkspaceTabs);
+
+    if (tabs.length === 0) {
+      return null;
+    }
+
+    const activeTabId =
+      typeof parsed.activeTabId === "string" && tabs.some((tab) => tab.id === parsed.activeTabId)
+        ? parsed.activeTabId
+        : tabs[0].id;
+
+    return {
+      activeTabId,
+      tabs
+    };
+  } catch {
+    return null;
+  }
+}
+
+function readStoredWorkspaceTabs() {
+  return parseStoredWorkspaceTabs(window.localStorage.getItem(workspaceTabsStorageKey));
+}
+
+function getActiveWorkspaceTabsSnapshot(
+  tabs: WorkspaceTab[],
+  activeTabId: string,
+  markdown: string,
+  sourceInput: string
+) {
+  return tabs.map((tab) => {
+    if (tab.id !== activeTabId) {
+      return tab;
+    }
+
+    return {
+      ...tab,
+      markdown,
+      sourceInput,
+      updatedAt: Date.now()
+    };
+  });
+}
+
+function writeStoredWorkspaceTabs(tabs: WorkspaceTab[], activeTabId: string) {
+  const normalizedTabs = tabs.slice(0, maxStoredWorkspaceTabs);
+  const normalizedActiveTabId = normalizedTabs.some((tab) => tab.id === activeTabId)
+    ? activeTabId
+    : normalizedTabs[0]?.id;
+
+  if (!normalizedActiveTabId) {
+    return;
+  }
+
+  window.localStorage.setItem(
+    workspaceTabsStorageKey,
+    JSON.stringify({
+      version: workspaceTabsStorageVersion,
+      activeTabId: normalizedActiveTabId,
+      tabs: normalizedTabs
+    })
+  );
+}
+
+function getWorkspaceTabTitle(tab: Pick<WorkspaceTab, "markdown" | "sourceInput">) {
+  return deriveDocumentTitle(tab.markdown, tab.sourceInput, extractHeadings(tab.markdown));
+}
+
+function getWorkspaceTabSourceLabel(tab: Pick<WorkspaceTab, "sourceInput">) {
+  return describeSource(tab.sourceInput) ?? "Local draft";
 }
 
 function describeSource(sourceInput: string) {
@@ -251,8 +423,11 @@ export function WorkspaceShell({
   markdown,
   mode = "split",
   initialStatusMessage,
-  loadSource = loadMarkdownSourceViaApi
+  loadSource = loadMarkdownSourceViaApi,
+  tabRestoreStrategy = "restore"
 }: WorkspaceShellProps) {
+  const [tabs, setTabs] = useState<WorkspaceTab[]>(() => [createInitialWorkspaceTab(markdown, sourceInput)]);
+  const [activeTabId, setActiveTabId] = useState(initialWorkspaceTabId);
   const [currentMarkdown, setCurrentMarkdown] = useState(markdown);
   const [currentSource, setCurrentSource] = useState(sourceInput);
   const [currentMode, setCurrentMode] = useState<WorkspaceMode>(mode);
@@ -264,6 +439,8 @@ export function WorkspaceShell({
   const [previewFontSize, setPreviewFontSize] = useState(defaultPreviewFontSize);
   const [splitEditorPercent, setSplitEditorPercent] = useState(50);
   const [splitResizing, setSplitResizing] = useState(false);
+  const [tabsCollapsed, setTabsCollapsed] = useState(false);
+  const [tabsStorageReady, setTabsStorageReady] = useState(false);
   const [tocOpen, setTocOpen] = useState(false);
   const gridRef = useRef<HTMLDivElement | null>(null);
   const editorRef = useRef<HTMLElement | null>(null);
@@ -275,11 +452,15 @@ export function WorkspaceShell({
   const previewSourcePositionTargetsRef = useRef<PreviewSourcePositionTarget[]>([]);
   const paneScrollFrameRef = useRef<number | null>(null);
   const pendingPaneScrollRef = useRef<PaneScrollPair | null>(null);
+  const tabsRef = useRef(tabs);
+  const activeTabIdRef = useRef(activeTabId);
+  const restoredStoredTabsRef = useRef(false);
   const lineStartsCacheRef = useRef({
     markdown: "",
     starts: [0]
   });
   const latestMarkdownRef = useRef(currentMarkdown);
+  const latestSourceRef = useRef(currentSource);
   const previewMarkdown = useDeferredValue(currentMarkdown);
   const headings = useMemo(() => extractHeadings(previewMarkdown), [previewMarkdown]);
   const hasHeadings = headings.length > 0;
@@ -288,6 +469,15 @@ export function WorkspaceShell({
     [currentSource, headings, previewMarkdown]
   );
   const sourceLabel = useMemo(() => describeSource(currentSource), [currentSource]);
+  const tabItems = useMemo(
+    () =>
+      tabs.map((tab) => ({
+        ...tab,
+        sourceLabel: getWorkspaceTabSourceLabel(tab),
+        title: getWorkspaceTabTitle(tab)
+      })),
+    [tabs]
+  );
   const workspaceGridStyle =
     currentMode === "split"
       ? ({
@@ -305,8 +495,104 @@ export function WorkspaceShell({
   }, [currentMarkdown]);
 
   useEffect(() => {
+    latestSourceRef.current = currentSource;
+  }, [currentSource]);
+
+  useEffect(() => {
+    tabsRef.current = tabs;
+  }, [tabs]);
+
+  useEffect(() => {
+    activeTabIdRef.current = activeTabId;
+  }, [activeTabId]);
+
+  useEffect(() => {
+    const storedTabs = readStoredWorkspaceTabs();
+
+    if (!storedTabs) {
+      setTabsStorageReady(true);
+      return;
+    }
+
+    restoredStoredTabsRef.current = true;
+
+    if (tabRestoreStrategy === "merge") {
+      const initialTab = createWorkspaceTab(markdown, sourceInput);
+
+      setTabs([initialTab, ...storedTabs.tabs].slice(0, maxStoredWorkspaceTabs));
+      setActiveTabId(initialTab.id);
+      setCurrentMarkdown(initialTab.markdown);
+      setCurrentSource(initialTab.sourceInput);
+      setActiveImportMode(deriveImportMode(initialTab.sourceInput));
+      setTabsStorageReady(true);
+      return;
+    }
+
+    const activeStoredTab =
+      storedTabs.tabs.find((tab) => tab.id === storedTabs.activeTabId) ?? storedTabs.tabs[0];
+
+    setTabs(storedTabs.tabs);
+    setActiveTabId(activeStoredTab.id);
+    setCurrentMarkdown(activeStoredTab.markdown);
+    setCurrentSource(activeStoredTab.sourceInput);
+    setActiveImportMode(deriveImportMode(activeStoredTab.sourceInput));
+    setTabsStorageReady(true);
+  }, []);
+
+  useEffect(() => {
+    setTabs((currentTabs) => {
+      let changed = false;
+      const nextTabs = currentTabs.map((tab) => {
+        if (tab.id !== activeTabId) {
+          return tab;
+        }
+
+        if (tab.markdown === currentMarkdown && tab.sourceInput === currentSource) {
+          return tab;
+        }
+
+        changed = true;
+        return {
+          ...tab,
+          markdown: currentMarkdown,
+          sourceInput: currentSource,
+          updatedAt: Date.now()
+        };
+      });
+
+      return changed ? nextTabs : currentTabs;
+    });
+  }, [activeTabId, currentMarkdown, currentSource]);
+
+  useEffect(() => {
+    if (!tabsStorageReady) {
+      return;
+    }
+
+    const saveTimer = window.setTimeout(() => {
+      writeStoredWorkspaceTabs(
+        getActiveWorkspaceTabsSnapshot(tabs, activeTabId, currentMarkdown, currentSource),
+        activeTabId
+      );
+    }, 260);
+
+    return () => {
+      window.clearTimeout(saveTimer);
+    };
+  }, [activeTabId, currentMarkdown, currentSource, tabs, tabsStorageReady]);
+
+  useEffect(() => {
     const saveDraft = () => {
       window.localStorage.setItem(workspaceDraftStorageKey, latestMarkdownRef.current);
+      writeStoredWorkspaceTabs(
+        getActiveWorkspaceTabsSnapshot(
+          tabsRef.current,
+          activeTabIdRef.current,
+          latestMarkdownRef.current,
+          latestSourceRef.current
+        ),
+        activeTabIdRef.current
+      );
     };
 
     window.addEventListener("pagehide", saveDraft);
@@ -328,6 +614,10 @@ export function WorkspaceShell({
   }, [currentMarkdown]);
 
   useEffect(() => {
+    if (restoredStoredTabsRef.current) {
+      return;
+    }
+
     setCurrentMarkdown(markdown);
   }, [markdown]);
 
@@ -336,6 +626,7 @@ export function WorkspaceShell({
       window.localStorage.getItem("markdownviewer.workspace.template") ??
       window.localStorage.getItem("markdownviewer.workspace.theme");
     const storedSplitPercent = Number.parseFloat(window.localStorage.getItem(workspaceSplitStorageKey) ?? "");
+    const storedTabsCollapsed = window.localStorage.getItem(workspaceTabsCollapsedStorageKey);
     const storedPreviewFont = window.localStorage.getItem(workspacePreviewFontStorageKey);
     const storedPreviewFontSize = Number.parseFloat(window.localStorage.getItem(workspacePreviewFontSizeStorageKey) ?? "");
 
@@ -345,6 +636,10 @@ export function WorkspaceShell({
 
     if (Number.isFinite(storedSplitPercent)) {
       setSplitEditorPercent(clampSplitPercent(storedSplitPercent));
+    }
+
+    if (storedTabsCollapsed === "true" || storedTabsCollapsed === "false") {
+      setTabsCollapsed(storedTabsCollapsed === "true");
     }
 
     if (isWorkspacePreviewFont(storedPreviewFont)) {
@@ -361,6 +656,10 @@ export function WorkspaceShell({
   }, [splitEditorPercent]);
 
   useEffect(() => {
+    window.localStorage.setItem(workspaceTabsCollapsedStorageKey, String(tabsCollapsed));
+  }, [tabsCollapsed]);
+
+  useEffect(() => {
     window.localStorage.setItem(workspacePreviewFontStorageKey, previewFont);
   }, [previewFont]);
 
@@ -375,6 +674,10 @@ export function WorkspaceShell({
   }, [theme]);
 
   useEffect(() => {
+    if (restoredStoredTabsRef.current) {
+      return;
+    }
+
     setCurrentSource(sourceInput);
     setActiveImportMode(deriveImportMode(sourceInput));
   }, [sourceInput]);
@@ -401,10 +704,15 @@ export function WorkspaceShell({
       return;
     }
 
+    const importedTab = createWorkspaceTab(pendingImport.markdown, pendingImport.sourceInput);
+
+    setTabs((currentTabs) => [...currentTabs, importedTab].slice(-maxStoredWorkspaceTabs));
+    setActiveTabId(importedTab.id);
     setActiveImportMode("file");
     setCurrentSource(pendingImport.sourceInput);
     setCurrentMarkdown(pendingImport.markdown);
     setStatusMessage(pendingImport.statusMessage ?? "Loaded Markdown file.");
+    setTocOpen(false);
   }, []);
 
   useEffect(() => {
@@ -470,6 +778,70 @@ export function WorkspaceShell({
       reader.onerror = () => reject(new Error("Failed to read the selected file."));
       reader.readAsText(file);
     });
+  }
+
+  function handleNewTab() {
+    const nextTab = createWorkspaceTab();
+
+    setTabs((currentTabs) => [...currentTabs, nextTab].slice(-maxStoredWorkspaceTabs));
+    setActiveTabId(nextTab.id);
+    setCurrentMarkdown(nextTab.markdown);
+    setCurrentSource(nextTab.sourceInput);
+    setActiveImportMode("paste");
+    setStatusMessage("Opened a new tab.");
+    setTocOpen(false);
+  }
+
+  function handleSelectTab(tabId: string) {
+    const selectedTab = tabs.find((tab) => tab.id === tabId);
+
+    if (!selectedTab || selectedTab.id === activeTabId) {
+      return;
+    }
+
+    setActiveTabId(selectedTab.id);
+    setCurrentMarkdown(selectedTab.markdown);
+    setCurrentSource(selectedTab.sourceInput);
+    setActiveImportMode(deriveImportMode(selectedTab.sourceInput));
+    setStatusMessage(`Switched to ${getWorkspaceTabTitle(selectedTab)}.`);
+    setTocOpen(false);
+  }
+
+  function handleCloseTab(tabId: string) {
+    const tabIndex = tabs.findIndex((tab) => tab.id === tabId);
+
+    if (tabIndex === -1) {
+      return;
+    }
+
+    if (tabs.length === 1) {
+      const nextTab = createWorkspaceTab();
+
+      setTabs([nextTab]);
+      setActiveTabId(nextTab.id);
+      setCurrentMarkdown(nextTab.markdown);
+      setCurrentSource(nextTab.sourceInput);
+      setActiveImportMode("paste");
+      setStatusMessage("Closed tab.");
+      setTocOpen(false);
+      return;
+    }
+
+    const nextTabs = tabs.filter((tab) => tab.id !== tabId);
+
+    setTabs(nextTabs);
+
+    if (tabId === activeTabId) {
+      const nextActiveTab = nextTabs[Math.min(tabIndex, nextTabs.length - 1)];
+
+      setActiveTabId(nextActiveTab.id);
+      setCurrentMarkdown(nextActiveTab.markdown);
+      setCurrentSource(nextActiveTab.sourceInput);
+      setActiveImportMode(deriveImportMode(nextActiveTab.sourceInput));
+      setTocOpen(false);
+    }
+
+    setStatusMessage("Closed tab.");
   }
 
   async function handleParseSource() {
@@ -770,8 +1142,67 @@ export function WorkspaceShell({
   }
 
   return (
-    <div className="workspace-page page-shell">
-      <section className="workspace-shell-card">
+    <div className="workspace-page page-shell" data-tabs-collapsed={tabsCollapsed}>
+      {!tabsCollapsed ? (
+        <aside className="workspace-tabs-rail" aria-label="Open tabs">
+          <div className="workspace-tabs-rail-header">
+            <span className="workspace-tabs-title">Tabs</span>
+            <button
+              aria-label="New tab"
+              className="workspace-new-tab-button"
+              onClick={handleNewTab}
+              title="New tab"
+              type="button"
+            >
+              +
+            </button>
+          </div>
+          <div aria-label="Open tabs" className="workspace-tabs-list" role="tablist">
+            {tabItems.map((tab) => (
+              <div className="workspace-tab-row" data-active={tab.id === activeTabId} key={tab.id}>
+                <button
+                  aria-controls="workspace-active-tab-panel"
+                  aria-selected={tab.id === activeTabId}
+                  className="workspace-tab-button"
+                  onClick={() => handleSelectTab(tab.id)}
+                  role="tab"
+                  title={tab.title}
+                  type="button"
+                >
+                  <span className="workspace-tab-title">{tab.title}</span>
+                  <span className="workspace-tab-meta">{tab.sourceLabel}</span>
+                </button>
+                <button
+                  aria-label={`Close ${tab.title}`}
+                  className="workspace-tab-close"
+                  onClick={() => handleCloseTab(tab.id)}
+                  title={`Close ${tab.title}`}
+                  type="button"
+                >
+                  x
+                </button>
+              </div>
+            ))}
+          </div>
+        </aside>
+      ) : null}
+      <section
+        aria-label={documentTitle}
+        className="workspace-shell-card"
+        id="workspace-active-tab-panel"
+        role="tabpanel"
+      >
+        <button
+          aria-expanded={!tabsCollapsed}
+          aria-label={tabsCollapsed ? "Expand tabs sidebar" : "Collapse tabs sidebar"}
+          className="workspace-tabs-toggle-button"
+          data-collapsed={tabsCollapsed}
+          onClick={() => setTabsCollapsed((current) => !current)}
+          title={tabsCollapsed ? "Expand tabs sidebar" : "Collapse tabs sidebar"}
+          type="button"
+        >
+          <span aria-hidden="true" className="workspace-tabs-toggle-icon" />
+        </button>
         <div className="workspace-header">
           <div className="workspace-header-meta">
             <BrandLink
@@ -780,10 +1211,10 @@ export function WorkspaceShell({
               compact
               title="Markdownviewer"
             />
-            <div className="workspace-document-chip" title={documentTitle}>
-              {documentTitle}
-            </div>
             {sourceLabel ? <div className="workspace-source-chip">{sourceLabel}</div> : null}
+          </div>
+          <div className="workspace-header-title" title={documentTitle}>
+            {documentTitle}
           </div>
           <WorkspaceToolbar
             activeImportMode={activeImportMode}

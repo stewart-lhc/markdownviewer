@@ -9,6 +9,9 @@ describe("workspace page", () => {
 
     render(page);
 
+    expect(screen.getByRole("tablist", { name: /open tabs/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /new tab/i })).toBeInTheDocument();
+    expect(screen.getByText("Markdown Feature Atlas", { selector: ".workspace-header-title" })).toBeInTheDocument();
     expect(screen.getByTestId("workspace-grid")).toHaveAttribute("data-mode", "split");
     expect(screen.getByTestId("source-panel")).toBeInTheDocument();
     expect(screen.getByTestId("preview-panel")).toBeInTheDocument();
