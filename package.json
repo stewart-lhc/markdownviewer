@@ -1,7 +1,26 @@
 {
   "name": "markdownviewer",
   "version": "0.1.0",
-  "private": true,
+  "description": "Open-source online Markdown viewer with live preview for README files, GitHub Flavored Markdown, Mermaid diagrams, KaTeX math, code blocks, and raw URLs.",
+  "license": "MIT",
+  "homepage": "https://markdownviewer.run/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stewart-lhc/markdownviewer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/stewart-lhc/markdownviewer/issues"
+  },
+  "keywords": [
+    "markdown",
+    "markdown-viewer",
+    "markdown-preview",
+    "github-flavored-markdown",
+    "readme-viewer",
+    "mermaid",
+    "katex",
+    "nextjs"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",

@@ -657,6 +657,13 @@ button {
   padding: 12px 0 28px;
 }
 
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
 .brand-link {
   display: inline-flex;
   align-items: center;
@@ -3406,6 +3413,15 @@ html[data-theme="night"] .workspace-editor-surface--stackedit .token.md-token--l
 @media (max-width: 720px) {
   .page-shell {
     width: min(100% - 20px, 100%);
+  }
+
+  .topbar {
+    align-items: flex-start;
+  }
+
+  .topbar-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
   }
 
   .hero-copy,

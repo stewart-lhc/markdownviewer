@@ -3,6 +3,8 @@ import { FeatureGrid } from "@/components/landing/feature-grid";
 import { Hero } from "@/components/landing/hero";
 import { LiveSample } from "@/components/landing/live-sample";
 
+const githubRepositoryUrl = "https://github.com/stewart-lhc/markdownviewer";
+
 const softwareApplicationJsonLd = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
@@ -14,6 +16,7 @@ const softwareApplicationJsonLd = {
     "A free online Markdown viewer and live preview workspace for README files, GitHub Flavored Markdown, Mermaid diagrams, KaTeX math, code blocks, local files, pasted Markdown, and raw URLs.",
   keywords:
     "markdown viewer, online markdown viewer, markdown preview, GitHub Flavored Markdown viewer, README viewer, Mermaid markdown viewer, markdown viewer with math",
+  sameAs: [githubRepositoryUrl],
   offers: {
     "@type": "Offer",
     price: "0",
@@ -107,6 +110,7 @@ const footerColumns = [
     links: [
       { label: "Workspace", href: "/workspace" },
       { label: "Sample document", href: "/workspace?sample=starter" },
+      { label: "GitHub repository", href: githubRepositoryUrl },
       { label: "FAQ", href: "#markdown-viewer-faq" }
     ]
   },
@@ -140,9 +144,14 @@ export default function HomePage() {
       <div className="page-shell">
         <header className="topbar">
           <BrandLink className="brand" label="Markdownviewer" title="Markdownviewer" />
-          <a className="ghost-link" href="/workspace">
-            Enter workspace
-          </a>
+          <nav className="topbar-actions" aria-label="Primary">
+            <a className="ghost-link" href={githubRepositoryUrl}>
+              GitHub
+            </a>
+            <a className="ghost-link" href="/workspace">
+              Enter workspace
+            </a>
+          </nav>
         </header>
         <div className="hero">
           <Hero />
