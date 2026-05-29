@@ -1,0 +1,30 @@
+{
+  "name": "Markdownviewer",
+  "short_name": "Markdownviewer",
+  "description": "A polished Markdown viewer and live preview workspace for local files, README files, GitHub Flavored Markdown, Mermaid diagrams, math, and code.",
+  "id": "/workspace",
+  "start_url": "/workspace",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f6f1e9",
+  "theme_color": "#181714",
+  "categories": ["productivity", "utilities", "developer"],
+  "icons": [
+    {
+      "src": "/markdownviewer-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "file_handlers": [
+    {
+      "action": "/workspace?launch=file",
+      "accept": {
+        "text/markdown": [".md", ".markdown", ".mdown", ".mkd"],
+        "text/x-markdown": [".md", ".markdown", ".mdx"],
+        "text/plain": [".md", ".markdown", ".txt"]
+      }
+    }
+  ]
+}

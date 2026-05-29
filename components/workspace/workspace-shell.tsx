@@ -70,6 +70,20 @@ type PaneScrollPair = {
   target: HTMLElement;
 };
 
+type PwaLaunchFileHandle = {
+  getFile: () => Promise<File>;
+};
+
+type PwaLaunchParams = {
+  files?: PwaLaunchFileHandle[];
+};
+
+type PwaLaunchWindow = Window & typeof globalThis & {
+  launchQueue?: {
+    setConsumer: (consumer: (launchParams: PwaLaunchParams) => void) => void;
+  };
+};
+
 const workspaceDraftStorageKey = "markdownviewer.workspace.current";
 const workspacePreviewFontStorageKey = "markdownviewer.workspace.preview.font";
 const workspacePreviewFontSizeStorageKey = "markdownviewer.workspace.preview.fontSize";
@@ -714,15 +728,38 @@ export function WorkspaceShell({
       return;
     }
 
-    const importedTab = createWorkspaceTab(pendingImport.markdown, pendingImport.sourceInput);
+    openImportedFileTab(
+      pendingImport.markdown,
+      pendingImport.sourceInput,
+      pendingImport.statusMessage ?? messages.status.loadedFile("Markdown file")
+    );
+  }, []);
 
-    setTabs((currentTabs) => [...currentTabs, importedTab].slice(-maxStoredWorkspaceTabs));
-    setActiveTabId(importedTab.id);
-    setActiveImportMode("file");
-    setCurrentSource(pendingImport.sourceInput);
-    setCurrentMarkdown(pendingImport.markdown);
-    setStatusMessage(pendingImport.statusMessage ?? messages.status.loadedFile("Markdown file"));
-    setTocOpen(false);
+  useEffect(() => {
+    const launchQueue = (window as PwaLaunchWindow).launchQueue;
+
+    if (!launchQueue || typeof launchQueue.setConsumer !== "function") {
+      return;
+    }
+
+    launchQueue.setConsumer((launchParams) => {
+      const firstFileHandle = launchParams.files?.[0];
+
+      if (!firstFileHandle || typeof firstFileHandle.getFile !== "function") {
+        return;
+      }
+
+      void (async () => {
+        try {
+          const file = await firstFileHandle.getFile();
+          const nextMarkdown = await readFileContents(file);
+
+          openImportedFileTab(nextMarkdown, `file:${file.name}`, messages.status.loadedFile(file.name));
+        } catch {
+          setStatusMessage(messages.status.readFileFailed);
+        }
+      })();
+    });
   }, []);
 
   useEffect(() => {
@@ -788,6 +825,18 @@ export function WorkspaceShell({
       reader.onerror = () => reject(new Error(messages.status.readFileFailed));
       reader.readAsText(file);
     });
+  }
+
+  function openImportedFileTab(markdown: string, sourceInput: string, statusMessage: string) {
+    const importedTab = createWorkspaceTab(markdown, sourceInput);
+
+    setTabs((currentTabs) => [...currentTabs, importedTab].slice(-maxStoredWorkspaceTabs));
+    setActiveTabId(importedTab.id);
+    setActiveImportMode("file");
+    setCurrentSource(importedTab.sourceInput);
+    setCurrentMarkdown(importedTab.markdown);
+    setStatusMessage(statusMessage);
+    setTocOpen(false);
   }
 
   function handleNewTab() {

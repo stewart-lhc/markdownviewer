@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import "@/app/globals.css";
 import "katex/dist/katex.min.css";
 import { GoogleAnalytics } from "@/components/analytics/google-analytics";
+import { PwaRegistration } from "@/components/pwa/pwa-registration";
 
 const siteUrl = "https://markdownviewer.run";
 const siteDescription =
@@ -21,6 +22,7 @@ const mono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   applicationName: "markdownviewer.run",
+  manifest: "/manifest.webmanifest",
   title: {
     default: "Markdown Viewer Online - Live Preview | markdownviewer.run",
     template: "%s | markdownviewer.run"
@@ -54,6 +56,10 @@ export const metadata: Metadata = {
     title: "Markdown Viewer Online - Live Preview",
     description: siteDescription
   },
+  appleWebApp: {
+    capable: true,
+    title: "Markdownviewer"
+  },
   ...(googleSiteVerification
     ? {
         verification: {
@@ -76,6 +82,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
     <html lang="en">
       <body className={mono.variable}>
         {children}
+        <PwaRegistration />
         <GoogleAnalytics measurementId={gaMeasurementId} />
       </body>
     </html>

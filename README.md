@@ -39,6 +39,7 @@ It is designed to be more than another plain utility page: Markdownviewer gives 
 - **KaTeX math rendering** - read inline and display formulas in technical notes.
 - **Syntax-highlighted code blocks** - keep code-heavy documents readable.
 - **Multiple import paths** - local files, pasted Markdown, GitHub URLs, Gists, raw Markdown URLs, and sample documents.
+- **Installable PWA** - install Markdownviewer from a supported desktop browser and open `.md` files with it through the operating system file picker.
 - **AI Markdown reader** - clean up Markdown from ChatGPT, Claude, Cursor, Copilot, and other AI tools.
 - **Open-source and self-hostable** - MIT licensed, built with Next.js, React, and TypeScript.
 
@@ -127,6 +128,12 @@ Create a production build:
 ```bash
 npm run build
 ```
+
+## PWA And File Opening
+
+Markdownviewer ships with a web app manifest and service worker, so production builds can be installed as a PWA. The manifest declares file handlers for `.md`, `.markdown`, `.mdx`, and related Markdown extensions.
+
+On Chromium-based desktop browsers that support PWA file handling, install the app from the browser, then choose Markdownviewer as an app for Markdown files in the operating system's "Open with" flow. Files opened this way are read locally in the browser and loaded into a new workspace tab.
 
 ## Project Structure
 

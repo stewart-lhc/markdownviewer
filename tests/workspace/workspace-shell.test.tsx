@@ -857,6 +857,50 @@ describe("WorkspaceShell interactions", () => {
     }
   });
 
+  it("opens a markdown file passed to the installed PWA launch queue", async () => {
+    let launchConsumer:
+      | ((launchParams: { files?: Array<{ getFile: () => Promise<File> }> }) => void)
+      | undefined;
+    const setConsumer = vi.fn((consumer) => {
+      launchConsumer = consumer;
+    });
+
+    Object.defineProperty(window, "launchQueue", {
+      configurable: true,
+      value: { setConsumer }
+    });
+
+    try {
+      render(<WorkspaceShell markdown="# Starter" sourceInput="" />);
+
+      expect(setConsumer).toHaveBeenCalledTimes(1);
+
+      launchConsumer?.({
+        files: [
+          {
+            getFile: () => Promise.resolve(new File(["# System file"], "system.md", { type: "text/markdown" }))
+          }
+        ]
+      });
+
+      await waitFor(() => {
+        expect(
+          within(screen.getByTestId("preview-panel")).getByRole("heading", {
+            level: 1,
+            name: "System file"
+          })
+        ).toBeInTheDocument();
+      });
+
+      expect(screen.getByRole("tab", { name: /system file/i })).toHaveAttribute("aria-selected", "true");
+    } finally {
+      Object.defineProperty(window, "launchQueue", {
+        configurable: true,
+        value: undefined
+      });
+    }
+  });
+
   it("handles rich-mode backspace and delete as single-character markdown edits", async () => {
     render(<WorkspaceShell markdown={"ab\ncd"} sourceInput="" />);
 
