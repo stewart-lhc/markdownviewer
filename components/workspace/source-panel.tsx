@@ -10,6 +10,7 @@ import {
   useState
 } from "react";
 import { applyMarkdownAction, type MarkdownEditorAction } from "@/lib/workspace/editor-actions";
+import type { WorkspaceMessages } from "@/lib/i18n/messages";
 import { getEditorActionShortcutLabel, getEditorShortcutCommand } from "@/lib/workspace/editor-shortcuts";
 import {
   bindStackeditEditor,
@@ -31,6 +32,7 @@ type SourcePanelProps = {
   editorPresentationMode: EditorPresentationMode;
   editorRef?: RefObject<HTMLElement | null>;
   markdown: string;
+  messages: WorkspaceMessages["editor"];
   visible: boolean;
   onEditorPresentationModeChange: (mode: EditorPresentationMode) => void;
   onEditorKeyboardNavigation?: (selectionStart: number, element: HTMLTextAreaElement | HTMLDivElement) => void;
@@ -41,21 +43,20 @@ type SourcePanelProps = {
 
 const editorActions: Array<{
   action: MarkdownEditorAction;
-  ariaLabel: string;
   icon: string;
 }> = [
-  { action: "bold", ariaLabel: "Bold", icon: "B" },
-  { action: "italic", ariaLabel: "Italic", icon: "I" },
-  { action: "heading", ariaLabel: "Heading", icon: "Tt" },
-  { action: "strike", ariaLabel: "Strikethrough", icon: "S" },
-  { action: "bulletList", ariaLabel: "Bulleted list", icon: "•" },
-  { action: "orderedList", ariaLabel: "Numbered list", icon: "1." },
-  { action: "taskList", ariaLabel: "Task list", icon: "☑" },
-  { action: "quote", ariaLabel: "Quote", icon: "❞" },
-  { action: "code", ariaLabel: "Code", icon: "</>" },
-  { action: "table", ariaLabel: "Table", icon: "▦" },
-  { action: "link", ariaLabel: "Link", icon: "∞" },
-  { action: "image", ariaLabel: "Image", icon: "▣" }
+  { action: "bold", icon: "B" },
+  { action: "italic", icon: "I" },
+  { action: "heading", icon: "Tt" },
+  { action: "strike", icon: "S" },
+  { action: "bulletList", icon: "•" },
+  { action: "orderedList", icon: "1." },
+  { action: "taskList", icon: "☑" },
+  { action: "quote", icon: "❞" },
+  { action: "code", icon: "</>" },
+  { action: "table", icon: "▦" },
+  { action: "link", icon: "∞" },
+  { action: "image", icon: "▣" }
 ];
 
 const editorToolButtonEstimateWidth = 40;
@@ -88,6 +89,7 @@ export function SourcePanel({
   editorPresentationMode,
   editorRef,
   markdown,
+  messages,
   visible,
   onEditorPresentationModeChange,
   onEditorKeyboardNavigation,
@@ -546,16 +548,16 @@ export function SourcePanel({
             className="workspace-editor-toolbar"
             ref={editorToolbarRef}
             role="toolbar"
-            aria-label="Markdown formatting"
+            aria-label={messages.formatting}
           >
             {visibleEditorActions.map((entry) => (
               <button
-                aria-label={entry.ariaLabel}
+                aria-label={messages.actions[entry.action]}
                 className="editor-tool-button"
                 key={entry.action}
                 onClick={() => handleEditorAction(entry.action)}
                 onMouseDown={(event) => event.preventDefault()}
-                title={getEditorActionShortcutLabel(entry.action) ? `${entry.ariaLabel} (${getEditorActionShortcutLabel(entry.action)})` : entry.ariaLabel}
+                title={getEditorActionShortcutLabel(entry.action) ? `${messages.actions[entry.action]} (${getEditorActionShortcutLabel(entry.action)})` : messages.actions[entry.action]}
                 type="button"
               >
                 <span aria-hidden="true">{entry.icon}</span>
@@ -566,17 +568,17 @@ export function SourcePanel({
                 <button
                   aria-expanded={editorToolsMenuOpen}
                   aria-haspopup="menu"
-                  aria-label="More formatting tools"
+                  aria-label={messages.moreTools}
                   className="editor-tool-button editor-tool-button--overflow"
                   onClick={() => setEditorToolsMenuOpen((open) => !open)}
                   onMouseDown={(event) => event.preventDefault()}
-                  title="More formatting tools"
+                  title={messages.moreTools}
                   type="button"
                 >
                   <span aria-hidden="true">…</span>
                 </button>
                 {editorToolsMenuOpen ? (
-                  <div aria-label="More formatting tools" className="editor-tools-menu" role="menu">
+                  <div aria-label={messages.moreTools} className="editor-tools-menu" role="menu">
                     {overflowEditorActions.map((entry) => (
                       <button
                         className="editor-tools-menu-button"
@@ -588,7 +590,7 @@ export function SourcePanel({
                         <span aria-hidden="true" className="editor-tools-menu-icon">
                           {entry.icon}
                         </span>
-                        <span>{entry.ariaLabel}</span>
+                        <span>{messages.actions[entry.action]}</span>
                         {getEditorActionShortcutLabel(entry.action) ? (
                           <span className="editor-tools-menu-shortcut">
                             {getEditorActionShortcutLabel(entry.action)}
@@ -601,14 +603,14 @@ export function SourcePanel({
               </div>
             ) : null}
           </div>
-          <div className="editor-mode-toggle" role="group" aria-label="Editor mode">
+          <div className="editor-mode-toggle" role="group" aria-label={messages.modeLabel}>
             <button
               className="editor-mode-button"
               data-active={editorPresentationMode === "rich"}
               onClick={() => onEditorPresentationModeChange("rich")}
               type="button"
             >
-              Rich
+              {messages.rich}
             </button>
             <button
               className="editor-mode-button"
@@ -616,7 +618,7 @@ export function SourcePanel({
               onClick={() => onEditorPresentationModeChange("raw")}
               type="button"
             >
-              Raw
+              {messages.raw}
             </button>
           </div>
         </div>
@@ -624,7 +626,7 @@ export function SourcePanel({
       <div className="workspace-editor-shell" data-editor-view={editorPresentationMode}>
         {editorPresentationMode === "rich" ? (
           <div
-            aria-label="Markdown editor"
+            aria-label={messages.markdownLabel}
             aria-multiline="true"
             className="workspace-editor-surface workspace-editor-surface--stackedit"
             data-testid="editor-rich-surface"
@@ -644,7 +646,7 @@ export function SourcePanel({
           />
         ) : (
           <textarea
-            aria-label="Markdown editor"
+            aria-label={messages.markdownLabel}
             className="textarea workspace-editor-input"
             id="workspace-markdown-editor"
             onChange={(event) => {
@@ -656,7 +658,7 @@ export function SourcePanel({
             onKeyUp={(event) => onEditorSelectionChangeRef.current?.(event.currentTarget.selectionStart)}
             onScroll={(event) => maybeHandleEditorScroll(event.currentTarget)}
             onSelect={(event) => onEditorSelectionChangeRef.current?.(event.currentTarget.selectionStart)}
-            placeholder="# Start writing"
+            placeholder={messages.placeholder}
             ref={(node) => {
               rawEditorRef.current = node;
 

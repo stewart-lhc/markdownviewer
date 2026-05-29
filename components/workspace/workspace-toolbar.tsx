@@ -2,10 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { SourcePanelMode } from "@/components/workspace/source-panel";
+import type { WorkspaceMessages } from "@/lib/i18n/messages";
 
 type WorkspaceToolbarProps = {
   activeImportMode: SourcePanelMode;
   mode: "preview" | "split" | "editor";
+  messages: WorkspaceMessages["toolbar"];
   sourceValue: string;
   onActiveImportModeChange: (mode: SourcePanelMode) => void;
   onModeChange: (mode: "preview" | "split" | "editor") => void;
@@ -23,6 +25,7 @@ const modes: WorkspaceToolbarProps["mode"][] = ["preview", "split", "editor"];
 export function WorkspaceToolbar({
   activeImportMode,
   mode,
+  messages,
   sourceValue,
   onActiveImportModeChange,
   onPasteIntoEditor,
@@ -65,8 +68,8 @@ export function WorkspaceToolbar({
   }
 
   return (
-    <div className="toolbar" role="toolbar" aria-label="Workspace controls">
-      <div className="toolbar-cluster toolbar-cluster--imports" role="group" aria-label="Import options">
+    <div className="toolbar" role="toolbar" aria-label={messages.label}>
+      <div className="toolbar-cluster toolbar-cluster--imports" role="group" aria-label={messages.importOptions}>
         <button
           className="toolbar-button"
           data-active={activeImportMode === "paste"}
@@ -76,7 +79,7 @@ export function WorkspaceToolbar({
           }}
           type="button"
         >
-          Paste
+          {messages.paste}
         </button>
         <button
           className="toolbar-button"
@@ -87,7 +90,7 @@ export function WorkspaceToolbar({
           }}
           type="button"
         >
-          File
+          {messages.file}
         </button>
         <button
           className="toolbar-button"
@@ -95,12 +98,12 @@ export function WorkspaceToolbar({
           onClick={() => onActiveImportModeChange("url")}
           type="button"
         >
-          URL
+          {messages.url}
         </button>
         {activeImportMode === "url" ? (
           <>
             <input
-              aria-label="Markdown source URL"
+              aria-label={messages.sourceUrlLabel}
               className="input input--compact toolbar-url-input"
               onChange={(event) => onSourceChange(event.currentTarget.value)}
               placeholder="https://github.com/acme/repo/blob/main/README.md"
@@ -108,12 +111,12 @@ export function WorkspaceToolbar({
               value={sourceValue}
             />
             <button className="toolbar-button" onClick={onParseSource} type="button">
-              Open
+              {messages.open}
             </button>
           </>
         ) : null}
         <input
-          aria-label="Upload markdown file"
+          aria-label={messages.uploadLabel}
           className="sr-only"
           onChange={(event) => {
             const file = event.currentTarget.files?.[0];
@@ -139,7 +142,7 @@ export function WorkspaceToolbar({
             onClick={() => onModeChange(entry)}
             type="button"
           >
-            {entry === "editor" ? "Editor" : entry === "split" ? "Split" : "Preview"}
+            {messages.modes[entry]}
           </button>
         ))}
       </div>
@@ -151,26 +154,26 @@ export function WorkspaceToolbar({
           onClick={() => setMenuOpen((open) => !open)}
           type="button"
         >
-          More
+          {messages.more}
         </button>
         {menuOpen ? (
           <div className="toolbar-menu" role="menu">
             <button className="toolbar-menu-button" onClick={() => runAction(onShare)} type="button">
-              Share Link
+              {messages.shareLink}
             </button>
             <button
               className="toolbar-menu-button"
               onClick={() => runAction(onExportHtml)}
               type="button"
             >
-              Export HTML
+              {messages.exportHtml}
             </button>
             <button
               className="toolbar-menu-button"
               onClick={() => runAction(onExportPdf)}
               type="button"
             >
-              Export PDF
+              {messages.exportPdf}
             </button>
           </div>
         ) : null}

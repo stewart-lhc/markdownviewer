@@ -1,8 +1,11 @@
-const sources = ["Local files", "GitHub", "Gist", "Raw URLs", "Pasted Markdown", "AI output"];
+type SourceStripProps = {
+  ariaLabel: string;
+  sources: string[];
+};
 
-export function SourceStrip() {
+export function SourceStrip({ ariaLabel, sources }: SourceStripProps) {
   return (
-    <div className="support-strip" aria-label="Supported sources">
+    <div className="support-strip" aria-label={ariaLabel}>
       {sources.map((source) => (
         <span className="support-pill" key={source}>
           {source}

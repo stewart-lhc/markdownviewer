@@ -26,6 +26,8 @@ import {
 } from "@/components/workspace/workspace-preview-typography-controls";
 import { WorkspaceThemeSelector } from "@/components/workspace/workspace-theme-selector";
 import { WorkspaceToolbar } from "@/components/workspace/workspace-toolbar";
+import { defaultLocale, localizePath, type Locale } from "@/lib/i18n/locales";
+import { getMessages, type WorkspaceMessages } from "@/lib/i18n/messages";
 import { extractHeadings } from "@/lib/markdown/extract-headings";
 import { parsePendingWorkspaceImport, pendingWorkspaceImportKey } from "@/lib/workspace/pending-import";
 import { defaultWorkspaceTheme, isWorkspaceTheme, type WorkspaceTheme } from "@/lib/workspace/themes";
@@ -37,6 +39,7 @@ type WorkspaceShellProps = {
   markdown: string;
   mode?: WorkspaceMode;
   initialStatusMessage?: string;
+  locale?: Locale;
   loadSource?: (input: string) => Promise<LoadedMarkdownSource>;
   tabRestoreStrategy?: WorkspaceTabRestoreStrategy;
 };
@@ -91,7 +94,12 @@ function clampPreviewFontSize(value: number) {
   return Math.min(Math.max(Math.round(value), minPreviewFontSize), maxPreviewFontSize);
 }
 
-function deriveDocumentTitle(markdown: string, sourceInput: string, headings: ReturnType<typeof extractHeadings>) {
+function deriveDocumentTitle(
+  markdown: string,
+  sourceInput: string,
+  headings: ReturnType<typeof extractHeadings>,
+  messages: WorkspaceMessages
+) {
   if (headings[0]?.text) {
     return headings[0].text;
   }
@@ -102,15 +110,15 @@ function deriveDocumentTitle(markdown: string, sourceInput: string, headings: Re
 
   if (sourceInput) {
     try {
-      return new URL(sourceInput).pathname.split("/").filter(Boolean).at(-1) ?? "Untitled document";
+      return new URL(sourceInput).pathname.split("/").filter(Boolean).at(-1) ?? messages.document.untitled;
     } catch {
-      return "Untitled document";
+      return messages.document.untitled;
     }
   }
 
   const firstLine = markdown.split("\n").find((line) => line.trim().length > 0);
 
-  return firstLine ? firstLine.replace(/^#+\s*/, "").trim() : "Untitled document";
+  return firstLine ? firstLine.replace(/^#+\s*/, "").trim() : messages.document.untitled;
 }
 
 function createWorkspaceTabId() {
@@ -256,12 +264,12 @@ function writeStoredWorkspaceTabs(tabs: WorkspaceTab[], activeTabId: string) {
   );
 }
 
-function getWorkspaceTabTitle(tab: Pick<WorkspaceTab, "markdown" | "sourceInput">) {
-  return deriveDocumentTitle(tab.markdown, tab.sourceInput, extractHeadings(tab.markdown));
+function getWorkspaceTabTitle(tab: Pick<WorkspaceTab, "markdown" | "sourceInput">, messages: WorkspaceMessages) {
+  return deriveDocumentTitle(tab.markdown, tab.sourceInput, extractHeadings(tab.markdown), messages);
 }
 
-function getWorkspaceTabSourceLabel(tab: Pick<WorkspaceTab, "sourceInput">) {
-  return describeSource(tab.sourceInput) ?? "Local draft";
+function getWorkspaceTabSourceLabel(tab: Pick<WorkspaceTab, "sourceInput">, messages: WorkspaceMessages) {
+  return describeSource(tab.sourceInput) ?? messages.document.localDraft;
 }
 
 function describeSource(sourceInput: string) {
@@ -423,9 +431,11 @@ export function WorkspaceShell({
   markdown,
   mode = "split",
   initialStatusMessage,
+  locale = defaultLocale,
   loadSource = loadMarkdownSourceViaApi,
   tabRestoreStrategy = "restore"
 }: WorkspaceShellProps) {
+  const messages = getMessages(locale).workspace;
   const [tabs, setTabs] = useState<WorkspaceTab[]>(() => [createInitialWorkspaceTab(markdown, sourceInput)]);
   const [activeTabId, setActiveTabId] = useState(initialWorkspaceTabId);
   const [currentMarkdown, setCurrentMarkdown] = useState(markdown);
@@ -465,18 +475,18 @@ export function WorkspaceShell({
   const headings = useMemo(() => extractHeadings(previewMarkdown), [previewMarkdown]);
   const hasHeadings = headings.length > 0;
   const documentTitle = useMemo(
-    () => deriveDocumentTitle(previewMarkdown, currentSource, headings),
-    [currentSource, headings, previewMarkdown]
+    () => deriveDocumentTitle(previewMarkdown, currentSource, headings, messages),
+    [currentSource, headings, messages, previewMarkdown]
   );
   const sourceLabel = useMemo(() => describeSource(currentSource), [currentSource]);
   const tabItems = useMemo(
     () =>
       tabs.map((tab) => ({
         ...tab,
-        sourceLabel: getWorkspaceTabSourceLabel(tab),
-        title: getWorkspaceTabTitle(tab)
+        sourceLabel: getWorkspaceTabSourceLabel(tab, messages),
+        title: getWorkspaceTabTitle(tab, messages)
       })),
-    [tabs]
+    [messages, tabs]
   );
   const workspaceGridStyle =
     currentMode === "split"
@@ -711,7 +721,7 @@ export function WorkspaceShell({
     setActiveImportMode("file");
     setCurrentSource(pendingImport.sourceInput);
     setCurrentMarkdown(pendingImport.markdown);
-    setStatusMessage(pendingImport.statusMessage ?? "Loaded Markdown file.");
+    setStatusMessage(pendingImport.statusMessage ?? messages.status.loadedFile("Markdown file"));
     setTocOpen(false);
   }, []);
 
@@ -775,7 +785,7 @@ export function WorkspaceShell({
       const reader = new FileReader();
 
       reader.onload = () => resolve(String(reader.result ?? ""));
-      reader.onerror = () => reject(new Error("Failed to read the selected file."));
+      reader.onerror = () => reject(new Error(messages.status.readFileFailed));
       reader.readAsText(file);
     });
   }
@@ -788,7 +798,7 @@ export function WorkspaceShell({
     setCurrentMarkdown(nextTab.markdown);
     setCurrentSource(nextTab.sourceInput);
     setActiveImportMode("paste");
-    setStatusMessage("Opened a new tab.");
+    setStatusMessage(messages.status.newTab);
     setTocOpen(false);
   }
 
@@ -803,7 +813,7 @@ export function WorkspaceShell({
     setCurrentMarkdown(selectedTab.markdown);
     setCurrentSource(selectedTab.sourceInput);
     setActiveImportMode(deriveImportMode(selectedTab.sourceInput));
-    setStatusMessage(`Switched to ${getWorkspaceTabTitle(selectedTab)}.`);
+    setStatusMessage(messages.status.switchedTo(getWorkspaceTabTitle(selectedTab, messages)));
     setTocOpen(false);
   }
 
@@ -822,7 +832,7 @@ export function WorkspaceShell({
       setCurrentMarkdown(nextTab.markdown);
       setCurrentSource(nextTab.sourceInput);
       setActiveImportMode("paste");
-      setStatusMessage("Closed tab.");
+      setStatusMessage(messages.status.closedTab);
       setTocOpen(false);
       return;
     }
@@ -841,7 +851,7 @@ export function WorkspaceShell({
       setTocOpen(false);
     }
 
-    setStatusMessage("Closed tab.");
+    setStatusMessage(messages.status.closedTab);
   }
 
   async function handleParseSource() {
@@ -850,9 +860,9 @@ export function WorkspaceShell({
 
       setActiveImportMode("url");
       setCurrentMarkdown(result.markdown);
-      setStatusMessage(`Loaded ${result.label}.`);
+      setStatusMessage(messages.status.loadedSource(result.label));
     } catch (error) {
-      setStatusMessage(error instanceof Error ? error.message : "Failed to load Markdown.");
+      setStatusMessage(error instanceof Error ? error.message : messages.status.loadFailed);
     }
   }
 
@@ -862,7 +872,7 @@ export function WorkspaceShell({
     setActiveImportMode("file");
     setCurrentSource(`file:${file.name}`);
     setCurrentMarkdown(nextMarkdown);
-    setStatusMessage(`Loaded ${file.name}.`);
+    setStatusMessage(messages.status.loadedFile(file.name));
   }
 
   async function handlePasteIntoEditor() {
@@ -873,24 +883,24 @@ export function WorkspaceShell({
 
       if (pasted) {
         setCurrentMarkdown(pasted);
-        setStatusMessage("Pasted Markdown.");
+        setStatusMessage(messages.status.pasted);
       }
     } catch {
-      setStatusMessage("Clipboard paste requires browser permission.");
+      setStatusMessage(messages.status.pastePermission);
     }
   }
 
   function handleExportHtml() {
     const previewMarkup = previewRef.current?.innerHTML ?? "";
-    const firstHeading = headings[0]?.text ?? "Markdown Document";
+    const firstHeading = headings[0]?.text ?? messages.document.defaultExportTitle;
 
     exportMarkdownHtml(previewMarkup, firstHeading, theme);
-    setStatusMessage("Exported HTML.");
+    setStatusMessage(messages.status.exportedHtml);
   }
 
   function handleExportPdf() {
     window.print();
-    setStatusMessage("Opened print dialog.");
+    setStatusMessage(messages.status.openedPrint);
   }
 
   async function handleShare() {
@@ -902,11 +912,11 @@ export function WorkspaceShell({
     }
 
     const shareId = share.id;
-    const shareUrl = `${window.location.origin}/share/${shareId}`;
+    const shareUrl = `${window.location.origin}${localizePath(`/share/${shareId}`, locale)}`;
 
     try {
       await navigator.clipboard.writeText(shareUrl);
-      setStatusMessage("Link copied.");
+      setStatusMessage(messages.status.linkCopied);
     } catch {
       setStatusMessage(shareUrl);
     }
@@ -1144,20 +1154,20 @@ export function WorkspaceShell({
   return (
     <div className="workspace-page page-shell" data-tabs-collapsed={tabsCollapsed}>
       {!tabsCollapsed ? (
-        <aside className="workspace-tabs-rail" aria-label="Open tabs">
+        <aside className="workspace-tabs-rail" aria-label={messages.tabs.railLabel}>
           <div className="workspace-tabs-rail-header">
-            <span className="workspace-tabs-title">Tabs</span>
+            <span className="workspace-tabs-title">{messages.tabs.title}</span>
             <button
-              aria-label="New tab"
+              aria-label={messages.tabs.newTab}
               className="workspace-new-tab-button"
               onClick={handleNewTab}
-              title="New tab"
+              title={messages.tabs.newTab}
               type="button"
             >
               +
             </button>
           </div>
-          <div aria-label="Open tabs" className="workspace-tabs-list" role="tablist">
+          <div aria-label={messages.tabs.railLabel} className="workspace-tabs-list" role="tablist">
             {tabItems.map((tab) => (
               <div className="workspace-tab-row" data-active={tab.id === activeTabId} key={tab.id}>
                 <button
@@ -1173,10 +1183,10 @@ export function WorkspaceShell({
                   <span className="workspace-tab-meta">{tab.sourceLabel}</span>
                 </button>
                 <button
-                  aria-label={`Close ${tab.title}`}
+                  aria-label={messages.tabs.close(tab.title)}
                   className="workspace-tab-close"
                   onClick={() => handleCloseTab(tab.id)}
-                  title={`Close ${tab.title}`}
+                  title={messages.tabs.close(tab.title)}
                   type="button"
                 >
                   x
@@ -1194,11 +1204,11 @@ export function WorkspaceShell({
       >
         <button
           aria-expanded={!tabsCollapsed}
-          aria-label={tabsCollapsed ? "Expand tabs sidebar" : "Collapse tabs sidebar"}
+          aria-label={tabsCollapsed ? messages.tabs.expand : messages.tabs.collapse}
           className="workspace-tabs-toggle-button"
           data-collapsed={tabsCollapsed}
           onClick={() => setTabsCollapsed((current) => !current)}
-          title={tabsCollapsed ? "Expand tabs sidebar" : "Collapse tabs sidebar"}
+          title={tabsCollapsed ? messages.tabs.expand : messages.tabs.collapse}
           type="button"
         >
           <span aria-hidden="true" className="workspace-tabs-toggle-icon" />
@@ -1206,9 +1216,10 @@ export function WorkspaceShell({
         <div className="workspace-header">
           <div className="workspace-header-meta">
             <BrandLink
-              ariaLabel="Markdownviewer home"
+              ariaLabel={messages.header.home}
               className="workspace-home"
               compact
+              href={localizePath("/", locale)}
               title="Markdownviewer"
             />
             {sourceLabel ? <div className="workspace-source-chip">{sourceLabel}</div> : null}
@@ -1216,9 +1227,10 @@ export function WorkspaceShell({
           <div className="workspace-header-title" title={documentTitle}>
             {documentTitle}
           </div>
-          <WorkspaceToolbar
-            activeImportMode={activeImportMode}
-            mode={currentMode}
+            <WorkspaceToolbar
+              activeImportMode={activeImportMode}
+              messages={messages.toolbar}
+              mode={currentMode}
             onExportHtml={handleExportHtml}
             onExportPdf={handleExportPdf}
             onActiveImportModeChange={setActiveImportMode}
@@ -1245,6 +1257,7 @@ export function WorkspaceShell({
               editorPresentationMode={editorPresentationMode}
               editorRef={editorRef}
               markdown={currentMarkdown}
+              messages={messages.editor}
               onEditorPresentationModeChange={setEditorPresentationMode}
               onEditorKeyboardNavigation={handleEditorKeyboardNavigation}
               onEditorSelectionChange={handleEditorSelectionChange}
@@ -1257,7 +1270,7 @@ export function WorkspaceShell({
           ) : null}
           {currentMode === "split" ? (
             <div
-              aria-label="Resize editor and preview panes"
+              aria-label={messages.preview.resizeLabel}
               aria-orientation="vertical"
               aria-valuemax={splitMaxPercent}
               aria-valuemin={splitMinPercent}
@@ -1269,7 +1282,7 @@ export function WorkspaceShell({
               onPointerDown={handleSplitResizePointerDown}
               role="separator"
               tabIndex={0}
-              title="Drag to resize editor and preview"
+              title={messages.preview.resizeTitle}
             >
               <span aria-hidden="true" />
             </div>
@@ -1282,11 +1295,12 @@ export function WorkspaceShell({
             >
               <div className="workspace-pane-header workspace-pane-header--preview">
                 <div className="workspace-preview-header-controls">
-                  <WorkspaceThemeSelector onThemeChange={setTheme} theme={theme} />
+                  <WorkspaceThemeSelector messages={messages.preview} onThemeChange={setTheme} theme={theme} />
                   <WorkspacePreviewTypographyControls
                     font={previewFont}
                     fontSize={previewFontSize}
                     maxFontSize={maxPreviewFontSize}
+                    messages={messages.preview}
                     minFontSize={minPreviewFontSize}
                     onFontChange={setPreviewFont}
                     onFontSizeChange={(nextFontSize) => setPreviewFontSize(clampPreviewFontSize(nextFontSize))}
@@ -1296,6 +1310,7 @@ export function WorkspaceShell({
                   <OutlinePanel
                     documentTitle={documentTitle}
                     headings={headings}
+                    messages={messages.preview}
                     onNavigate={handleTocNavigate}
                     onToggle={() => setTocOpen((current) => !current)}
                     open={tocOpen}

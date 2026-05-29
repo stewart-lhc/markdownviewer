@@ -1,20 +1,23 @@
 import { HeroImportActions } from "@/components/landing/hero-import-actions";
 import { SourceStrip } from "@/components/landing/source-strip";
+import type { Locale } from "@/lib/i18n/locales";
+import type { LandingMessages } from "@/lib/i18n/messages";
 
-export function Hero() {
+type HeroProps = {
+  locale: Locale;
+  messages: LandingMessages;
+};
+
+export function Hero({ locale, messages }: HeroProps) {
   return (
     <div className="hero-copy">
       <div>
-        <span className="eyebrow">Markdown without the utility-site look</span>
-        <h1>Markdown Viewer Online</h1>
-        <p>
-          Open Markdown like it deserves. `markdownviewer.run` turns project notes, READMEs,
-          AI output, and technical writing into a polished live preview. Start with a file,
-          paste raw Markdown, or send a GitHub, Gist, or remote URL straight into the workspace.
-        </p>
-        <HeroImportActions />
+        <span className="eyebrow">{messages.hero.eyebrow}</span>
+        <h1>{messages.hero.title}</h1>
+        <p>{messages.hero.body}</p>
+        <HeroImportActions locale={locale} />
       </div>
-      <SourceStrip />
+      <SourceStrip ariaLabel={messages.sources.ariaLabel} sources={messages.sources.items} />
     </div>
   );
 }

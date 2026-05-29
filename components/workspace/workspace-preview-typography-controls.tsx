@@ -1,11 +1,14 @@
 "use client";
 
+import type { WorkspaceMessages } from "@/lib/i18n/messages";
+
 export type WorkspacePreviewFont = "system" | "serif" | "mono";
 
 type WorkspacePreviewTypographyControlsProps = {
   font: WorkspacePreviewFont;
   fontSize: number;
   maxFontSize: number;
+  messages: WorkspaceMessages["preview"];
   minFontSize: number;
   onFontChange: (font: WorkspacePreviewFont) => void;
   onFontSizeChange: (fontSize: number) => void;
@@ -45,14 +48,15 @@ export function WorkspacePreviewTypographyControls({
   font,
   fontSize,
   maxFontSize,
+  messages,
   minFontSize,
   onFontChange,
   onFontSizeChange
 }: WorkspacePreviewTypographyControlsProps) {
   return (
-    <div className="workspace-preview-type-controls" role="group" aria-label="Preview typography">
+    <div className="workspace-preview-type-controls" role="group" aria-label={messages.typography}>
       <select
-        aria-label="Preview font"
+        aria-label={messages.font}
         className="workspace-preview-font-select"
         onChange={(event) => {
           const nextFont = event.currentTarget.value;
@@ -65,13 +69,13 @@ export function WorkspacePreviewTypographyControls({
       >
         {workspacePreviewFontOptions.map((option) => (
           <option key={option.id} value={option.id}>
-            {option.label}
+            {messages.fontOptions[option.id]}
           </option>
         ))}
       </select>
       <div className="workspace-preview-size-control">
         <button
-          aria-label="Decrease preview font size"
+          aria-label={messages.decreaseFont}
           className="toolbar-button workspace-preview-size-button"
           disabled={fontSize <= minFontSize}
           onClick={() => onFontSizeChange(fontSize - 1)}
@@ -79,11 +83,11 @@ export function WorkspacePreviewTypographyControls({
         >
           A-
         </button>
-        <output aria-label="Preview font size" className="workspace-preview-size-value">
+        <output aria-label={messages.fontSize} className="workspace-preview-size-value">
           {fontSize}px
         </output>
         <button
-          aria-label="Increase preview font size"
+          aria-label={messages.increaseFont}
           className="toolbar-button workspace-preview-size-button"
           disabled={fontSize >= maxFontSize}
           onClick={() => onFontSizeChange(fontSize + 1)}

@@ -1,17 +1,19 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import type { WorkspaceMessages } from "@/lib/i18n/messages";
 import { ExtractedHeading } from "@/lib/markdown/extract-headings";
 
 type OutlinePanelProps = {
   headings: ExtractedHeading[];
   documentTitle: string;
+  messages: WorkspaceMessages["preview"];
   open: boolean;
   onNavigate: (id: string) => void;
   onToggle: () => void;
 };
 
-export function OutlinePanel({ headings, documentTitle, onNavigate, onToggle, open }: OutlinePanelProps) {
+export function OutlinePanel({ headings, documentTitle, messages, onNavigate, onToggle, open }: OutlinePanelProps) {
   const [activeId, setActiveId] = useState<string | null>(headings[0]?.id ?? null);
   const hasHeadings = headings.length > 0;
   const headingIds = useMemo(() => headings.map((heading) => heading.id), [headings]);
@@ -90,14 +92,14 @@ export function OutlinePanel({ headings, documentTitle, onNavigate, onToggle, op
     <div className="workspace-toc" data-open={open} data-testid="floating-toc">
       <button
         aria-expanded={open}
-        aria-label={open ? "Close contents" : "Contents"}
+        aria-label={open ? messages.closeContents : messages.contents}
         className="workspace-toc-trigger"
         onClick={onToggle}
         type="button"
       >
-        {open ? "Close" : "Contents"}
+        {open ? messages.close : messages.contents}
       </button>
-      <aside aria-hidden={!open} className="workspace-toc-panel" aria-label="Contents">
+      <aside aria-hidden={!open} className="workspace-toc-panel" aria-label={messages.contents}>
         <div className="workspace-toc-title">{documentTitle}</div>
         <div className="outline-list">
           {headings.map((heading) => (

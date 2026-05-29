@@ -1,5 +1,7 @@
 import { starterDocument } from "@/lib/workspace/default-document";
 import { getSharedDocument } from "@/lib/share/mock-share-store";
+import { defaultLocale, type Locale } from "@/lib/i18n/locales";
+import { getMessages } from "@/lib/i18n/messages";
 import { loadMarkdownSource } from "@/lib/workspace/load-markdown-source";
 
 type SearchParams = Record<string, string | string[] | undefined>;
@@ -16,8 +18,10 @@ function takeFirst(value: string | string[] | undefined) {
 
 export async function resolveInitialWorkspaceDocument(
   searchParams: SearchParams,
-  fetcher?: typeof fetch
+  fetcher?: typeof fetch,
+  locale: Locale = defaultLocale
 ): Promise<ResolvedWorkspaceDocument> {
+  const messages = getMessages(locale).workspace;
   const shareValue = takeFirst(searchParams.share);
   const sourceValue = takeFirst(searchParams.source);
 
@@ -28,7 +32,7 @@ export async function resolveInitialWorkspaceDocument(
       return {
         markdown: "",
         sourceInput: "",
-        statusMessage: "Shared document not found."
+        statusMessage: messages.status.sharedMissing
       };
     }
 
@@ -50,7 +54,7 @@ export async function resolveInitialWorkspaceDocument(
       return {
         markdown: "",
         sourceInput: sourceValue,
-        statusMessage: error instanceof Error ? error.message : "Failed to load Markdown."
+        statusMessage: error instanceof Error ? error.message : messages.status.loadFailed
       };
     }
   }

@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import WorkspacePage from "@/app/workspace/page";
+import ChineseWorkspacePage from "@/app/zh-CN/workspace/page";
 
 describe("workspace page", () => {
   it("opens into the split core canvas with minimal controls", async () => {
@@ -28,5 +29,19 @@ describe("workspace page", () => {
     ).not.toBeNull();
     expect(screen.queryByText(/document workspace/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/reader preview/i)).not.toBeInTheDocument();
+  });
+
+  it("opens the Chinese workspace with localized controls", async () => {
+    const page = await ChineseWorkspacePage({
+      searchParams: Promise.resolve({})
+    });
+
+    render(page);
+
+    expect(screen.getByRole("tablist", { name: /打开的标签/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /新建标签/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /模板：纸张/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^url$/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /markdownviewer 首页/i })).toHaveAttribute("href", "/zh-CN/");
   });
 });

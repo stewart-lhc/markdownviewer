@@ -1,14 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { getWorkspaceThemeLabel, workspaceThemeOptions, type WorkspaceTheme } from "@/lib/workspace/themes";
+import type { WorkspaceMessages } from "@/lib/i18n/messages";
+import { workspaceThemeOptions, type WorkspaceTheme } from "@/lib/workspace/themes";
 
 type WorkspaceThemeSelectorProps = {
+  messages: WorkspaceMessages["preview"];
   onThemeChange: (theme: WorkspaceTheme) => void;
   theme: WorkspaceTheme;
 };
 
-export function WorkspaceThemeSelector({ onThemeChange, theme }: WorkspaceThemeSelectorProps) {
+export function WorkspaceThemeSelector({ messages, onThemeChange, theme }: WorkspaceThemeSelectorProps) {
   const [themeMenuOpen, setThemeMenuOpen] = useState(false);
   const themeMenuRef = useRef<HTMLDivElement | null>(null);
 
@@ -40,10 +42,10 @@ export function WorkspaceThemeSelector({ onThemeChange, theme }: WorkspaceThemeS
         onClick={() => setThemeMenuOpen((open) => !open)}
         type="button"
       >
-        {`Template: ${getWorkspaceThemeLabel(theme)}`}
+        {messages.templateButton(messages.themes[theme].label)}
       </button>
       {themeMenuOpen ? (
-        <div aria-label="Template palette" className="theme-menu" role="menu">
+        <div aria-label={messages.templatePalette} className="theme-menu" role="menu">
           {workspaceThemeOptions.map((option) => (
             <button
               aria-checked={theme === option.id}
@@ -56,8 +58,8 @@ export function WorkspaceThemeSelector({ onThemeChange, theme }: WorkspaceThemeS
             >
               <span aria-hidden="true" className="theme-option__swatch" data-theme-id={option.id} />
               <span className="theme-option__meta">
-                <span className="theme-option__label">{option.label}</span>
-                <span className="theme-option__description">{option.description}</span>
+                <span className="theme-option__label">{messages.themes[option.id].label}</span>
+                <span className="theme-option__description">{messages.themes[option.id].description}</span>
               </span>
             </button>
           ))}

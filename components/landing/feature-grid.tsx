@@ -1,23 +1,10 @@
-const features = [
-  {
-    title: "Live preview",
-    description: "Edit or paste Markdown and watch the rendered document update in the workspace."
-  },
-  {
-    title: "Technical-ready",
-    description: "Code fences, tables, KaTeX math, and Mermaid diagrams stay readable instead of collapsing into plain text."
-  },
-  {
-    title: "Fast import",
-    description: "Open local files, pasted Markdown, GitHub content, Gists, and raw URLs from the same surface."
-  },
-  {
-    title: "README friendly",
-    description: "Preview README.md files, changelogs, API docs, and AI-generated Markdown without a docs-site setup."
-  }
-];
+import type { LandingCard } from "@/lib/i18n/messages";
 
-export function FeatureGrid() {
+type FeatureGridProps = {
+  features: LandingCard[];
+};
+
+export function FeatureGrid({ features }: FeatureGridProps) {
   return (
     <div className="feature-grid">
       {features.map((feature) => (

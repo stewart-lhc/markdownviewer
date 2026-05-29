@@ -2,11 +2,19 @@
 
 import Link from "next/link";
 import { useRef, useState } from "react";
+import { localizePath, type Locale } from "@/lib/i18n/locales";
+import { getMessages } from "@/lib/i18n/messages";
 import { pendingWorkspaceImportKey } from "@/lib/workspace/pending-import";
 
-export function HeroImportActions() {
+type HeroImportActionsProps = {
+  locale: Locale;
+};
+
+export function HeroImportActions({ locale }: HeroImportActionsProps) {
+  const messages = getMessages(locale).landing.hero;
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [status, setStatus] = useState<string>();
+  const workspacePath = localizePath("/workspace", locale);
 
   async function openFile(file: File) {
     try {
@@ -17,12 +25,12 @@ export function HeroImportActions() {
         JSON.stringify({
           markdown,
           sourceInput: `file:${file.name}`,
-          statusMessage: `Loaded ${file.name}.`
+          statusMessage: messages.loadedFile(file.name)
         })
       );
-      window.location.assign("/workspace?import=file");
+      window.location.assign(`${workspacePath}?import=file`);
     } catch {
-      setStatus("Could not read the selected Markdown file.");
+      setStatus(messages.readFileError);
     }
   }
 
@@ -30,27 +38,27 @@ export function HeroImportActions() {
     <>
       <div className="hero-actions">
         <button className="button-secondary" onClick={() => fileInputRef.current?.click()} type="button">
-          Drop a file
+          {messages.dropFile}
         </button>
-        <Link className="button-secondary" href="/workspace?sample=starter">
-          Open sample
+        <Link className="button-secondary" href={`${workspacePath}?sample=starter`}>
+          {messages.openSample}
         </Link>
-        <form action="/workspace" className="hero-url-form">
+        <form action={workspacePath} className="hero-url-form">
           <input
-            aria-label="Markdown source URL"
+            aria-label={messages.sourceUrlLabel}
             className="input hero-url-input"
             name="source"
-            placeholder="Paste a GitHub, Gist, or Markdown URL"
+            placeholder={messages.sourceUrlPlaceholder}
             type="url"
           />
           <button className="button-primary" type="submit">
-            Open Markdown Now
+            {messages.openMarkdown}
           </button>
         </form>
       </div>
       <input
         accept=".md,.markdown,.mdx,.txt,text/markdown,text/plain"
-        aria-label="Upload markdown file from homepage"
+        aria-label={messages.uploadLabel}
         className="sr-only"
         onChange={(event) => {
           const file = event.currentTarget.files?.[0];

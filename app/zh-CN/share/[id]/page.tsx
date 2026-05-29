@@ -3,14 +3,13 @@ import {
   type SharePageContentProps,
   SharePageContent
 } from "@/components/share/share-page-content";
-import { defaultLocale } from "@/lib/i18n/locales";
 
 type SharePageProps = Omit<SharePageContentProps, "locale">;
 
 export function generateMetadata(props: SharePageProps) {
-  return buildShareMetadata({ ...props, locale: defaultLocale });
+  return buildShareMetadata({ ...props, locale: "zh-CN" });
 }
 
-export default function SharePage(props: SharePageProps) {
-  return SharePageContent({ ...props, locale: defaultLocale });
+export default function ChineseSharePage(props: SharePageProps) {
+  return SharePageContent({ ...props, locale: "zh-CN" });
 }
