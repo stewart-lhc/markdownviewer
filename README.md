@@ -11,6 +11,8 @@
 
 [Live Markdown Viewer](https://markdownviewer.run/) - [Open the Workspace](https://markdownviewer.run/workspace) - [Star the Project](https://github.com/stewart-lhc/markdownviewer)
 
+Current release: **v0.2.0**. See [CHANGELOG.md](CHANGELOG.md) for release notes and update history.
+
 </div>
 
 ## The Short Pitch

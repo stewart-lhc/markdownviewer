@@ -1,6 +1,6 @@
 {
   "name": "markdownviewer",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Open-source online Markdown viewer with live preview for README files, GitHub Flavored Markdown, Mermaid diagrams, KaTeX math, code blocks, and raw URLs.",
   "license": "MIT",
   "homepage": "https://markdownviewer.run/",
