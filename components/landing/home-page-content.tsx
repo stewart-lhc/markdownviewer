@@ -110,8 +110,10 @@ export function HomePageContent({ locale = defaultLocale }: HomePageContentProps
           <BrandLink className="brand" label={t.common.brand} title={t.common.brand} />
           <nav className="topbar-actions" aria-label={t.landing.nav.primary}>
             <LanguageSwitcher currentLocale={locale} path="/" />
-            <a className="ghost-link" href={githubRepositoryUrl}>
-              {t.landing.nav.github}
+            <a aria-label={t.landing.nav.github} className="ghost-link ghost-link--icon" href={githubRepositoryUrl}>
+              <span aria-hidden="true" className="gh-mark">
+                gh
+              </span>
             </a>
             <a className="ghost-link" href={localizePath("/workspace", locale)}>
               {t.landing.nav.workspace}

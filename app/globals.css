@@ -736,6 +736,7 @@ button {
   align-items: center;
   gap: 10px;
   min-width: 0;
+  flex-wrap: nowrap;
 }
 
 .brand-link {
@@ -862,10 +863,28 @@ button {
 }
 
 .ghost-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
   border: 1px solid var(--line);
   border-radius: 999px;
   padding: 10px 14px;
   background: rgba(255, 255, 255, 0.5);
+  white-space: nowrap;
+}
+
+.ghost-link--icon {
+  width: 42px;
+  padding: 0;
+}
+
+.gh-mark {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
 }
 
 .hero {
@@ -950,7 +969,7 @@ button {
 
 .hero-actions {
   display: grid;
-  grid-template-columns: repeat(2, max-content) minmax(0, 1fr);
+  grid-template-columns: repeat(3, max-content);
   align-items: center;
   gap: 10px;
   margin: 4px 0 0;
@@ -966,10 +985,24 @@ button {
   width: 100%;
 }
 
-.hero-url-input {
+.hero-url-field {
+  position: relative;
+  min-width: 0;
+}
+
+.hero-url-field svg {
+  position: absolute;
+  top: 50%;
+  left: 15px;
+  color: var(--muted);
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.hero-url-field .hero-url-input {
   min-width: 0;
   border-radius: 999px;
-  padding-inline: 16px;
+  padding-inline: 42px 16px;
 }
 
 .button-primary,
@@ -999,11 +1032,21 @@ button {
 }
 
 .button-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   background: rgba(255, 255, 255, 0.72);
   color: var(--ink);
   border-color: var(--line);
   border-radius: 999px;
   padding: 12px 18px;
+  white-space: nowrap;
+}
+
+.hero-action-button {
+  min-height: 48px;
+  line-height: 1;
 }
 
 .support-strip {
@@ -3954,12 +3997,38 @@ html[data-theme] .workspace-reader-body .markdown-body h4,
   }
 
   .topbar {
-    align-items: flex-start;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0 22px;
   }
 
   .topbar-actions {
-    flex-wrap: wrap;
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
     justify-content: flex-end;
+    gap: 7px;
+  }
+
+  .topbar .brand-link {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .topbar .brand-link__label {
+    overflow: hidden;
+    font-size: 0.76rem;
+    letter-spacing: 0.06em;
+    text-overflow: ellipsis;
+  }
+
+  .topbar .ghost-link {
+    min-height: 40px;
+    padding: 9px 12px;
+  }
+
+  .topbar .ghost-link--icon {
+    width: 40px;
+    padding: 0;
   }
 
   .hero-copy,
@@ -3974,29 +4043,69 @@ html[data-theme] .workspace-reader-body .markdown-body h4,
     padding: 24px;
     min-height: auto;
     height: auto;
+    gap: 18px;
   }
 
   .hero-preview {
-    min-height: auto;
-    height: auto;
+    height: min(620px, calc(100svh - 24px));
+    max-height: calc(100svh - 24px);
+    min-height: 420px;
   }
 
   .hero-copy h1 {
     max-width: none;
   }
 
-  .support-strip {
-    overflow-x: auto;
-    padding-bottom: 2px;
-    scrollbar-width: none;
+  .hero-copy .eyebrow {
+    align-items: flex-start;
+    line-height: 1.28;
   }
 
-  .support-strip::-webkit-scrollbar {
-    display: none;
+  .hero-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .hero-action-button {
+    min-width: 0;
+    padding-inline: 12px;
+  }
+
+  .hero-sample-link {
+    grid-column: 1 / -1;
+  }
+
+  .hero-url-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hero-action-submit {
+    width: 100%;
+  }
+
+  .support-strip {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    overflow: visible;
+    padding-bottom: 0;
+    scrollbar-width: auto;
+  }
+
+  .support-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 32px;
+    padding: 7px 8px;
+    text-align: center;
+    line-height: 1.12;
+    white-space: normal;
   }
 
   .preview-window {
-    min-height: 420px;
+    height: 100%;
+    min-height: 0;
+    max-height: 100%;
     padding: 16px 8px 16px 18px;
   }
 
@@ -4723,10 +4832,10 @@ html[data-theme] .workspace-reader-body .markdown-body h4,
     left: auto !important;
   }
 
-  html,
-  body,
-  main,
-  .page-shell,
+  html:has(.workspace-page),
+  body:has(.workspace-page),
+  body:has(.workspace-page) main,
+  body:has(.workspace-page) .page-shell,
   .workspace-page {
     max-width: 100%;
     overflow: hidden !important;

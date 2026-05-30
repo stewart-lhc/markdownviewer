@@ -233,7 +233,7 @@ export const messages: Record<Locale, Messages> = {
       nav: {
         github: "GitHub",
         primary: "Primary",
-        workspace: "Enter workspace"
+        workspace: "Workspace"
       },
       hero: {
         body:
@@ -584,7 +584,7 @@ export const messages: Record<Locale, Messages> = {
       nav: {
         github: "GitHub",
         primary: "主导航",
-        workspace: "进入工作区"
+        workspace: "工作区"
       },
       hero: {
         body:

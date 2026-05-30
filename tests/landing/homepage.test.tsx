@@ -6,13 +6,14 @@ describe("homepage", () => {
   it("shows direct actions for file, url, and sample import", () => {
     const { container } = render(<HomePage />);
 
-    expect(screen.getByRole("button", { name: /drop a file/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /paste/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^file$/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /open sample/i })).toHaveAttribute(
       "href",
       "/workspace?sample=starter"
     );
     expect(screen.getByLabelText(/markdown source url/i)).toHaveAttribute("name", "source");
-    expect(screen.getByRole("button", { name: /open markdown now/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^open$/i })).toBeInTheDocument();
     expect(container.querySelector(".hero-preview .markdown-body--compact")).toBeInTheDocument();
   });
 
@@ -31,8 +32,8 @@ describe("homepage", () => {
     render(<ChineseHomePage />);
 
     expect(screen.getByRole("heading", { level: 1, name: /在线 markdown 查看器/i })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /进入工作区/i })).toHaveAttribute("href", "/zh-CN/workspace");
-    expect(screen.getByRole("link", { name: "English" })).toHaveAttribute("href", "/");
-    expect(screen.getByRole("button", { name: /立即打开 markdown/i })).toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: /工作区/i })[0]).toHaveAttribute("href", "/zh-CN/workspace");
+    expect(screen.getByRole("link", { name: "en" })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("button", { name: /^打开$/i })).toBeInTheDocument();
   });
 });

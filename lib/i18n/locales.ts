@@ -4,8 +4,8 @@ export const locales = ["en", "zh-CN"] as const;
 export type Locale = (typeof locales)[number];
 
 export const localeLabels: Record<Locale, string> = {
-  en: "English",
-  "zh-CN": "中文"
+  en: "en",
+  "zh-CN": "中"
 };
 
 export function getLocalePrefix(locale: Locale) {

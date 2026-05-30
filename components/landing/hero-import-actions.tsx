@@ -1,6 +1,7 @@
 "use client";
 
-import Link from "next/link";
+import NextLink from "next/link";
+import { Clipboard, FileUp, Link as LinkIcon } from "lucide-react";
 import { useRef, useState } from "react";
 import { localizePath, type Locale } from "@/lib/i18n/locales";
 import { getMessages } from "@/lib/i18n/messages";
@@ -12,6 +13,7 @@ type HeroImportActionsProps = {
 
 export function HeroImportActions({ locale }: HeroImportActionsProps) {
   const messages = getMessages(locale).landing.hero;
+  const workspaceMessages = getMessages(locale).workspace;
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [status, setStatus] = useState<string>();
   const workspacePath = localizePath("/workspace", locale);
@@ -34,25 +36,58 @@ export function HeroImportActions({ locale }: HeroImportActionsProps) {
     }
   }
 
+  async function pasteIntoWorkspace() {
+    try {
+      const markdown = await navigator.clipboard.readText();
+
+      if (markdown.trim().length > 0) {
+        window.localStorage.setItem(
+          pendingWorkspaceImportKey,
+          JSON.stringify({
+            markdown,
+            sourceInput: "",
+            statusMessage: workspaceMessages.status.pasted
+          })
+        );
+        window.location.assign(`${workspacePath}?import=file`);
+        return;
+      }
+
+      setStatus(workspaceMessages.status.emptyClipboard);
+    } catch {
+      setStatus(workspaceMessages.status.pastePermission);
+    }
+
+    window.location.assign(workspacePath);
+  }
+
   return (
     <>
       <div className="hero-actions">
-        <button className="button-secondary" onClick={() => fileInputRef.current?.click()} type="button">
-          {messages.dropFile}
+        <button className="button-secondary hero-action-button" onClick={() => void pasteIntoWorkspace()} type="button">
+          <Clipboard aria-hidden="true" size={17} strokeWidth={2} />
+          <span>{workspaceMessages.toolbar.paste}</span>
         </button>
-        <Link className="button-secondary" href={`${workspacePath}?sample=starter`}>
+        <button className="button-secondary hero-action-button" onClick={() => fileInputRef.current?.click()} type="button">
+          <FileUp aria-hidden="true" size={17} strokeWidth={2} />
+          <span>{workspaceMessages.toolbar.file}</span>
+        </button>
+        <NextLink className="button-secondary hero-action-button hero-sample-link" href={`${workspacePath}?sample=starter`}>
           {messages.openSample}
-        </Link>
+        </NextLink>
         <form action={workspacePath} className="hero-url-form">
-          <input
-            aria-label={messages.sourceUrlLabel}
-            className="input hero-url-input"
-            name="source"
-            placeholder={messages.sourceUrlPlaceholder}
-            type="url"
-          />
-          <button className="button-primary" type="submit">
-            {messages.openMarkdown}
+          <div className="hero-url-field">
+            <LinkIcon aria-hidden="true" size={17} strokeWidth={2} />
+            <input
+              aria-label={messages.sourceUrlLabel}
+              className="input hero-url-input"
+              name="source"
+              placeholder={workspaceMessages.tabs.importUrlPlaceholder}
+              type="url"
+            />
+          </div>
+          <button className="button-primary hero-action-button hero-action-submit" type="submit">
+            <span>{workspaceMessages.toolbar.open}</span>
           </button>
         </form>
       </div>
