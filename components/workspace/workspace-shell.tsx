@@ -2,6 +2,8 @@
 
 import {
   type CSSProperties,
+  type ChangeEvent,
+  type FormEvent,
   type KeyboardEvent as ReactKeyboardEvent,
   type PointerEvent as ReactPointerEvent,
   useDeferredValue,
@@ -11,7 +13,7 @@ import {
   useRef,
   useState
 } from "react";
-import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Clipboard, FileUp, FolderOpen, Link, PanelLeftClose, PanelLeftOpen, Share2, X } from "lucide-react";
 import { BrandLink } from "@/components/brand/brand-link";
 import { FolderRail } from "@/components/workspace/folder-rail";
 import { createMarkdownShare } from "@/lib/share/share-codec";
@@ -64,6 +66,7 @@ type WorkspaceTab = {
   createdAt: number;
   folderFilePath?: string;
   folderLastModified?: number;
+  hasExplicitImportChoice?: boolean;
   hasExplicitSave?: boolean;
   id: string;
   markdown: string;
@@ -196,6 +199,8 @@ function normalizeStoredWorkspaceTab(value: unknown, index: number): WorkspaceTa
     typeof record.folderLastModified === "number" && Number.isFinite(record.folderLastModified)
       ? record.folderLastModified
       : undefined;
+  const hasExplicitImportChoice =
+    typeof record.hasExplicitImportChoice === "boolean" ? record.hasExplicitImportChoice : undefined;
   const hasExplicitSave = typeof record.hasExplicitSave === "boolean" ? record.hasExplicitSave : undefined;
   const savedMarkdownHash = typeof record.savedMarkdownHash === "string" ? record.savedMarkdownHash : undefined;
   const sourceKind =
@@ -217,6 +222,7 @@ function normalizeStoredWorkspaceTab(value: unknown, index: number): WorkspaceTa
     createdAt,
     folderFilePath,
     folderLastModified,
+    hasExplicitImportChoice,
     hasExplicitSave,
     id,
     markdown,
@@ -517,10 +523,13 @@ export function WorkspaceShell({
   const [folderSkippedCount, setFolderSkippedCount] = useState(0);
   const [folderSearchOpen, setFolderSearchOpen] = useState(false);
   const [folderSearchQuery, setFolderSearchQuery] = useState("");
+  const [newTabDialogOpen, setNewTabDialogOpen] = useState(false);
+  const [newTabUrlInput, setNewTabUrlInput] = useState("");
   const [saveState, setSaveState] = useState<FolderSaveState>("idle");
   const gridRef = useRef<HTMLDivElement | null>(null);
   const editorRef = useRef<HTMLElement | null>(null);
   const previewRef = useRef<HTMLDivElement | null>(null);
+  const newTabFileInputRef = useRef<HTMLInputElement | null>(null);
   const lastEditorSelectionStartRef = useRef(0);
   const suppressPreviewScrollSyncRef = useRef(false);
   const suppressPreviewScrollSyncTimerRef = useRef<number | null>(null);
@@ -556,6 +565,8 @@ export function WorkspaceShell({
   const isActiveFolderDocument = Boolean(activeFolderPath && activeFolderEntry);
   const activeFolderDirty =
     isActiveFolderDocument && activeTab?.savedMarkdownHash !== hashMarkdown(currentMarkdown);
+  const activeTabImportLocked = activeTab?.hasExplicitImportChoice === true;
+  const showToolbarImportActions = !activeTabImportLocked && !hasCurrentDocument;
   const tabItems = useMemo(
     () =>
       tabs.map((tab) => ({
@@ -1193,6 +1204,7 @@ export function WorkspaceShell({
       updateActiveTabMetadata({
         folderFilePath: entry.path,
         folderLastModified: document.lastModified,
+        hasExplicitImportChoice: true,
         hasExplicitSave: true,
         markdown: document.markdown,
         savedMarkdownHash: savedHash,
@@ -1239,6 +1251,7 @@ export function WorkspaceShell({
       updateActiveTabMetadata({
         folderFilePath: created.path,
         folderLastModified: created.lastModified,
+        hasExplicitImportChoice: true,
         hasExplicitSave: true,
         markdown: nextMarkdown,
         savedMarkdownHash: hashMarkdown(nextMarkdown),
@@ -1267,6 +1280,7 @@ export function WorkspaceShell({
         tab.id === importedTab.id
           ? {
               ...tab,
+              hasExplicitImportChoice: true,
               sourceKind: "file-import"
             }
           : tab
@@ -1276,16 +1290,119 @@ export function WorkspaceShell({
     setTocOpen(false);
   }
 
-  function handleNewTab() {
-    const nextTab = createWorkspaceTab();
-
+  function activateWorkspaceTab(nextTab: WorkspaceTab, importMode: SourcePanelMode, statusMessage?: string) {
     setTabs((currentTabs) => [...currentTabs, nextTab].slice(-maxStoredWorkspaceTabs));
     setActiveTabId(nextTab.id);
     setCurrentMarkdown(nextTab.markdown);
     setCurrentSource(nextTab.sourceInput);
-    setActiveImportMode("paste");
-    setStatusMessage(messages.status.newTab);
+    setActiveImportMode(importMode);
+    setStatusMessage(statusMessage ?? messages.status.newTab);
     setTocOpen(false);
+  }
+
+  function createExplicitImportTab(
+    markdown = "",
+    sourceInput = "",
+    patch: Partial<WorkspaceTab> = {}
+  ): WorkspaceTab {
+    return {
+      ...createWorkspaceTab(markdown, sourceInput),
+      hasExplicitImportChoice: true,
+      ...patch
+    };
+  }
+
+  function handleNewTab() {
+    setNewTabDialogOpen(true);
+    setNewTabUrlInput("");
+  }
+
+  async function handleNewTabPaste() {
+    if (!(await ensureFolderSwitchAllowed())) {
+      return;
+    }
+
+    setNewTabDialogOpen(false);
+
+    try {
+      const pasted = await navigator.clipboard.readText();
+      const nextTab = createExplicitImportTab(pasted, "", {
+        sourceKind: "draft"
+      });
+
+      activateWorkspaceTab(
+        nextTab,
+        "paste",
+        pasted ? messages.status.pasted : messages.status.emptyClipboard
+      );
+
+      if (!pasted) {
+        setCurrentMode("editor");
+      }
+    } catch {
+      const nextTab = createExplicitImportTab("", "", {
+        sourceKind: "draft"
+      });
+
+      activateWorkspaceTab(nextTab, "paste", messages.status.pastePermission);
+      setCurrentMode("editor");
+    }
+  }
+
+  async function handleNewTabFile() {
+    if (!(await ensureFolderSwitchAllowed())) {
+      return;
+    }
+
+    setNewTabDialogOpen(false);
+    newTabFileInputRef.current?.click();
+  }
+
+  async function handleNewTabFileSelected(file: File) {
+    const nextMarkdown = await readFileContents(file);
+    const nextTab = createExplicitImportTab(nextMarkdown, `file:${file.name}`, {
+      sourceKind: "file-import"
+    });
+
+    activateWorkspaceTab(nextTab, "file", messages.status.loadedFile(file.name));
+  }
+
+  async function handleNewTabUrlSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!(await ensureFolderSwitchAllowed())) {
+      return;
+    }
+
+    const requestedUrl = newTabUrlInput.trim();
+
+    if (!requestedUrl) {
+      setStatusMessage(messages.status.urlRequired);
+      return;
+    }
+
+    try {
+      const result = await loadSource(requestedUrl);
+      const resolvedUrl = result.resolvedUrl ?? requestedUrl;
+      const nextTab = createExplicitImportTab(result.markdown, resolvedUrl, {
+        sourceKind: "remote-url"
+      });
+
+      activateWorkspaceTab(nextTab, "url", messages.status.loadedSource(result.label));
+      setNewTabDialogOpen(false);
+      setNewTabUrlInput("");
+    } catch (error) {
+      setStatusMessage(error instanceof Error ? error.message : messages.status.loadFailed);
+    }
+  }
+
+  async function handleNewTabFolder() {
+    if (!(await ensureFolderSwitchAllowed())) {
+      return;
+    }
+
+    setNewTabDialogOpen(false);
+    await handleOpenFolder();
   }
 
   function switchToTab(selectedTab: WorkspaceTab) {
@@ -1361,6 +1478,7 @@ export function WorkspaceShell({
       setCurrentMarkdown(result.markdown);
       setCurrentSource(result.resolvedUrl ?? currentSource);
       updateActiveTabMetadata({
+        hasExplicitImportChoice: true,
         markdown: result.markdown,
         sourceInput: result.resolvedUrl ?? currentSource,
         sourceKind: "remote-url"
@@ -1378,6 +1496,7 @@ export function WorkspaceShell({
     setCurrentSource(`file:${file.name}`);
     setCurrentMarkdown(nextMarkdown);
     updateActiveTabMetadata({
+      hasExplicitImportChoice: true,
       markdown: nextMarkdown,
       sourceInput: `file:${file.name}`,
       sourceKind: "file-import"
@@ -1393,9 +1512,26 @@ export function WorkspaceShell({
 
       if (pasted) {
         setCurrentMarkdown(pasted);
+        updateActiveTabMetadata({
+          hasExplicitImportChoice: true,
+          markdown: pasted,
+          sourceKind: "draft"
+        });
         setStatusMessage(messages.status.pasted);
+      } else {
+        updateActiveTabMetadata({
+          hasExplicitImportChoice: true,
+          sourceKind: "draft"
+        });
+        setCurrentMode("editor");
+        setStatusMessage(messages.status.emptyClipboard);
       }
     } catch {
+      updateActiveTabMetadata({
+        hasExplicitImportChoice: true,
+        sourceKind: "draft"
+      });
+      setCurrentMode("editor");
       setStatusMessage(messages.status.pastePermission);
     }
   }
@@ -1796,23 +1932,9 @@ export function WorkspaceShell({
             <WorkspaceToolbar
               activeImportMode={activeImportMode}
               compact={compactWorkspace}
-              compactSettingsItems={
-                <>
-                  <WorkspaceThemeSelector messages={messages.preview} onThemeChange={setTheme} theme={theme} />
-                  <WorkspacePreviewTypographyControls
-                    font={previewFont}
-                    fontSize={previewFontSize}
-                    maxFontSize={maxPreviewFontSize}
-                    messages={messages.preview}
-                    minFontSize={minPreviewFontSize}
-                    onFontChange={setPreviewFont}
-                    onFontSizeChange={(nextFontSize) => setPreviewFontSize(clampPreviewFontSize(nextFontSize))}
-                  />
-                </>
-              }
               messages={messages.toolbar}
               mode={currentMode}
-              showImportActions={!hasCurrentDocument}
+              showImportActions={showToolbarImportActions}
             onExportHtml={handleExportHtml}
             onExportPdf={handleExportPdf}
             onActiveImportModeChange={setActiveImportMode}
@@ -1824,12 +1946,76 @@ export function WorkspaceShell({
             onSaveToDisk={() => {
               void saveCurrentFolderFile();
             }}
-            onShare={handleShare}
             onSourceChange={setCurrentSource}
             sourceValue={currentSource}
           />
         </div>
         {statusMessage ? <p aria-live="polite" className="sr-only" role="status">{statusMessage}</p> : null}
+        <input
+          aria-hidden="true"
+          className="sr-only"
+          onChange={(event: ChangeEvent<HTMLInputElement>) => {
+            const file = event.currentTarget.files?.[0];
+
+            if (file) {
+              void handleNewTabFileSelected(file);
+            }
+
+            event.currentTarget.value = "";
+          }}
+          ref={newTabFileInputRef}
+          type="file"
+          accept=".md,.markdown,.mdx,.txt,text/markdown,text/plain"
+        />
+        {newTabDialogOpen ? (
+          <div className="workspace-new-tab-dialog-backdrop" role="presentation">
+            <div
+              aria-label={messages.tabs.importDialogTitle}
+              aria-modal="true"
+              className="workspace-new-tab-dialog"
+              role="dialog"
+            >
+              <div className="workspace-new-tab-dialog-header">
+                <span>{messages.tabs.importDialogTitle}</span>
+                <button
+                  aria-label={messages.preview.close}
+                  className="workspace-new-tab-dialog-close"
+                  onClick={() => setNewTabDialogOpen(false)}
+                  type="button"
+                >
+                  <X aria-hidden="true" size={18} strokeWidth={2} />
+                </button>
+              </div>
+              <div className="workspace-new-tab-choices">
+                <button className="workspace-new-tab-choice" onClick={() => void handleNewTabPaste()} type="button">
+                  <Clipboard aria-hidden="true" size={18} strokeWidth={2} />
+                  <span>{messages.toolbar.paste}</span>
+                </button>
+                <button className="workspace-new-tab-choice" onClick={() => void handleNewTabFile()} type="button">
+                  <FileUp aria-hidden="true" size={18} strokeWidth={2} />
+                  <span>{messages.toolbar.file}</span>
+                </button>
+                <button className="workspace-new-tab-choice" onClick={() => void handleNewTabFolder()} type="button">
+                  <FolderOpen aria-hidden="true" size={18} strokeWidth={2} />
+                  <span>{messages.toolbar.openFolder}</span>
+                </button>
+              </div>
+              <form className="workspace-new-tab-url-form" onSubmit={handleNewTabUrlSubmit}>
+                <Link aria-hidden="true" size={18} strokeWidth={2} />
+                <input
+                  aria-label={messages.toolbar.sourceUrlLabel}
+                  className="input input--compact workspace-new-tab-url-input"
+                  onChange={(event) => setNewTabUrlInput(event.currentTarget.value)}
+                  placeholder={messages.tabs.importUrlPlaceholder}
+                  value={newTabUrlInput}
+                />
+                <button className="toolbar-button" type="submit">
+                  {messages.toolbar.open}
+                </button>
+              </form>
+            </div>
+          </div>
+        ) : null}
         <div
           className="workspace-grid"
           data-mode={currentMode}
@@ -1879,21 +2065,6 @@ export function WorkspaceShell({
               data-testid="preview-panel"
               data-visible
             >
-              <div className="workspace-pane-header workspace-pane-header--preview">
-                <div className="workspace-preview-header-controls">
-                  <WorkspaceThemeSelector messages={messages.preview} onThemeChange={setTheme} theme={theme} />
-                  <WorkspacePreviewTypographyControls
-                    font={previewFont}
-                    fontSize={previewFontSize}
-                    maxFontSize={maxPreviewFontSize}
-                    messages={messages.preview}
-                    minFontSize={minPreviewFontSize}
-                    onFontChange={setPreviewFont}
-                    onFontSizeChange={(nextFontSize) => setPreviewFontSize(clampPreviewFontSize(nextFontSize))}
-                  />
-                </div>
-                <div className="workspace-pane-header-spacer" />
-              </div>
               <div
                 className="workspace-reader-body"
                 data-testid="preview-scroll-region"
@@ -1908,6 +2079,24 @@ export function WorkspaceShell({
                 style={previewReaderStyle}
               >
                 <MarkdownRenderer markdown={previewMarkdown} onLinkClick={handlePreviewLinkClick} />
+              </div>
+              <div className="workspace-preview-bottom-bar">
+                <div className="workspace-preview-bottom-controls">
+                  <WorkspaceThemeSelector messages={messages.preview} onThemeChange={setTheme} theme={theme} />
+                  <WorkspacePreviewTypographyControls
+                    font={previewFont}
+                    fontSize={previewFontSize}
+                    maxFontSize={maxPreviewFontSize}
+                    messages={messages.preview}
+                    minFontSize={minPreviewFontSize}
+                    onFontChange={setPreviewFont}
+                    onFontSizeChange={(nextFontSize) => setPreviewFontSize(clampPreviewFontSize(nextFontSize))}
+                  />
+                </div>
+                <button className="toolbar-button workspace-preview-share-button" onClick={handleShare} type="button">
+                  <Share2 aria-hidden="true" size={16} strokeWidth={2} />
+                  <span>{messages.toolbar.shareLink}</span>
+                </button>
               </div>
             </section>
           ) : null}

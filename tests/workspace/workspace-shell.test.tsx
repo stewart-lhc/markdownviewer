@@ -184,10 +184,10 @@ describe("WorkspaceShell interactions", () => {
     expect(screen.getByRole("button", { name: /template: paper/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /template: paper/i }).closest(".toolbar")).toBeNull();
     expect(
-      screen.getByRole("button", { name: /template: paper/i }).closest(".workspace-pane-header--preview")
+      screen.getByRole("button", { name: /template: paper/i }).closest(".workspace-preview-bottom-bar")
     ).not.toBeNull();
     expect(
-      within(screen.getByTestId("preview-panel")).getByLabelText(/^preview font$/i).closest(".workspace-pane-header--preview")
+      within(screen.getByTestId("preview-panel")).getByLabelText(/^preview font$/i).closest(".workspace-preview-bottom-bar")
     ).not.toBeNull();
     expect(
       within(screen.getByTestId("preview-panel")).getByRole("button", { name: /increase preview font size/i })
@@ -221,12 +221,26 @@ describe("WorkspaceShell interactions", () => {
 
   it("lets the user create and switch workspace tabs without losing each tab's document", async () => {
     const user = userEvent.setup();
+    const readText = vi.fn().mockResolvedValue("# Second draft");
+
+    Object.defineProperty(window.navigator, "clipboard", {
+      configurable: true,
+      value: { readText }
+    });
 
     render(<WorkspaceShell markdown="# First draft" sourceInput="" />);
 
     await user.click(screen.getByRole("button", { name: /new tab/i }));
+    const dialog = screen.getByRole("dialog", { name: /new tab/i });
+    await user.click(within(dialog).getByRole("button", { name: /paste/i }));
 
-    expect(screen.getByRole("tab", { name: /untitled document/i })).toHaveAttribute("aria-selected", "true");
+    expect(await screen.findByRole("tab", { name: /second draft/i })).toHaveAttribute("aria-selected", "true");
+    expect(
+      await within(screen.getByTestId("preview-panel")).findByRole("heading", {
+        level: 1,
+        name: "Second draft"
+      })
+    ).toBeInTheDocument();
     expect(screen.queryByRole("heading", { level: 1, name: "First draft" })).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("tab", { name: /first draft/i }));
@@ -239,9 +253,9 @@ describe("WorkspaceShell interactions", () => {
       })
     ).toBeInTheDocument();
 
-    await user.click(screen.getByRole("tab", { name: /untitled document/i }));
+    await user.click(screen.getByRole("tab", { name: /second draft/i }));
 
-    expect(screen.getByRole("tab", { name: /untitled document/i })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("tab", { name: /second draft/i })).toHaveAttribute("aria-selected", "true");
   });
 
   it("shows a localized folder fallback when the browser does not support directory access", async () => {
@@ -458,13 +472,21 @@ describe("WorkspaceShell interactions", () => {
 
   it("persists open workspace tabs before the page is hidden", async () => {
     const user = userEvent.setup();
+    const readText = vi.fn().mockResolvedValue("");
+
+    Object.defineProperty(window.navigator, "clipboard", {
+      configurable: true,
+      value: { readText }
+    });
 
     render(<WorkspaceShell markdown="# First draft" sourceInput="" />);
 
     await user.click(screen.getByRole("button", { name: /new tab/i }));
+    await user.click(within(screen.getByRole("dialog", { name: /new tab/i })).getByRole("button", { name: /paste/i }));
     await waitFor(() => {
       expect(screen.getByRole("tab", { name: /untitled document/i })).toHaveAttribute("aria-selected", "true");
     });
+    expect(await screen.findByText(/clipboard is empty/i)).toBeInTheDocument();
 
     window.dispatchEvent(new Event("pagehide"));
 
@@ -1079,7 +1101,6 @@ describe("WorkspaceShell interactions", () => {
     await user.click(screen.getByRole("button", { name: /export pdf/i }));
     expect(print).toHaveBeenCalled();
 
-    await user.click(screen.getByRole("button", { name: /more/i }));
     await user.click(screen.getByRole("button", { name: /share link/i }));
 
     await waitFor(() => {

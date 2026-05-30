@@ -161,16 +161,20 @@ export type Messages = {
       loadedSource: (label: string) => string;
       newTab: string;
       openedPrint: string;
+      emptyClipboard: string;
       pastePermission: string;
       pasted: string;
       readFileFailed: string;
       sharedMissing: string;
       switchedTo: (title: string) => string;
+      urlRequired: string;
     };
     tabs: {
       close: (title: string) => string;
       collapse: string;
       expand: string;
+      importDialogTitle: string;
+      importUrlPlaceholder: string;
       newTab: string;
       railLabel: string;
       title: string;
@@ -380,16 +384,20 @@ export const messages: Record<Locale, Messages> = {
         loadedSource: (label) => `Loaded ${label}.`,
         newTab: "Opened a new tab.",
         openedPrint: "Opened print dialog.",
+        emptyClipboard: "Clipboard is empty. Editor mode is ready.",
         pastePermission: "Clipboard paste requires browser permission.",
         pasted: "Pasted Markdown.",
         readFileFailed: "Failed to read the selected file.",
         sharedMissing: "Shared document not found.",
-        switchedTo: (title) => `Switched to ${title}.`
+        switchedTo: (title) => `Switched to ${title}.`,
+        urlRequired: "Enter a Markdown URL first."
       },
       tabs: {
         close: (title) => `Close ${title}`,
         collapse: "Collapse tabs sidebar",
         expand: "Expand tabs sidebar",
+        importDialogTitle: "New tab",
+        importUrlPlaceholder: "Paste a Markdown URL",
         newTab: "New tab",
         railLabel: "Open tabs",
         title: "Tabs"
@@ -704,16 +712,20 @@ export const messages: Record<Locale, Messages> = {
         loadedSource: (label) => `已加载 ${label}。`,
         newTab: "已打开新标签。",
         openedPrint: "已打开打印对话框。",
+        emptyClipboard: "剪贴板没有内容，已打开编辑模式。",
         pastePermission: "从剪贴板粘贴需要浏览器权限。",
         pasted: "已粘贴 Markdown。",
         readFileFailed: "读取所选文件失败。",
         sharedMissing: "未找到分享文档。",
-        switchedTo: (title) => `已切换到 ${title}。`
+        switchedTo: (title) => `已切换到 ${title}。`,
+        urlRequired: "请先输入 Markdown URL。"
       },
       tabs: {
         close: (title) => `关闭 ${title}`,
         collapse: "收起标签侧栏",
         expand: "展开标签侧栏",
+        importDialogTitle: "新建标签",
+        importUrlPlaceholder: "粘贴 Markdown URL",
         newTab: "新建标签",
         railLabel: "打开的标签",
         title: "标签"
