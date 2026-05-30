@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { ListTree, X } from "lucide-react";
 import type { WorkspaceMessages } from "@/lib/i18n/messages";
 import { ExtractedHeading } from "@/lib/markdown/extract-headings";
 
@@ -97,7 +98,11 @@ export function OutlinePanel({ headings, documentTitle, messages, onNavigate, on
         onClick={onToggle}
         type="button"
       >
-        {open ? messages.close : messages.contents}
+        {open ? (
+          <X aria-hidden="true" className="workspace-toc-trigger-icon" size={20} strokeWidth={2} />
+        ) : (
+          <ListTree aria-hidden="true" className="workspace-toc-trigger-icon" size={20} strokeWidth={2} />
+        )}
       </button>
       <aside aria-hidden={!open} className="workspace-toc-panel" aria-label={messages.contents}>
         <div className="workspace-toc-title">{documentTitle}</div>

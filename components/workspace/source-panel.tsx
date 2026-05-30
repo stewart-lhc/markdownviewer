@@ -61,6 +61,25 @@ const editorActions: Array<{
 
 const editorToolButtonEstimateWidth = 40;
 const editorToolOverflowEstimateWidth = 40;
+const compactEditorVisibleActionLimit = 4;
+
+function getEditorVisibleActionLimit() {
+  if (typeof window === "undefined") {
+    return editorActions.length;
+  }
+
+  const viewportWidth = document.documentElement.clientWidth || window.innerWidth;
+
+  if (viewportWidth <= 720) {
+    return compactEditorVisibleActionLimit;
+  }
+
+  if (typeof window.matchMedia === "function" && window.matchMedia("(max-width: 720px)").matches) {
+    return compactEditorVisibleActionLimit;
+  }
+
+  return editorActions.length;
+}
 
 function setEditorSurfaceRef(editorRef: SourcePanelProps["editorRef"], node: HTMLElement | null) {
   if (!editorRef) {
@@ -137,6 +156,7 @@ export function SourcePanel({
 
     function updateVisibleEditorActions() {
       const width = toolbarNode.clientWidth;
+      const visibleActionLimit = getEditorVisibleActionLimit();
 
       if (width <= 0) {
         return;
@@ -144,7 +164,7 @@ export function SourcePanel({
 
       const fullWidth = editorActions.length * editorToolButtonEstimateWidth;
 
-      if (width >= fullWidth) {
+      if (width >= fullWidth && visibleActionLimit >= editorActions.length) {
         setVisibleEditorActionCount(editorActions.length);
         return;
       }
@@ -152,6 +172,7 @@ export function SourcePanel({
       const nextVisibleCount = Math.max(
         1,
         Math.min(
+          visibleActionLimit,
           editorActions.length - 1,
           Math.floor((width - editorToolOverflowEstimateWidth) / editorToolButtonEstimateWidth)
         )
@@ -161,11 +182,12 @@ export function SourcePanel({
     }
 
     updateVisibleEditorActions();
+    const updateFrame = window.requestAnimationFrame(updateVisibleEditorActions);
+    window.addEventListener("resize", updateVisibleEditorActions);
 
     if (typeof ResizeObserver === "undefined") {
-      window.addEventListener("resize", updateVisibleEditorActions);
-
       return () => {
+        window.cancelAnimationFrame(updateFrame);
         window.removeEventListener("resize", updateVisibleEditorActions);
       };
     }
@@ -174,6 +196,8 @@ export function SourcePanel({
     observer.observe(toolbarNode);
 
     return () => {
+      window.cancelAnimationFrame(updateFrame);
+      window.removeEventListener("resize", updateVisibleEditorActions);
       observer.disconnect();
     };
   }, []);

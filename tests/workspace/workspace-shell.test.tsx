@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { StrictMode } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { WorkspaceShell } from "@/components/workspace/workspace-shell";
 import { getBoundStackeditEditor } from "@/lib/workspace/stackedit-cledit";
 import { serializeRichEditorSurface } from "@/lib/workspace/rich-editor-surface";
@@ -22,6 +22,151 @@ async function waitForRichEditorReady(richEditor: HTMLElement) {
     expect(richEditor.textContent).not.toBe("");
   }, { timeout: 10000 });
 }
+
+type FakeFolderEntry = FakeDirectoryHandle | FakeFileHandle;
+
+class FakeFileHandle {
+  readonly kind = "file" as const;
+  lastModified: number;
+
+  constructor(
+    readonly name: string,
+    public content: string,
+    lastModified = 1_700_000_000_000
+  ) {
+    this.lastModified = lastModified;
+  }
+
+  async getFile() {
+    return new File([this.content], this.name, {
+      lastModified: this.lastModified,
+      type: "text/markdown"
+    });
+  }
+
+  async createWritable() {
+    let nextContent = this.content;
+
+    return {
+      write: vi.fn(async (chunk: unknown) => {
+        nextContent = String(chunk);
+      }),
+      close: vi.fn(async () => {
+        this.content = nextContent;
+        this.lastModified += 1000;
+      })
+    } as unknown as FileSystemWritableFileStream;
+  }
+}
+
+class FakeDirectoryHandle {
+  readonly kind = "directory" as const;
+  readonly children = new Map<string, FakeFolderEntry>();
+
+  constructor(
+    readonly name: string,
+    entries: Record<string, FakeFolderEntry> = {},
+    private permission: PermissionState = "granted"
+  ) {
+    Object.entries(entries).forEach(([key, entry]) => {
+      this.children.set(key, entry);
+    });
+  }
+
+  async queryPermission() {
+    return this.permission;
+  }
+
+  async requestPermission() {
+    return this.permission;
+  }
+
+  async *values() {
+    for (const entry of this.children.values()) {
+      yield entry as unknown as FileSystemHandle;
+    }
+  }
+
+  async *entries() {
+    for (const [name, entry] of this.children.entries()) {
+      yield [name, entry as unknown as FileSystemHandle] as [string, FileSystemHandle];
+    }
+  }
+
+  async getFileHandle(name: string, options: { create?: boolean } = {}) {
+    const existing = this.children.get(name);
+
+    if (existing instanceof FakeFileHandle) {
+      return existing as unknown as FileSystemFileHandle;
+    }
+
+    if (existing) {
+      throw new DOMException("Entry is not a file.", "TypeMismatchError");
+    }
+
+    if (!options.create) {
+      throw new DOMException("File does not exist.", "NotFoundError");
+    }
+
+    const created = new FakeFileHandle(name, "");
+    this.children.set(name, created);
+    return created as unknown as FileSystemFileHandle;
+  }
+
+  async getDirectoryHandle(name: string, options: { create?: boolean } = {}) {
+    const existing = this.children.get(name);
+
+    if (existing instanceof FakeDirectoryHandle) {
+      return existing as unknown as FileSystemDirectoryHandle;
+    }
+
+    if (existing) {
+      throw new DOMException("Entry is not a directory.", "TypeMismatchError");
+    }
+
+    if (!options.create) {
+      throw new DOMException("Directory does not exist.", "NotFoundError");
+    }
+
+    const created = new FakeDirectoryHandle(name);
+    this.children.set(name, created);
+    return created as unknown as FileSystemDirectoryHandle;
+  }
+}
+
+function createFolderFixture() {
+  const readme = new FakeFileHandle(
+    "README.md",
+    "# Home\n\n[Guide](docs/guide.md)\n\n[Missing](missing.md)\n"
+  );
+  const guide = new FakeFileHandle("guide.md", "# Guide\n");
+  const untitled = new FakeFileHandle("Untitled.md", "# Existing\n");
+  const root = new FakeDirectoryHandle("Docs", {
+    "README.md": readme,
+    "Untitled.md": untitled,
+    docs: new FakeDirectoryHandle("docs", {
+      "guide.md": guide
+    })
+  });
+
+  return { guide, readme, root, untitled };
+}
+
+function mockDirectoryPicker(root: FakeDirectoryHandle) {
+  const showDirectoryPicker = vi.fn(async () => root as unknown as FileSystemDirectoryHandle);
+
+  Object.defineProperty(window, "showDirectoryPicker", {
+    configurable: true,
+    value: showDirectoryPicker
+  });
+
+  return showDirectoryPicker;
+}
+
+afterEach(() => {
+  Reflect.deleteProperty(window, "showDirectoryPicker");
+  vi.restoreAllMocks();
+});
 
 describe("WorkspaceShell interactions", () => {
   it("defaults to split mode, renders a syntax-visible rich editor, and updates the live preview while editing", async () => {
@@ -47,10 +192,8 @@ describe("WorkspaceShell interactions", () => {
     expect(
       within(screen.getByTestId("preview-panel")).getByRole("button", { name: /increase preview font size/i })
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /^url$/i }).closest(".toolbar")).not.toBeNull();
-    expect(
-      within(screen.getByTestId("preview-panel")).getByRole("button", { name: /contents/i }).closest(".workspace-pane-header--preview")
-    ).not.toBeNull();
+    expect(screen.queryByRole("button", { name: /^url$/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /contents/i }).closest(".workspace-toc")).not.toBeNull();
     expect(
       within(sourcePanel).getByRole("toolbar", { name: /markdown formatting/i }).closest(".workspace-pane-header--editor")
     ).not.toBeNull();
@@ -99,6 +242,151 @@ describe("WorkspaceShell interactions", () => {
     await user.click(screen.getByRole("tab", { name: /untitled document/i }));
 
     expect(screen.getByRole("tab", { name: /untitled document/i })).toHaveAttribute("aria-selected", "true");
+  });
+
+  it("shows a localized folder fallback when the browser does not support directory access", async () => {
+    const user = userEvent.setup();
+
+    render(<WorkspaceShell markdown="" sourceInput="" locale="zh-CN" />);
+
+    await user.click(screen.getByRole("button", { name: "打开文件夹" }));
+
+    expect(await screen.findByText(/Chrome\/Edge 桌面/)).toBeInTheDocument();
+  });
+
+  it("opens a local folder and switches between files from the folder rail", async () => {
+    const user = userEvent.setup();
+    const { root } = createFolderFixture();
+    const showDirectoryPicker = mockDirectoryPicker(root);
+
+    render(<WorkspaceShell markdown="" sourceInput="" />);
+
+    await user.click(screen.getByRole("button", { name: /^folder$/i }));
+
+    expect(showDirectoryPicker).toHaveBeenCalledWith({ mode: "readwrite" });
+    expect(await screen.findByLabelText(/local folder files/i)).toBeInTheDocument();
+    expect(screen.getByText("Docs", { selector: ".workspace-folder-title" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("treeitem", { name: "README.md" }));
+
+    expect(
+      await within(screen.getByTestId("preview-panel")).findByRole("heading", {
+        level: 1,
+        name: "Home"
+      })
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole("treeitem", { name: "guide.md" }));
+
+    expect(
+      await within(screen.getByTestId("preview-panel")).findByRole("heading", {
+        level: 1,
+        name: "Guide"
+      })
+    ).toBeInTheDocument();
+  });
+
+  it("writes the active folder file back to disk with Ctrl+S", async () => {
+    const user = userEvent.setup();
+    const { readme, root } = createFolderFixture();
+    mockDirectoryPicker(root);
+
+    render(<WorkspaceShell markdown="" sourceInput="" />);
+
+    await user.click(screen.getByRole("button", { name: /^folder$/i }));
+    await user.click(await screen.findByRole("treeitem", { name: "README.md" }));
+    await user.click(screen.getByRole("button", { name: /raw/i }));
+
+    fireEvent.change(screen.getByLabelText(/markdown editor/i), {
+      target: { value: "# Saved locally" }
+    });
+
+    expect(
+      await within(screen.getByTestId("preview-panel")).findByRole("heading", {
+        level: 1,
+        name: "Saved locally"
+      })
+    ).toBeInTheDocument();
+
+    fireEvent.keyDown(window, {
+      ctrlKey: true,
+      key: "s"
+    });
+
+    await waitFor(() => {
+      expect(readme.content).toBe("# Saved locally");
+    });
+    expect(await screen.findByText(/saved to disk/i)).toBeInTheDocument();
+  });
+
+  it("guards dirty folder files before switching to another file", async () => {
+    const user = userEvent.setup();
+    const { root } = createFolderFixture();
+    const confirm = vi.spyOn(window, "confirm").mockReturnValueOnce(false).mockReturnValueOnce(false);
+
+    mockDirectoryPicker(root);
+    render(<WorkspaceShell markdown="" sourceInput="" />);
+
+    await user.click(screen.getByRole("button", { name: /^folder$/i }));
+    await user.click(await screen.findByRole("treeitem", { name: "README.md" }));
+    await user.click(screen.getByRole("button", { name: /raw/i }));
+
+    fireEvent.change(screen.getByLabelText(/markdown editor/i), {
+      target: { value: "# Keep me" }
+    });
+    expect(await within(screen.getByTestId("preview-panel")).findByRole("heading", { name: "Keep me" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("treeitem", { name: "guide.md" }));
+
+    expect(confirm).toHaveBeenCalledTimes(2);
+    expect(confirm).toHaveBeenNthCalledWith(1, expect.stringMatching(/save changes/i));
+    expect(confirm).toHaveBeenNthCalledWith(2, expect.stringMatching(/discard unsaved/i));
+    expect(within(screen.getByTestId("preview-panel")).getByRole("heading", { name: "Keep me" })).toBeInTheDocument();
+  });
+
+  it("creates a conflict-suffixed Untitled file and opens it immediately", async () => {
+    const user = userEvent.setup();
+    const { root } = createFolderFixture();
+    mockDirectoryPicker(root);
+
+    render(<WorkspaceShell markdown="" sourceInput="" />);
+
+    await user.click(screen.getByRole("button", { name: /^folder$/i }));
+    await screen.findByRole("treeitem", { name: "Untitled.md" });
+    await user.click(screen.getByRole("button", { name: /new file/i }));
+
+    expect(await screen.findByRole("treeitem", { name: "Untitled 2.md" })).toBeInTheDocument();
+    expect(root.children.get("Untitled 2.md")).toBeInstanceOf(FakeFileHandle);
+    expect(
+      await within(screen.getByTestId("preview-panel")).findByRole("heading", {
+        level: 1,
+        name: "Untitled"
+      })
+    ).toBeInTheDocument();
+  });
+
+  it("opens local Markdown links and reports missing folder links without navigating away", async () => {
+    const user = userEvent.setup();
+    const { root } = createFolderFixture();
+    mockDirectoryPicker(root);
+
+    render(<WorkspaceShell markdown="" sourceInput="" />);
+
+    await user.click(screen.getByRole("button", { name: /^folder$/i }));
+    await user.click(await screen.findByRole("treeitem", { name: "README.md" }));
+
+    await user.click(await screen.findByRole("link", { name: "Missing" }));
+    expect(await screen.findByText(/could not find \/missing\.md/i)).toBeInTheDocument();
+    expect(within(screen.getByTestId("preview-panel")).getByRole("heading", { name: "Home" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("link", { name: "Guide" }));
+
+    expect(
+      await within(screen.getByTestId("preview-panel")).findByRole("heading", {
+        level: 1,
+        name: "Guide"
+      })
+    ).toBeInTheDocument();
   });
 
   it("collapses the tabs sidebar and keeps the active tab title centered in the workspace header", async () => {
@@ -268,9 +556,10 @@ describe("WorkspaceShell interactions", () => {
 
     const previewPanel = screen.getByTestId("preview-panel");
     const previewRegion = screen.getByTestId("preview-scroll-region");
-    const fontSelect = within(previewPanel).getByLabelText(/^preview font$/i);
+    const fontButton = within(previewPanel).getByRole("button", { name: /^preview font$/i });
 
-    await user.selectOptions(fontSelect, "serif");
+    await user.click(fontButton);
+    await user.click(screen.getByRole("menuitemradio", { name: /^serif/i }));
     await user.click(within(previewPanel).getByRole("button", { name: /increase preview font size/i }));
     await user.click(within(previewPanel).getByRole("button", { name: /increase preview font size/i }));
 
@@ -747,7 +1036,7 @@ describe("WorkspaceShell interactions", () => {
     render(
       <WorkspaceShell
         loadSource={loadSource}
-        markdown="# First draft"
+        markdown=""
         sourceInput=""
       />
     );
@@ -759,7 +1048,7 @@ describe("WorkspaceShell interactions", () => {
     fireEvent.change(screen.getByLabelText(/markdown source url/i), {
       target: { value: "https://example.com/readme.md" }
     });
-    await user.click(screen.getByRole("button", { name: /open/i }));
+    await user.click(screen.getByRole("button", { name: /^open$/i }));
 
     await waitFor(() => {
       expect(
@@ -1143,9 +1432,7 @@ describe("WorkspaceShell interactions", () => {
 
     rerender(<WorkspaceShell markdown={"# Title\n\n## Details"} sourceInput="" />);
 
-    expect(
-      within(screen.getByTestId("preview-panel")).getByRole("button", { name: /contents/i }).closest(".workspace-pane-header--preview")
-    ).not.toBeNull();
+    expect(screen.getByRole("button", { name: /contents/i }).closest(".workspace-toc")).not.toBeNull();
     expect(screen.queryByRole("complementary", { name: /contents/i })).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /contents/i }));

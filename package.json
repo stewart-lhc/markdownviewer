@@ -31,6 +31,7 @@
   "dependencies": {
     "cledit": "^1.2.0",
     "katex": "^0.16.25",
+    "lucide-react": "^1.17.0",
     "lz-string": "^1.5.0",
     "mermaid": "^9.1.7",
     "next": "^16.2.4",

@@ -42,7 +42,12 @@ export function WorkspaceThemeSelector({ messages, onThemeChange, theme }: Works
         onClick={() => setThemeMenuOpen((open) => !open)}
         type="button"
       >
-        {messages.templateButton(messages.themes[theme].label)}
+        <span className="workspace-preview-template-label workspace-preview-template-label--full">
+          {messages.templateButton(messages.themes[theme].label)}
+        </span>
+        <span className="workspace-preview-template-label workspace-preview-template-label--compact">
+          {messages.themes[theme].label}
+        </span>
       </button>
       {themeMenuOpen ? (
         <div aria-label={messages.templatePalette} className="theme-menu" role="menu">

@@ -8,6 +8,21 @@ export function PwaRegistration() {
       return;
     }
 
+    const isLocalDevelopment =
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1" ||
+      window.location.hostname === "::1" ||
+      process.env.NODE_ENV !== "production";
+
+    if (isLocalDevelopment) {
+      void navigator.serviceWorker.getRegistrations().then((registrations) => {
+        registrations.forEach((registration) => {
+          void registration.unregister();
+        });
+      });
+      return;
+    }
+
     const registerServiceWorker = () => {
       void navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(() => undefined);
     };
