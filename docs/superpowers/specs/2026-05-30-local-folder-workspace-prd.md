@@ -1,411 +1,415 @@
-# Markdownviewer Local Folder Workspace PRD
+# Markdownviewer 本地文件夹工作区 PRD
 
-## Summary
+## 1. 摘要
 
-Markdownviewer should remain a public, fast, online Markdown viewer and preview workspace. The next product step is to add a local-first folder workspace for users who want to open, browse, edit, and save a directory of Markdown files directly from the browser.
+Markdownviewer 继续保持现有定位：一个快速、公开、精致的在线 Markdown 查看器和实时预览工作区。下一阶段产品能力是在现有 `/workspace` 中增加“本地优先文件夹工作区”，让用户可以直接在浏览器里打开、浏览、编辑并保存一个本地 Markdown 文件夹。
 
-This borrows the most relevant lesson from `files.md`: plain `.md` files are a durable source of truth, and a browser PWA can feel like a real file workspace when it can open a local folder, show a file tree, search files, follow Markdown links, and save changes back to disk.
+这次对标 `files.md` 的重点不是复制它的个人知识库方向，而是学习它最有价值的一点：普通 `.md` 文件可以成为长期可靠的数据源，浏览器 PWA 也可以通过本地文件 API 做出接近原生应用的文件夹工作流。
 
-This PRD intentionally does not turn Markdownviewer into a full personal knowledge base. Chat capture, journals, tasks, backlinks, Telegram bots, and sync servers remain future ideas, not the MVP.
+本 PRD 不把 Markdownviewer 改造成 Obsidian、第二大脑或任务管理工具。Chat 速记、日记、任务、backlinks、Telegram bot、自托管同步服务都不进入本次 MVP。
 
-## Problem
+## 2. 背景与问题
 
-Markdownviewer currently handles single-document and multi-tab Markdown preview well: paste, local file import, GitHub/Gist/raw URL import, rendering, outline, export, share, PWA install, and file-handler launch.
+Markdownviewer 当前已经适合单文档和多标签 Markdown 预览：支持粘贴、本地文件导入、GitHub/Gist/raw URL 导入、GFM、Mermaid、KaTeX、代码高亮、大纲、主题、分享、HTML 导出、PDF 打印、PWA 安装和单文件处理器。
 
-The gap is persistence and navigation across a user's own Markdown folder:
+当前缺口在于“用户自己的本地 Markdown 文件夹”：
 
-- Users can open a local Markdown file, but not a whole folder.
-- Imported local files do not have a durable write-back workflow.
-- There is no file tree, folder search, or cross-file link navigation.
-- PWA file handling opens individual files, but does not create a persistent local workspace.
-- Users with README/docs folders still need another editor or app for multi-file work.
+- 用户可以打开单个本地 Markdown 文件，但不能打开整个文件夹。
+- 本地导入文件没有可靠的保存回磁盘流程。
+- 没有文件树、文件搜索、跨文件 Markdown 链接跳转。
+- PWA 文件处理器只能接收单个文件，不能形成持续的本地工作区。
+- 用户处理 README、docs、changelog、规格文档时，仍然需要另一个编辑器完成多文件浏览和保存。
 
-`files.md` demonstrates that a browser app can make local `.md` files feel first-class. Markdownviewer should learn from that without copying its broader knowledge-base direction.
+`files.md` 证明浏览器应用可以把本地 `.md` 文件做成一等公民。Markdownviewer 应该吸收这个能力，但保持自己“打开任意 Markdown、预览好看、导出分享方便”的公开工具优势。
 
-## Goals
+## 3. 产品目标
 
-- Let Chrome/Edge desktop users open a local folder and work with Markdown files in place.
-- Preserve Markdownviewer as a viewer-first product: fast import, polished preview, export, and sharing stay central.
-- Add a clear folder mode inside the existing workspace rather than creating a separate app.
-- Support offline use for the app shell and already-open local folder flows where browser permissions allow it.
-- Keep unsupported browsers useful through graceful fallbacks.
+- 让 Chrome/Edge 桌面用户可以打开本地文件夹，并在 Markdownviewer 中就地浏览和编辑 Markdown 文件。
+- 保留“查看优先”定位：快速打开、精致预览、导出、分享仍然是核心。
+- 在现有工作区内增加清晰的文件夹模式，而不是做第二个应用。
+- 在浏览器权限允许的前提下，支持已安装 PWA 的离线应用外壳和本地文件夹工作流。
+- 对 Safari、Firefox、移动端等不完整支持本地文件夹写入的环境提供清楚降级。
 
-## Non-Goals
+## 4. 非目标
 
-- Real-time collaboration.
-- Accounts, teams, permissions, or billing.
-- Hosted file sync.
-- Telegram or messaging bot integration.
-- Obsidian-style plugin systems, graph view, daily notes, or advanced PKM templates.
-- Automatic access to local folders without a user-initiated picker.
-- Full parity across Safari/Firefox/mobile for folder write-back.
+- 实时多人协作。
+- 账户、团队、权限、计费。
+- 托管文件同步。
+- Telegram、微信或其它消息 bot 集成。
+- Obsidian 风格插件系统、graph view、daily notes、复杂 PKM 模板。
+- 绕过用户授权自动访问本地目录。
+- 在 Safari、Firefox、移动端实现完整文件夹写回能力。
 
-## Competitive Learning
+## 5. 竞品学习
 
-### What `files.md` Does Well
+### 5.1 `files.md` 值得学习的地方
 
-- Owns a distinct point of view: private, quiet, local `.md` files.
-- Treats the folder as the workspace, not just a file picker.
-- Uses browser file APIs to create, read, update, and navigate local files.
-- Provides fast file search and keyboard-first movement.
-- Makes local Markdown links useful for thinking across files.
-- Works as a PWA and takes offline operation seriously.
-- Documents architecture decisions clearly enough that users and LLM agents can extend the product.
+- 定位非常明确：私有、安静、本地 `.md` 文件。
+- 把文件夹当作工作区，而不是一次性文件选择器。
+- 使用浏览器本地文件 API 完成创建、读取、更新和导航。
+- 文件搜索和键盘导航效率高。
+- 本地 Markdown 链接可以在文件之间流转。
+- PWA 和离线能力是产品叙事的一部分，不是附属功能。
+- README 和 ADR 写得清楚，方便用户和 AI agent 理解项目边界。
 
-### Where Markdownviewer Should Stay Different
+### 5.2 Markdownviewer 应该保持不同的地方
 
-- Markdownviewer should remain better for opening Markdown from anywhere: paste, file, GitHub, Gist, raw URL, AI output, and public share links.
-- Markdownviewer should keep stronger preview/export/share flows instead of becoming only a private notes app.
-- Markdownviewer should retain its SEO and public utility positioning.
-- Markdownviewer should ship the local folder feature as an optional power mode, not the default mental model for every user.
+- Markdownviewer 要继续更擅长“从任何地方打开 Markdown”：粘贴、单文件、GitHub、Gist、raw URL、AI 输出、公开分享链接。
+- Markdownviewer 要继续加强预览、导出、分享，而不是只做私有笔记应用。
+- Markdownviewer 要保留 SEO 和公开在线工具定位。
+- 本地文件夹能力是高级工作区模式，不是所有用户必须理解的默认模型。
 
-## Target Users
+## 6. 目标用户
 
-### Developer Polishing Project Docs
+### 6.1 开发者：打磨项目文档
 
-Works in a repository with `README.md`, changelogs, API docs, and design docs. Wants to preview and lightly edit multiple Markdown files without opening a desktop editor.
+在一个代码仓库里维护 `README.md`、changelog、API docs、设计文档。希望不用打开桌面编辑器，也能快速预览和轻量编辑多个 Markdown 文件。
 
-### Technical Writer Reviewing Local Docs
+### 6.2 技术写作者：审阅本地文档
 
-Keeps documentation in folders and wants a clean browser preview with outline, code highlighting, diagrams, math, and export.
+有一组本地文档文件夹，需要高质量预览、outline、代码高亮、Mermaid、数学公式和导出能力。
 
-### AI Power User Organizing Markdown Output
+### 6.3 AI 重度用户：整理模型输出
 
-Saves AI-generated Markdown into local folders and wants to review, clean up, and export/share selected documents.
+把 ChatGPT、Claude、Cursor、Copilot 或 coding agent 产出的 Markdown 存到本地文件夹，希望快速清理、预览、导出或分享其中的文档。
 
-### Casual Markdown File User
+### 6.4 普通 Markdown 文件用户
 
-Has a folder of `.md` files and wants a simple installed PWA that can browse and open them.
+有一批 `.md` 文件，希望用一个安装后的 PWA 浏览、打开和预览它们。
 
-## Product Positioning
+## 7. 产品定位
 
-Markdownviewer becomes:
+目标定位：
 
-> A polished online Markdown viewer with an optional local-first folder workspace for private `.md` files.
+> Markdownviewer 是一个精致的在线 Markdown 查看器，同时提供可选的本地优先文件夹工作区，用来处理私有 `.md` 文件。
 
-The homepage should still lead with "open Markdown from file, URL, GitHub, Gist, or paste". The workspace should introduce folder mode as a strong secondary option: "Open folder" for users who want persistent local files.
+首页仍然主打“粘贴、文件、URL、GitHub、Gist 快速打开 Markdown”。Workspace 中把“打开文件夹”作为强二级入口，面向需要长期本地文件工作流的用户。
 
-## Capability Tiers
+## 8. 能力分层
 
-### Tier 1: Chrome/Edge Desktop Full Mode
+### 8.1 第一层：Chrome/Edge 桌面完整模式
 
-Supported through the File System Access API:
+基于 File System Access API：
 
-- Open a local folder through a user-triggered directory picker.
-- Recursively scan supported Markdown files within safe limits.
-- Display a folder tree.
-- Open files into the current workspace tab model.
-- Save edits back to the selected local file.
-- Create new Markdown files.
-- Rename, move, and delete files only after MVP if the read/write foundation is stable.
-- Follow local Markdown links between files.
-- Continue using the installed PWA shell offline when the app and folder permission are available.
+- 用户通过明确点击触发目录选择器，打开本地文件夹。
+- 在安全限制内递归扫描 Markdown 文件。
+- 显示文件树。
+- 文件可以打开进现有工作区标签页模型。
+- 修改后可以保存回本地文件。
+- 支持创建新的 Markdown 文件。
+- MVP 之后再考虑重命名、移动、删除。
+- 支持本地 Markdown 链接在文件之间跳转。
+- 安装为 PWA 后，在应用外壳已缓存且浏览器权限允许时，可以离线继续使用。
 
-### Tier 2: Browser Fallback Mode
+### 8.2 第二层：浏览器降级模式
 
-For browsers without directory write support:
+对于不支持目录写入的浏览器：
 
-- Keep current paste, file import, URL import, tabs, share, export, and draft restore.
-- Allow opening one or more files through normal file inputs where possible.
-- Preserve changes in local draft storage.
-- Offer download/export instead of write-back.
-- Explain that folder write-back requires a supported desktop browser.
+- 保留现有粘贴、单文件导入、URL 导入、多标签、分享、导出、草稿恢复。
+- 尽可能支持普通文件选择器一次打开一个或多个文件。
+- 修改内容保存在本地草稿中。
+- 用下载或导出代替保存回磁盘。
+- 清楚说明完整文件夹写回需要支持的桌面浏览器。
 
-### Tier 3: Future Extension
+### 8.3 第三层：未来扩展
 
-- OPFS sandbox workspace for browsers that cannot write to arbitrary local folders.
-- Folder import/export as `.zip`.
-- Cloud-folder sync guidance through iCloud, Dropbox, OneDrive, or Google Drive.
-- Self-hosted sync only if there is strong evidence users need it.
+- OPFS 沙盒工作区，用于不能写入任意本地目录的浏览器。
+- 文件夹 `.zip` 导入/导出。
+- 引导用户通过 iCloud、Dropbox、OneDrive、Google Drive 等云盘文件夹同步。
+- 只有当用户需求足够明确时，才评估自托管同步服务。
 
-## MVP Scope
+## 9. MVP 范围
 
-### Entry Points
+### 9.1 入口
 
-- Add an `Open folder` action in the workspace import menu.
-- Add an empty-state card in the tabs rail or source panel when no folder is open.
-- Add PWA-friendly copy: installed app works best for local folders in Chrome/Edge desktop.
+- 在工作区导入菜单中增加 `打开文件夹`。
+- 在没有打开文件夹时，在标签页侧栏或源文档面板中提供空状态入口。
+- 文案说明：本地文件夹模式在 Chrome/Edge 桌面 PWA 中体验最好。
 
-### Folder Session
+### 9.2 文件夹会话
 
-- Store a granted `FileSystemDirectoryHandle` in IndexedDB when supported.
-- On app load, detect whether a previous folder handle exists.
-- Request read/write permission when needed.
-- If permission is denied or expired, show a clear reconnect action.
-- Track whether the active document came from a folder file, imported file, URL, paste, or share payload.
+- 支持时将授权后的 `FileSystemDirectoryHandle` 存入 IndexedDB。
+- 应用启动时检测是否存在上次打开的文件夹句柄。
+- 需要时请求读写权限。
+- 权限被拒绝或过期时，显示明确的重新连接入口。
+- 标记当前文档来源：草稿、粘贴、单文件导入、远程 URL、分享载荷、本地文件夹文件。
 
-### File Tree
+### 9.3 文件树
 
-- Show a collapsible file tree in the existing left rail area.
-- Include `.md`, `.markdown`, `.mdx`, and `.txt` in MVP.
-- Exclude hidden directories and common heavy directories by default: `.git`, `node_modules`, `.next`, `dist`, `build`, `vendor`.
-- Cap recursive scan depth and file count to prevent poor performance.
-- Show unsupported/too-large-folder states without freezing the UI.
+- 在现有左侧侧栏区域显示可折叠文件树。
+- MVP 包含 `.md`、`.markdown`、`.mdx`、`.txt`。
+- 默认排除隐藏目录和常见重目录：`.git`、`node_modules`、`.next`、`dist`、`build`、`vendor`。
+- 限制递归深度和文件数量，避免大仓库卡住页面。
+- 文件夹过大或浏览器不支持时，显示清楚状态，不冻结 UI。
 
-### File Opening
+### 9.4 打开文件
 
-- Clicking a tree item opens the file in the active tab.
-- If the active tab has unsaved changes, prompt to save, discard, or cancel.
-- The document title comes from the first heading, then filename fallback.
-- Existing outline, preview typography, themes, split mode, editor mode, export, and share continue to work.
+- 点击文件树中的文件，在当前活动标签页中打开。
+- 如果当前标签页有未保存内容，弹出保存、放弃、取消三选一。
+- 文档标题优先取第一个 heading，其次取文件名。
+- 现有大纲、预览字号、主题、分屏模式、编辑器模式、导出、分享继续可用。
 
-### Saving
+### 9.5 保存
 
-- Auto-save folder-backed files after a short debounce only after the first explicit successful save.
-- Provide a visible save state: saved, saving, unsaved, failed.
-- Support `Ctrl+S` / `Cmd+S`.
-- Write back through `FileSystemFileHandle.createWritable()`.
-- On write failure, preserve the current Markdown in draft storage and show recovery guidance.
+- 文件夹来源的文件在第一次显式保存成功后，才允许短延迟自动保存。
+- 显示保存状态：未保存、保存中、已保存、保存失败。
+- 支持 `Ctrl+S` / `Cmd+S`。
+- 通过 `FileSystemFileHandle.createWritable()` 写回磁盘。
+- 写入失败时，将当前 Markdown 保存在草稿中，并提供恢复说明。
 
-### New File
+### 9.6 新建文件
 
-- Create a new Markdown file in the selected folder or currently selected folder path.
-- Default filename: `Untitled.md`, with conflict-safe suffixes.
-- Initial content: `# Untitled`.
-- Open the new file immediately after creation.
+- 在当前选中文件夹或根文件夹中新建 Markdown 文件。
+- 默认文件名为 `Untitled.md`，冲突时自动加后缀。
+- 初始内容为 `# Untitled`。
+- 新建完成后立即打开该文件。
 
-### Search
+### 9.7 文件搜索
 
-- Add command-palette style file search.
-- Search by filename first.
-- Include fuzzy matching if simple substring search feels insufficient.
-- Keyboard shortcut: `Ctrl+K` / `Cmd+K`.
-- Results should open files without disturbing the current split/preview mode.
+- 增加命令面板式文件搜索。
+- 优先按文件名搜索。
+- 如果简单子串搜索不够用，再加入模糊匹配。
+- 快捷键：`Ctrl+K` / `Cmd+K`。
+- 打开搜索结果时不改变当前分屏/预览模式。
 
-### Local Markdown Links
+### 9.8 本地 Markdown 链接
 
-- Resolve relative Markdown links such as `[Guide](docs/guide.md)` and `[Changelog](../CHANGELOG.md)`.
-- Open local `.md`, `.markdown`, `.mdx`, and `.txt` links inside Markdownviewer.
-- External `http(s)` links continue to open normally.
-- Missing local target shows a non-blocking "file not found" message.
+- 解析相对链接，例如 `[Guide](docs/guide.md)`、`[Changelog](../CHANGELOG.md)`。
+- 本地 `.md`、`.markdown`、`.mdx`、`.txt` 链接在 Markdownviewer 内打开。
+- 外部 `http(s)` 链接保持正常打开。
+- 本地目标不存在时，显示非阻塞的“文件不存在”状态。
 
-### Offline/PWA
+### 9.9 离线与 PWA
 
-- Keep existing manifest and file-handler behavior.
-- Cache the workspace app shell and static assets needed for folder mode.
-- Do not promise offline sync or automatic reauthorization.
-- If the app opens offline and a previously granted folder handle is unavailable, show reconnect instructions.
+- 保留现有 manifest 和文件处理器行为。
+- 缓存文件夹模式所需的工作区应用外壳和静态资源。
+- 不承诺离线同步，也不承诺自动恢复授权。
+- 如果离线打开应用但无法访问上次文件夹，显示重新连接说明。
 
-## Out Of MVP
+## 10. MVP 不包含
 
-- Full folder rename/move/delete.
-- Backlinks.
-- Graph view.
-- Chat capture.
-- Journal/tasks/checklist workflows.
-- Image paste/write into local `media/`.
-- Multi-window conflict resolution.
-- Git integration.
-- Hosted sync.
-- Mobile folder write-back.
+- 完整文件夹重命名、移动、删除。
+- Backlinks。
+- 图谱视图。
+- Chat capture。
+- Journal、tasks、checklist 工作流。
+- 图片粘贴并写入本地 `media/` 文件夹。
+- 多窗口编辑冲突解决。
+- Git 集成。
+- 托管同步服务。
+- 移动端文件夹写回。
 
-## User Experience Requirements
+## 11. 用户体验要求
 
-### First Run
+### 11.1 首次使用
 
-The workspace should make folder mode feel optional and clear:
+Workspace 应该让文件夹模式显得可选、明确、低风险：
 
-- Primary actions: paste, file, URL, open folder.
-- Folder mode copy: "Open a local folder. Files stay on your device."
-- If unsupported: "Folder editing is available in Chrome/Edge desktop. You can still open individual files here."
+- 主要入口：粘贴、文件、URL、打开文件夹。
+- 文件夹模式文案：`打开本地文件夹，文件仍留在你的设备上。`
+- 不支持时文案：`文件夹编辑需要 Chrome/Edge 桌面浏览器。你仍然可以在这里打开单个文件。`
 
-### Workspace Layout
+### 11.2 工作区布局
 
-The current tabs rail should evolve into a workspace rail:
+现有标签页侧栏演进为工作区侧栏：
 
-- When no folder is open, it shows document tabs.
-- When a folder is open, it shows a compact file tree with tabs/active document affordances.
-- The file tree must not crowd the editor on narrow screens; on mobile it collapses behind a button.
+- 未打开文件夹时，显示文档标签页。
+- 打开文件夹后，显示紧凑文件树和当前文档状态。
+- 窄屏不能挤压编辑器；移动端文件树收进按钮或抽屉。
 
-### Safety
+### 11.3 安全感
 
-Users should always know when edits are local only, saved to disk, or stored as a draft.
+用户必须始终知道当前修改处于哪种状态：
 
-The UI should avoid destructive operations in MVP. File creation and saving are enough to prove the model.
+- 仅在浏览器草稿中。
+- 已保存到本地磁盘。
+- 保存失败但已保留草稿。
 
-### Copy Tone
+MVP 中避免破坏性操作。创建文件和保存文件足以验证模型。
 
-Avoid PKM-heavy language. Use plain utility language:
+### 11.4 文案语气
 
-- "Open folder"
-- "Save to disk"
-- "Reconnect folder"
-- "File changed outside Markdownviewer"
-- "This browser supports single-file import, not folder editing"
+避免 PKM 术语，使用直接的工具型文案：
 
-## Architecture Direction
+- `打开文件夹`
+- `保存到磁盘`
+- `重新连接文件夹`
+- `文件已在 Markdownviewer 外部变更`
+- `当前浏览器支持单文件导入，不支持文件夹编辑`
 
-### New Local Modules
+## 12. 架构方向
 
-Add a folder workspace layer under `lib/workspace/`:
+### 12.1 新增模块
 
-- `folder-capabilities.ts`: detects API support and permission state.
-- `folder-handles.ts`: IndexedDB persistence for directory and file handles.
-- `folder-scan.ts`: safe recursive scanning, extension filters, ignored directories, scan limits.
-- `folder-paths.ts`: path normalization and relative link resolution.
-- `folder-documents.ts`: read/write helpers, save status, file metadata.
+在 `lib/workspace/` 下增加文件夹工作区层：
 
-### Workspace State
+- `folder-capabilities.ts`：检测 API 支持和权限状态。
+- `folder-handles.ts`：用 IndexedDB 持久化目录/文件句柄。
+- `folder-scan.ts`：安全递归扫描、扩展名过滤、忽略目录、扫描限制。
+- `folder-paths.ts`：路径规范化和相对链接解析。
+- `folder-documents.ts`：读写辅助函数、保存状态、文件元数据。
 
-Extend `WorkspaceTab` with optional source metadata:
+### 12.2 Workspace 状态
 
-- `sourceKind`: `draft | paste | file-import | remote-url | share | folder-file`.
-- `folderFilePath`: normalized path inside the opened folder.
-- `folderFileHandleId` or enough metadata to reacquire the handle from the folder index.
-- `savedMarkdownHash` for dirty-state comparisons.
+扩展 `WorkspaceTab`，增加可选来源元数据：
 
-The Markdown string remains the single source of truth while editing. The folder file is the persistence target for folder-backed tabs.
+- `sourceKind`：`draft | paste | file-import | remote-url | share | folder-file`。
+- `folderFilePath`：文件在已打开文件夹内的规范化路径。
+- `folderFileHandleId` 或足够从文件夹索引重新获取句柄的元数据。
+- `savedMarkdownHash`：用于未保存状态比较。
 
-### Data Flow
+编辑期间，Markdown 字符串仍然是唯一编辑源。文件夹文件只是本地文件夹来源标签页的持久化目标。
 
-1. User clicks `Open folder`.
-2. App calls `showDirectoryPicker({ mode: "readwrite" })`.
-3. App stores the directory handle in IndexedDB when available.
-4. App scans supported files into a lightweight folder index.
-5. User opens a file from the tree.
-6. App reads the file text into the active tab and marks it folder-backed.
-7. User edits Markdown through the existing editor.
-8. User saves with toolbar or shortcut.
-9. App writes Markdown to the file handle and updates dirty/save state.
-10. Preview, outline, export, and share use the existing Markdown renderer and export/share paths.
+### 12.3 数据流
 
-### Error Handling
+1. 用户点击 `打开文件夹`。
+2. 应用调用 `showDirectoryPicker({ mode: "readwrite" })`。
+3. 支持时，将目录句柄存入 IndexedDB。
+4. 扫描支持的 Markdown 文件，生成轻量文件夹索引。
+5. 用户从文件树打开文件。
+6. 应用读取文件文本，放入当前标签页，并标记为本地文件夹来源。
+7. 用户使用现有编辑器编辑 Markdown。
+8. 用户通过工具栏或快捷键保存。
+9. 应用写回文件句柄，并更新未保存/保存状态。
+10. 预览、outline、导出、分享继续使用现有 Markdown renderer 和 export/share 逻辑。
 
-- Unsupported API: show fallback mode, keep current import paths.
-- Permission denied: keep existing drafts; show reconnect folder CTA.
-- Scan too large: stop scan at limit and show partial result message.
-- File read error: leave current document unchanged and show error status.
-- File write error: preserve draft, mark save failed, offer export/download.
-- External modification: compare file modification metadata before write when possible; if changed, ask user to overwrite, reload, or keep draft.
-- Link target missing: show status message and keep current document.
+### 12.4 错误处理
 
-## Technical Constraints
+- API 不支持：进入降级模式，保留现有导入方式。
+- 权限拒绝：保留现有草稿，显示重新连接文件夹入口。
+- 扫描过大：达到限制后停止，显示部分结果说明。
+- 文件读取失败：当前文档不变，显示错误状态。
+- 文件写入失败：保留草稿，标记保存失败，提供导出/下载兜底。
+- 外部文件变更：写入前尽可能比较文件修改元数据；如果已变更，让用户选择覆盖、重新载入或保留草稿。
+- 链接目标不存在：显示状态信息，当前文档不变。
 
-- `showDirectoryPicker()` requires a secure context and user activation.
-- Directory picker and write-back support are not baseline across all major browsers.
-- Browser permissions can expire or require re-prompting.
-- Installed PWA status improves product feel but does not remove browser security constraints.
-- Folder handles should not be serialized directly into localStorage; use IndexedDB.
-- Scanning must be incremental or yield to the browser for large folders.
+## 13. 技术约束
 
-## Testing Requirements
+- `showDirectoryPicker()` 需要安全上下文和用户主动交互。
+- 目录选择和写回能力不是所有主流浏览器都支持。
+- 浏览器权限可能过期，也可能需要重新询问。
+- 安装为 PWA 能改善体验，但不会绕过浏览器安全模型。
+- 文件夹句柄不能直接序列化进 localStorage，应使用 IndexedDB。
+- 大文件夹扫描必须增量执行或让出主线程，避免 UI 卡死。
 
-### Unit Tests
+## 14. 测试要求
 
-- Capability detection for supported and unsupported browsers.
-- Path normalization and relative Markdown link resolution.
-- Ignore-list filtering.
-- Scan depth and file count limits.
-- Dirty-state detection and save status transitions.
-- Fallback messages for unsupported browser paths.
+### 14.1 单元测试
 
-### Component Tests
+- 支持/不支持浏览器的 capability detection。
+- 路径规范化和相对 Markdown 链接解析。
+- 忽略目录过滤。
+- 扫描深度和文件数限制。
+- 未保存状态与保存状态迁移。
+- 不支持浏览器的降级文案。
 
-- `Open folder` action appears in workspace import UI.
-- Unsupported browser hides or disables folder action with explanatory copy.
-- Folder tree renders nested Markdown files.
-- Selecting a file loads Markdown into the existing editor/preview.
-- Unsaved-change guard blocks accidental tab/file switches.
-- Save button and `Ctrl+S` trigger folder write for folder-backed tabs.
+### 14.2 组件测试
 
-### Browser/E2E Tests
+- Workspace 导入 UI 出现 `打开文件夹`。
+- 不支持环境下，文件夹入口禁用或展示解释文案。
+- 文件树渲染嵌套 Markdown 文件。
+- 选择文件后，内容进入现有编辑器/预览区。
+- 未保存变更保护可以拦截文件切换。
+- 保存按钮和 `Ctrl+S` 能触发本地文件夹来源标签页写入。
 
-Use Playwright where browser APIs can be stubbed:
+### 14.3 浏览器/E2E 测试
 
-- Mock `showDirectoryPicker` with an in-memory directory handle.
-- Open folder, scan files, open file, edit, save, verify write call.
-- Reconnect flow after permission denial.
-- Local Markdown link opens another folder file.
-- Large folder scan shows capped/partial state.
+在 Playwright 中模拟浏览器文件 API：
 
-Manual QA should cover installed PWA behavior in Chrome/Edge desktop.
+- 模拟 `showDirectoryPicker` 和内存目录句柄。
+- 打开文件夹、扫描文件、打开文件、编辑、保存，并验证写入调用。
+- 权限拒绝后的重新连接流程。
+- 本地 Markdown 链接打开另一个文件夹文件。
+- 大文件夹扫描显示限制/部分结果状态。
 
-## Success Metrics
+人工 QA 覆盖 Chrome/Edge 桌面安装 PWA 后的真实行为。
 
-### Product Metrics
+## 15. 成功指标
 
-- Folder open success rate.
-- First folder file opened after folder picker.
-- Save success rate.
-- Repeat usage of folder mode within 7 days.
-- Export/share rate from folder-backed documents.
+### 15.1 产品指标
 
-### Quality Metrics
+- 文件夹打开成功率。
+- 打开文件夹后首次打开文件的完成率。
+- 保存成功率。
+- 7 日内再次使用文件夹模式的比例。
+- Folder-backed 文档的导出/分享比例。
 
-- Zero known data-loss bugs before release.
-- No UI freeze on folders within documented limits.
-- Clear fallback behavior in unsupported browsers.
-- Existing workspace tests remain green.
+### 15.2 质量指标
 
-## Release Plan
+- 发布前无已知数据丢失 bug。
+- 在文档约定限制内，大文件夹不导致 UI 冻结。
+- 不支持浏览器有清楚降级。
+- 现有工作区测试保持通过。
 
-### Phase 1: Read-Only Folder Preview
+## 16. 发布阶段
 
-- Capability detection.
-- Open folder action.
-- Folder tree scan.
-- Open local files into existing workspace.
-- File search.
-- Local Markdown link navigation.
-- No write-back yet except current import/export flows.
+### 16.1 第一阶段：只读文件夹预览
 
-### Phase 2: Safe Write-Back
+- 能力检测。
+- `打开文件夹` 入口。
+- 文件树扫描。
+- 本地文件打开进现有工作区。
+- 文件搜索。
+- 本地 Markdown 链接跳转。
+- 不做写回，保留现有导入/导出兜底。
 
-- Save state.
-- `Ctrl+S` / save button.
-- Write back to selected file.
-- New file creation.
-- Unsaved-change guard.
-- Save failure recovery.
+### 16.2 第二阶段：安全写回
 
-### Phase 3: PWA Polish
+- 保存状态。
+- `Ctrl+S` 和保存按钮。
+- 写回选中文件。
+- 新建文件。
+- 未保存变更保护。
+- 保存失败恢复。
 
-- Persist folder handles in IndexedDB.
-- Reconnect flow.
-- Offline app shell verification.
-- Installed PWA copy and QA.
-- Browser fallback refinement.
+### 16.3 第三阶段：PWA 打磨
 
-### Phase 4: Future Evaluation
+- IndexedDB 持久化文件夹句柄。
+- 重新连接流程。
+- 离线应用外壳验证。
+- 安装 PWA 文案和 QA。
+- 浏览器降级细化。
 
-Evaluate, but do not pre-commit to:
+### 16.4 第四阶段：未来评估
 
-- OPFS workspace.
-- Folder zip import/export.
-- Image paste into local media folder.
-- Backlinks.
-- Quick capture.
-- Self-hosted sync.
+只评估，不提前承诺：
 
-## Acceptance Criteria
+- OPFS 工作区。
+- 文件夹 `.zip` 导入/导出。
+- 图片粘贴到本地 media 文件夹。
+- Backlinks。
+- 快速捕获。
+- 自托管同步。
 
-- In Chrome/Edge desktop, a user can open a local folder, see Markdown files, open one, edit it, save it, refresh the app, reconnect the folder if needed, and continue.
-- In unsupported browsers, a user sees a clear fallback and can still use existing single-file/paste/URL workflows.
-- Existing Markdown rendering, outline, tabs, themes, share, HTML export, PDF print, i18n routes, and PWA file handling continue to work.
-- No destructive file operation ships in MVP without explicit confirmation and test coverage.
-- The feature is documented in README with browser support notes.
+## 17. 验收标准
 
-## Risks
+- 在 Chrome/Edge 桌面，用户可以打开本地文件夹、看到 Markdown 文件、打开其中一个文件、编辑、保存、刷新应用后按需重新连接文件夹并继续工作。
+- 在不支持的浏览器中，用户能看到清楚降级，并继续使用现有单文件、粘贴、URL 工作流。
+- 现有 Markdown 渲染、大纲、标签页、主题、分享、HTML 导出、PDF 打印、i18n 路由和 PWA 文件处理能力不退化。
+- MVP 不上线没有明确确认和测试覆盖的破坏性文件操作。
+- README 记录功能说明和浏览器支持限制。
 
-- Browser file permissions are inconsistent and can surprise users.
-- A write-back bug could cause data loss.
-- Large folders can degrade performance if scanned naively.
-- The left rail can become crowded if tabs and files are combined without a clear model.
-- Product positioning can drift toward PKM if future features are added too aggressively.
+## 18. 风险
 
-## Mitigations
+- 浏览器文件权限不一致，可能让用户困惑。
+- 写回 bug 可能造成数据丢失。
+- 大文件夹如果扫描不当，会拖慢或卡住页面。
+- 左侧侧栏同时承担标签页和文件树，可能变拥挤。
+- 后续功能如果推进过快，产品定位可能漂移到 PKM。
 
-- Ship read-only folder preview before write-back.
-- Keep every write operation explicit and recoverable until save reliability is proven.
-- Preserve unsaved content in local draft storage before writes.
-- Add scan limits and excluded directories from day one.
-- Keep folder mode optional and secondary to the existing viewer workflow.
-- Defer chat, backlinks, and sync until folder mode has real usage evidence.
+## 19. 缓解措施
 
-## References
+- 先发布只读文件夹预览，再发布写回。
+- 写操作在稳定前保持显式、可恢复。
+- 每次写入前保留草稿。
+- 第一版就加入扫描限制和忽略目录。
+- 文件夹模式保持可选，仍服务于现有 viewer 工作流。
+- Chat、backlinks、同步等功能必须等本地文件夹模式有真实使用证据后再评估。
 
-- `files.md`: https://github.com/zakirullin/files.md
-- `files.md` app: https://files.md/
-- MDN `showDirectoryPicker()`: https://developer.mozilla.org/en-US/docs/Web/API/Window/showDirectoryPicker
-- Chrome File System Access API: https://developer.chrome.com/docs/capabilities/web-apis/file-system-access
-- Chrome PWA File Handling: https://developer.chrome.com/docs/capabilities/web-apis/file-handling
+## 20. 参考资料
+
+- `files.md`：https://github.com/zakirullin/files.md
+- `files.md` 应用：https://files.md/
+- MDN `showDirectoryPicker()`：https://developer.mozilla.org/en-US/docs/Web/API/Window/showDirectoryPicker
+- Chrome File System Access API：https://developer.chrome.com/docs/capabilities/web-apis/file-system-access
+- Chrome PWA File Handling：https://developer.chrome.com/docs/capabilities/web-apis/file-handling
