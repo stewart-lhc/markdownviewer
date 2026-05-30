@@ -23,10 +23,8 @@ describe("workspace page", () => {
     expect(screen.getByRole("button", { name: /increase preview font size/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /more/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /markdownviewer home/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /^url$/i }).closest(".toolbar")).not.toBeNull();
-    expect(
-      screen.getByRole("button", { name: /contents/i }).closest(".workspace-pane-header--preview")
-    ).not.toBeNull();
+    expect(screen.queryByRole("button", { name: /^url$/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /contents/i }).closest(".workspace-toc")).not.toBeNull();
     expect(screen.queryByText(/document workspace/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/reader preview/i)).not.toBeInTheDocument();
   });
@@ -41,7 +39,7 @@ describe("workspace page", () => {
     expect(screen.getByRole("tablist", { name: /打开的标签/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /新建标签/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /模板：纸张/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /^url$/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^url$/i })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: /markdownviewer 首页/i })).toHaveAttribute("href", "/zh-CN/");
   });
 });

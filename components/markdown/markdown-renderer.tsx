@@ -15,6 +15,7 @@ import { MermaidBlock } from "@/components/markdown/mermaid-block";
 
 type MarkdownRendererProps = {
   markdown: string;
+  onLinkClick?: (href: string) => boolean | void;
   variant?: "default" | "compact";
 };
 
@@ -75,7 +76,7 @@ const rehypePlugins: ComponentProps<typeof ReactMarkdown>["rehypePlugins"] = [
   rehypeSourcePositions,
   [rehypeAutolinkHeadings, { behavior: "append" }],
   [rehypeHighlight, { detect: false, ignoreMissing: true }],
-  rehypeKatex
+  [rehypeKatex, { strict: "ignore" }]
 ];
 
 function serializeSourcePosition(position?: NodePosition) {
@@ -139,6 +140,7 @@ function getNodeText(node: ReactNode): string {
 
 export const MarkdownRenderer = memo(function MarkdownRenderer({
   markdown,
+  onLinkClick,
   variant = "default"
 }: MarkdownRendererProps) {
   const className =
@@ -176,9 +178,24 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
       },
       code({ children, className }) {
         return <code className={className}>{children}</code>;
+      },
+      a({ children, href, ...props }) {
+        return (
+          <a
+            {...props}
+            href={href}
+            onClick={(event) => {
+              if (href && onLinkClick?.(href)) {
+                event.preventDefault();
+              }
+            }}
+          >
+            {children}
+          </a>
+        );
       }
     }),
-    [variant]
+    [onLinkClick, variant]
   );
 
   return (

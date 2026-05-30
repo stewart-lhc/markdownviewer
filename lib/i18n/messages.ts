@@ -108,6 +108,31 @@ export type Messages = {
       raw: string;
       rich: string;
     };
+    folder: {
+      browserUnsupported: string;
+      closeSearch: string;
+      conflict: string;
+      discardBeforeSwitch: string;
+      fileMissing: (path: string) => string;
+      newFile: string;
+      newFileIn: (directory: string) => string;
+      noSearchResults: string;
+      notFolderFile: string;
+      openFolder: string;
+      opened: (name: string) => string;
+      partial: (skippedCount: number) => string;
+      railLabel: string;
+      reconnect: string;
+      reconnectNeeded: string;
+      saved: string;
+      saveBeforeSwitch: string;
+      saveFailed: string;
+      saveToDisk: string;
+      saving: string;
+      search: string;
+      searchInput: string;
+      searchPlaceholder: string;
+    };
     header: {
       home: string;
     };
@@ -117,7 +142,7 @@ export type Messages = {
       contents: string;
       decreaseFont: string;
       font: string;
-      fontOptions: Record<"system" | "serif" | "mono", string>;
+      fontOptions: Record<string, string>;
       fontSize: string;
       increaseFont: string;
       resizeLabel: string;
@@ -154,12 +179,15 @@ export type Messages = {
       exportHtml: string;
       exportPdf: string;
       file: string;
+      importAction: string;
       importOptions: string;
       label: string;
       modes: Record<"preview" | "split" | "editor", string>;
       more: string;
       open: string;
+      openFolder: string;
       paste: string;
+      saveToDisk: string;
       shareLink: string;
       sourceUrlLabel: string;
       uploadLabel: string;
@@ -373,6 +401,7 @@ export const messages: Record<Locale, Messages> = {
         exportHtml: "Export HTML",
         exportPdf: "Export PDF",
         file: "File",
+        importAction: "Import",
         importOptions: "Import options",
         label: "Workspace controls",
         modes: {
@@ -382,7 +411,9 @@ export const messages: Record<Locale, Messages> = {
         },
         more: "More",
         open: "Open",
+        openFolder: "Folder",
         paste: "Paste",
+        saveToDisk: "Save to disk",
         shareLink: "Share Link",
         sourceUrlLabel: "Markdown source URL",
         uploadLabel: "Upload markdown file",
@@ -411,6 +442,31 @@ export const messages: Record<Locale, Messages> = {
         raw: "Raw",
         rich: "Rich"
       },
+      folder: {
+        browserUnsupported: "Folder editing is available in Chrome/Edge desktop. You can still open individual files here.",
+        closeSearch: "Close file search",
+        conflict: "This file changed outside Markdownviewer. Save again only if you want to overwrite it.",
+        discardBeforeSwitch: "Discard unsaved local folder changes and switch files?",
+        fileMissing: (path) => `Could not find ${path} in this folder.`,
+        newFile: "New file",
+        newFileIn: (directory) => `New file in ${directory}`,
+        noSearchResults: "No matching files.",
+        notFolderFile: "This document is not a local folder file.",
+        openFolder: "Open folder",
+        opened: (name) => `Opened folder ${name}.`,
+        partial: (skippedCount) => `Showing partial results. ${skippedCount} entries were skipped.`,
+        railLabel: "Local folder files",
+        reconnect: "Reconnect folder",
+        reconnectNeeded: "Reconnect the local folder to continue folder editing.",
+        saved: "Saved to disk.",
+        saveBeforeSwitch: "Save changes before switching files?",
+        saveFailed: "Could not save to disk. Your draft is still preserved in the browser.",
+        saveToDisk: "Save to disk",
+        saving: "Saving to disk...",
+        search: "Search folder files",
+        searchInput: "Search local folder files",
+        searchPlaceholder: "Search files by name or path"
+      },
       preview: {
         close: "Close",
         closeContents: "Close contents",
@@ -418,8 +474,18 @@ export const messages: Record<Locale, Messages> = {
         decreaseFont: "Decrease preview font size",
         font: "Preview font",
         fontOptions: {
+          athelas: "Athelas",
+          baskerville: "Baskerville",
+          charter: "Charter",
+          georgia: "Georgia",
+          kaiti: "KaiTi",
+          "lxgw-wenkai": "LXGW WenKai",
           mono: "Mono",
+          palatino: "Palatino",
+          pingfang: "PingFang",
           serif: "Serif",
+          "source-han-sans": "Source Han Sans",
+          "source-han-serif": "Source Han Serif",
           system: "System"
         },
         fontSize: "Preview font size",
@@ -659,6 +725,7 @@ export const messages: Record<Locale, Messages> = {
         exportHtml: "导出 HTML",
         exportPdf: "导出 PDF",
         file: "文件",
+        importAction: "导入",
         importOptions: "导入选项",
         label: "工作区控制",
         modes: {
@@ -668,7 +735,9 @@ export const messages: Record<Locale, Messages> = {
         },
         more: "更多",
         open: "打开",
+        openFolder: "打开文件夹",
         paste: "粘贴",
+        saveToDisk: "保存到磁盘",
         shareLink: "分享链接",
         sourceUrlLabel: "Markdown 来源 URL",
         uploadLabel: "上传 Markdown 文件",
@@ -697,6 +766,31 @@ export const messages: Record<Locale, Messages> = {
         raw: "源码",
         rich: "富文本"
       },
+      folder: {
+        browserUnsupported: "文件夹编辑需要 Chrome/Edge 桌面浏览器。你仍然可以在这里打开单个文件。",
+        closeSearch: "关闭文件搜索",
+        conflict: "这个文件已在 Markdownviewer 外部变更。只有确认要覆盖时才再次保存。",
+        discardBeforeSwitch: "放弃未保存的本地文件夹更改并切换文件？",
+        fileMissing: (path) => `在当前文件夹中找不到 ${path}。`,
+        newFile: "新建文件",
+        newFileIn: (directory) => `在 ${directory} 中新建文件`,
+        noSearchResults: "没有匹配的文件。",
+        notFolderFile: "当前文档不是本地文件夹文件。",
+        openFolder: "打开文件夹",
+        opened: (name) => `已打开文件夹 ${name}。`,
+        partial: (skippedCount) => `当前只显示部分结果，已跳过 ${skippedCount} 个条目。`,
+        railLabel: "本地文件夹文件",
+        reconnect: "重新连接文件夹",
+        reconnectNeeded: "请重新连接本地文件夹以继续文件夹编辑。",
+        saved: "已保存到磁盘。",
+        saveBeforeSwitch: "切换文件前是否保存更改？",
+        saveFailed: "无法保存到磁盘。你的草稿仍已保存在浏览器中。",
+        saveToDisk: "保存到磁盘",
+        saving: "正在保存到磁盘...",
+        search: "搜索文件夹文件",
+        searchInput: "搜索本地文件夹文件",
+        searchPlaceholder: "按文件名或路径搜索"
+      },
       preview: {
         close: "关闭",
         closeContents: "关闭目录",
@@ -704,8 +798,18 @@ export const messages: Record<Locale, Messages> = {
         decreaseFont: "减小预览字体",
         font: "预览字体",
         fontOptions: {
+          athelas: "Athelas",
+          baskerville: "Baskerville",
+          charter: "Charter",
+          georgia: "Georgia",
+          kaiti: "楷体",
+          "lxgw-wenkai": "霞鹜文楷",
           mono: "等宽",
+          palatino: "Palatino",
+          pingfang: "苹方",
           serif: "衬线",
+          "source-han-sans": "思源黑体",
+          "source-han-serif": "思源宋体",
           system: "系统"
         },
         fontSize: "预览字号",

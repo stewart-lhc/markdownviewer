@@ -41,6 +41,7 @@ It is designed to be more than another plain utility page: Markdownviewer gives 
 - **KaTeX math rendering** - read inline and display formulas in technical notes.
 - **Syntax-highlighted code blocks** - keep code-heavy documents readable.
 - **Multiple import paths** - local files, pasted Markdown, GitHub URLs, Gists, raw Markdown URLs, and sample documents.
+- **Local Folder Workspace** - open a local docs folder in supported desktop browsers, browse Markdown files, follow relative links, and save changes back to disk.
 - **Installable PWA** - install Markdownviewer from a supported desktop browser and open `.md` files with it through the operating system file picker.
 - **AI Markdown reader** - clean up Markdown from ChatGPT, Claude, Cursor, Copilot, and other AI tools.
 - **Open-source and self-hostable** - MIT licensed, built with Next.js, React, and TypeScript.
@@ -130,6 +131,12 @@ Create a production build:
 ```bash
 npm run build
 ```
+
+## 本地文件夹工作区 Local Folder Workspace
+
+Markdownviewer 的 `/workspace` 支持本地文件夹模式：在浏览器里选择一个 docs/project 文件夹后，可以直接浏览 `.md`、`.markdown`、`.mdx`、`.txt` 文件树，打开文件预览和编辑，使用 `Ctrl+S`/`Cmd+S` 保存回磁盘，新建 `Untitled.md`，并跳转相对 Markdown links，例如 `docs/a.md`、`../guide.md`、`./intro.md#heading`。
+
+这个能力基于原生 File System Access API。桌面版 Chrome 和 Edge 支持读写本地文件夹；Safari、Firefox 和移动端浏览器会降级为普通在线 Markdown viewer / Markdown preview workspace：仍可粘贴 Markdown、上传单个本地文件、打开 GitHub/raw URL、导出 HTML/PDF、分享链接，但不会请求或持久化文件夹写入权限。
 
 ## PWA And File Opening
 

@@ -11,9 +11,21 @@ import {
   useRef,
   useState
 } from "react";
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { BrandLink } from "@/components/brand/brand-link";
+import { FolderRail } from "@/components/workspace/folder-rail";
 import { createMarkdownShare } from "@/lib/share/share-codec";
 import { exportMarkdownHtml } from "@/lib/workspace/export-html";
+import { getFolderCapability, queryFolderPermission, requestFolderPermission, type FolderPermissionState } from "@/lib/workspace/folder-capabilities";
+import {
+  createUntitledMarkdownDocument,
+  hashMarkdown,
+  readFolderDocument,
+  writeFolderDocument
+} from "@/lib/workspace/folder-documents";
+import { readRootFolderHandle, saveRootFolderHandle } from "@/lib/workspace/folder-handles";
+import { getFolderPathDirectory, getFolderPathName, resolveMarkdownLink } from "@/lib/workspace/folder-paths";
+import { scanMarkdownFolder, type FolderFileEntry } from "@/lib/workspace/folder-scan";
 import { loadMarkdownSourceViaApi, LoadedMarkdownSource } from "@/lib/workspace/load-markdown-source";
 import { MarkdownRenderer } from "@/components/markdown/markdown-renderer";
 import { OutlinePanel } from "@/components/workspace/outline-panel";
@@ -45,11 +57,18 @@ type WorkspaceShellProps = {
 };
 
 type WorkspaceTabRestoreStrategy = "restore" | "merge";
+type WorkspaceSourceKind = "draft" | "file-import" | "remote-url" | "folder-file";
+type FolderSaveState = "idle" | "dirty" | "saving" | "saved" | "failed" | "conflict";
 
 type WorkspaceTab = {
   createdAt: number;
+  folderFilePath?: string;
+  folderLastModified?: number;
+  hasExplicitSave?: boolean;
   id: string;
   markdown: string;
+  savedMarkdownHash?: string;
+  sourceKind?: WorkspaceSourceKind;
   sourceInput: string;
   updatedAt: number;
 };
@@ -172,6 +191,20 @@ function normalizeStoredWorkspaceTab(value: unknown, index: number): WorkspaceTa
   }
 
   const id = typeof record.id === "string" && record.id ? record.id : `stored-workspace-tab-${index + 1}`;
+  const folderFilePath = typeof record.folderFilePath === "string" ? record.folderFilePath : undefined;
+  const folderLastModified =
+    typeof record.folderLastModified === "number" && Number.isFinite(record.folderLastModified)
+      ? record.folderLastModified
+      : undefined;
+  const hasExplicitSave = typeof record.hasExplicitSave === "boolean" ? record.hasExplicitSave : undefined;
+  const savedMarkdownHash = typeof record.savedMarkdownHash === "string" ? record.savedMarkdownHash : undefined;
+  const sourceKind =
+    record.sourceKind === "draft" ||
+    record.sourceKind === "file-import" ||
+    record.sourceKind === "remote-url" ||
+    record.sourceKind === "folder-file"
+      ? record.sourceKind
+      : undefined;
   const sourceInput = typeof record.sourceInput === "string" ? record.sourceInput : "";
   const createdAt = typeof record.createdAt === "number" && Number.isFinite(record.createdAt)
     ? record.createdAt
@@ -182,8 +215,13 @@ function normalizeStoredWorkspaceTab(value: unknown, index: number): WorkspaceTa
 
   return {
     createdAt,
+    folderFilePath,
+    folderLastModified,
+    hasExplicitSave,
     id,
     markdown,
+    savedMarkdownHash,
+    sourceKind,
     sourceInput,
     updatedAt
   };
@@ -291,6 +329,10 @@ function describeSource(sourceInput: string) {
     return undefined;
   }
 
+  if (sourceInput.startsWith("folder:")) {
+    return getFolderPathName(sourceInput.replace(/^folder:/, "")) || "Local folder";
+  }
+
   if (sourceInput.startsWith("file:")) {
     return sourceInput.replace(/^file:/, "");
   }
@@ -313,7 +355,7 @@ function describeSource(sourceInput: string) {
 }
 
 function deriveImportMode(sourceInput: string): SourcePanelMode {
-  if (sourceInput.startsWith("file:")) {
+  if (sourceInput.startsWith("file:") || sourceInput.startsWith("folder:")) {
     return "file";
   }
 
@@ -459,6 +501,7 @@ export function WorkspaceShell({
   const [statusMessage, setStatusMessage] = useState<string | undefined>(initialStatusMessage);
   const [activeImportMode, setActiveImportMode] = useState<SourcePanelMode>(deriveImportMode(sourceInput));
   const [editorPresentationMode, setEditorPresentationMode] = useState<EditorPresentationMode>("rich");
+  const [compactWorkspace, setCompactWorkspace] = useState(false);
   const [previewFont, setPreviewFont] = useState<WorkspacePreviewFont>(defaultPreviewFont);
   const [previewFontSize, setPreviewFontSize] = useState(defaultPreviewFontSize);
   const [splitEditorPercent, setSplitEditorPercent] = useState(50);
@@ -466,6 +509,15 @@ export function WorkspaceShell({
   const [tabsCollapsed, setTabsCollapsed] = useState(false);
   const [tabsStorageReady, setTabsStorageReady] = useState(false);
   const [tocOpen, setTocOpen] = useState(false);
+  const [folderRootHandle, setFolderRootHandle] = useState<FileSystemDirectoryHandle | null>(null);
+  const [folderRootName, setFolderRootName] = useState("");
+  const [folderFiles, setFolderFiles] = useState<FolderFileEntry[]>([]);
+  const [folderPermission, setFolderPermission] = useState<FolderPermissionState>(getFolderCapability());
+  const [folderPartial, setFolderPartial] = useState(false);
+  const [folderSkippedCount, setFolderSkippedCount] = useState(0);
+  const [folderSearchOpen, setFolderSearchOpen] = useState(false);
+  const [folderSearchQuery, setFolderSearchQuery] = useState("");
+  const [saveState, setSaveState] = useState<FolderSaveState>("idle");
   const gridRef = useRef<HTMLDivElement | null>(null);
   const editorRef = useRef<HTMLElement | null>(null);
   const previewRef = useRef<HTMLDivElement | null>(null);
@@ -485,6 +537,7 @@ export function WorkspaceShell({
   });
   const latestMarkdownRef = useRef(currentMarkdown);
   const latestSourceRef = useRef(currentSource);
+  const pendingFolderHashRef = useRef<string | undefined>(undefined);
   const previewMarkdown = useDeferredValue(currentMarkdown);
   const headings = useMemo(() => extractHeadings(previewMarkdown), [previewMarkdown]);
   const hasHeadings = headings.length > 0;
@@ -493,6 +546,16 @@ export function WorkspaceShell({
     [currentSource, headings, messages, previewMarkdown]
   );
   const sourceLabel = useMemo(() => describeSource(currentSource), [currentSource]);
+  const hasCurrentDocument = currentMarkdown.trim().length > 0;
+  const activeTab = tabs.find((tab) => tab.id === activeTabId) ?? tabs[0];
+  const activeFolderPath = activeTab?.sourceKind === "folder-file" ? activeTab.folderFilePath : undefined;
+  const selectedFolderDirectory = activeFolderPath ? getFolderPathDirectory(activeFolderPath) : "/";
+  const activeFolderEntry = activeFolderPath
+    ? folderFiles.find((file) => file.path === activeFolderPath)
+    : undefined;
+  const isActiveFolderDocument = Boolean(activeFolderPath && activeFolderEntry);
+  const activeFolderDirty =
+    isActiveFolderDocument && activeTab?.savedMarkdownHash !== hashMarkdown(currentMarkdown);
   const tabItems = useMemo(
     () =>
       tabs.map((tab) => ({
@@ -513,6 +576,32 @@ export function WorkspaceShell({
     "--workspace-preview-font-family": getWorkspacePreviewFontStack(previewFont),
     "--workspace-preview-font-size": `${previewFontSize}px`
   } as CSSProperties;
+
+  useEffect(() => {
+    if (typeof window.matchMedia !== "function") {
+      return;
+    }
+
+    const query = window.matchMedia("(max-width: 720px)");
+
+    function syncCompactWorkspace() {
+      const nextCompact = query.matches;
+
+      setCompactWorkspace(nextCompact);
+
+      if (nextCompact) {
+        setTabsCollapsed(true);
+        setCurrentMode((current) => (current === "split" ? "preview" : current));
+      }
+    }
+
+    syncCompactWorkspace();
+    query.addEventListener("change", syncCompactWorkspace);
+
+    return () => {
+      query.removeEventListener("change", syncCompactWorkspace);
+    };
+  }, []);
 
   useEffect(() => {
     latestMarkdownRef.current = currentMarkdown;
@@ -662,7 +751,13 @@ export function WorkspaceShell({
       setSplitEditorPercent(clampSplitPercent(storedSplitPercent));
     }
 
-    if (storedTabsCollapsed === "true" || storedTabsCollapsed === "false") {
+    const compactViewport =
+      typeof window.matchMedia === "function" && window.matchMedia("(max-width: 720px)").matches;
+
+    if (compactViewport) {
+      setTabsCollapsed(true);
+      setCurrentMode((current) => (current === "split" ? "preview" : current));
+    } else if (storedTabsCollapsed === "true" || storedTabsCollapsed === "false") {
       setTabsCollapsed(storedTabsCollapsed === "true");
     }
 
@@ -674,6 +769,15 @@ export function WorkspaceShell({
       setPreviewFontSize(clampPreviewFontSize(storedPreviewFontSize));
     }
   }, []);
+
+  useEffect(() => {
+    if (!compactWorkspace) {
+      return;
+    }
+
+    setTabsCollapsed(true);
+    setCurrentMode((current) => (current === "split" ? "preview" : current));
+  }, [compactWorkspace]);
 
   useEffect(() => {
     window.localStorage.setItem(workspaceSplitStorageKey, String(Math.round(splitEditorPercent)));
@@ -733,6 +837,10 @@ export function WorkspaceShell({
       pendingImport.sourceInput,
       pendingImport.statusMessage ?? messages.status.loadedFile("Markdown file")
     );
+  }, []);
+
+  useEffect(() => {
+    void restoreFolderSession();
   }, []);
 
   useEffect(() => {
@@ -813,6 +921,75 @@ export function WorkspaceShell({
     };
   }, [previewMarkdown, currentMode]);
 
+  useEffect(() => {
+    if (!isActiveFolderDocument) {
+      setSaveState("idle");
+      return;
+    }
+
+    if (!activeFolderDirty) {
+      setSaveState((current) => (current === "saving" ? current : "saved"));
+      return;
+    }
+
+    setSaveState((current) => (current === "saving" ? current : "dirty"));
+
+    if (!activeTab?.hasExplicitSave || saveState === "saving") {
+      return;
+    }
+
+    const saveTimer = window.setTimeout(() => {
+      void saveCurrentFolderFile();
+    }, 1200);
+
+    return () => {
+      window.clearTimeout(saveTimer);
+    };
+  }, [activeFolderDirty, activeTab?.hasExplicitSave, isActiveFolderDocument, saveState]);
+
+  useEffect(() => {
+    function handleWorkspaceShortcut(event: KeyboardEvent) {
+      if (!(event.ctrlKey || event.metaKey)) {
+        return;
+      }
+
+      if (event.key.toLowerCase() === "s") {
+        event.preventDefault();
+        void saveCurrentFolderFile();
+        return;
+      }
+
+      if (event.key.toLowerCase() === "k" && folderRootHandle) {
+        event.preventDefault();
+        setFolderSearchOpen(true);
+      }
+    }
+
+    window.addEventListener("keydown", handleWorkspaceShortcut);
+
+    return () => {
+      window.removeEventListener("keydown", handleWorkspaceShortcut);
+    };
+  }, [activeFolderPath, currentMarkdown, folderRootHandle, saveState]);
+
+  useEffect(() => {
+    const pendingHash = pendingFolderHashRef.current;
+
+    if (!pendingHash) {
+      return;
+    }
+
+    pendingFolderHashRef.current = undefined;
+    window.requestAnimationFrame(() => {
+      const target = document.getElementById(pendingHash);
+
+      if (target && typeof target.scrollIntoView === "function") {
+        target.scrollIntoView({ block: "start" });
+        window.history.replaceState(null, "", `#${pendingHash}`);
+      }
+    });
+  }, [previewMarkdown]);
+
   function readFileContents(file: File) {
     if (typeof file.text === "function") {
       return file.text();
@@ -827,6 +1004,256 @@ export function WorkspaceShell({
     });
   }
 
+  function updateActiveTabMetadata(patch: Partial<WorkspaceTab>) {
+    setTabs((currentTabs) =>
+      currentTabs.map((tab) =>
+        tab.id === activeTabId
+          ? {
+              ...tab,
+              ...patch,
+              updatedAt: Date.now()
+            }
+          : tab
+      )
+    );
+  }
+
+  async function loadFolderSession(handle: FileSystemDirectoryHandle, status?: string) {
+    const scan = await scanMarkdownFolder(handle);
+
+    setFolderRootHandle(handle);
+    setFolderRootName(handle.name || "Local folder");
+    setFolderFiles(scan.files);
+    setFolderPermission("granted");
+    setFolderPartial(scan.partial);
+    setFolderSkippedCount(scan.skippedCount);
+    setTabsCollapsed(false);
+
+    if (status) {
+      setStatusMessage(status);
+    }
+  }
+
+  async function handleOpenFolder() {
+    if (getFolderCapability() === "unsupported" || typeof window.showDirectoryPicker !== "function") {
+      setFolderPermission("unsupported");
+      setStatusMessage(messages.folder.browserUnsupported);
+      return;
+    }
+
+    try {
+      const handle = await window.showDirectoryPicker({ mode: "readwrite" });
+      const permission = await requestFolderPermission(handle);
+
+      setFolderPermission(permission);
+
+      if (permission !== "granted") {
+        setFolderRootHandle(handle);
+        setFolderRootName(handle.name || "Local folder");
+        setStatusMessage(messages.folder.reconnectNeeded);
+        return;
+      }
+
+      await saveRootFolderHandle(handle).catch(() => undefined);
+      await loadFolderSession(handle, messages.folder.opened(handle.name || "Local folder"));
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return;
+      }
+
+      setStatusMessage(error instanceof Error ? error.message : messages.status.loadFailed);
+    }
+  }
+
+  async function handleReconnectFolder() {
+    if (!folderRootHandle) {
+      await handleOpenFolder();
+      return;
+    }
+
+    const permission = await requestFolderPermission(folderRootHandle);
+    setFolderPermission(permission);
+
+    if (permission === "granted") {
+      await loadFolderSession(folderRootHandle, messages.folder.opened(folderRootName || folderRootHandle.name));
+    } else {
+      setStatusMessage(messages.folder.reconnectNeeded);
+    }
+  }
+
+  async function restoreFolderSession() {
+    const storedHandle = await readRootFolderHandle().catch(() => null);
+
+    if (!storedHandle) {
+      return;
+    }
+
+    const permission = await queryFolderPermission(storedHandle);
+    setFolderRootHandle(storedHandle);
+    setFolderRootName(storedHandle.name || "Local folder");
+    setFolderPermission(permission);
+
+    if (permission === "granted") {
+      await loadFolderSession(storedHandle);
+    } else {
+      setStatusMessage(messages.folder.reconnectNeeded);
+    }
+  }
+
+  function getFolderEntry(path: string) {
+    return folderFiles.find((file) => file.path === path);
+  }
+
+  async function saveCurrentFolderFile(forceOverwrite = false) {
+    const path = activeFolderPath;
+    const entry = path ? getFolderEntry(path) : undefined;
+
+    if (!path || !entry || activeTab?.sourceKind !== "folder-file") {
+      setStatusMessage(messages.folder.notFolderFile);
+      return false;
+    }
+
+    try {
+      setSaveState("saving");
+
+      if (!forceOverwrite && activeTab.folderLastModified) {
+        const latestFile = await entry.handle.getFile();
+
+        if (latestFile.lastModified > activeTab.folderLastModified) {
+          const shouldOverwrite = window.confirm(messages.folder.conflict);
+
+          if (!shouldOverwrite) {
+            setSaveState("conflict");
+            return false;
+          }
+        }
+      }
+
+      const saved = await writeFolderDocument(entry.handle, currentMarkdown);
+      const savedHash = hashMarkdown(saved.markdown);
+
+      setFolderFiles((currentFiles) =>
+        currentFiles.map((file) =>
+          file.path === path
+            ? {
+                ...file,
+                lastModified: saved.lastModified
+              }
+            : file
+        )
+      );
+      updateActiveTabMetadata({
+        folderLastModified: saved.lastModified,
+        hasExplicitSave: true,
+        savedMarkdownHash: savedHash,
+        sourceKind: "folder-file"
+      });
+      setSaveState("saved");
+      setStatusMessage(messages.folder.saved);
+      return true;
+    } catch {
+      window.localStorage.setItem(workspaceDraftStorageKey, currentMarkdown);
+      setSaveState("failed");
+      setStatusMessage(messages.folder.saveFailed);
+      return false;
+    }
+  }
+
+  async function ensureFolderSwitchAllowed() {
+    if (!activeFolderDirty) {
+      return true;
+    }
+
+    if (window.confirm(messages.folder.saveBeforeSwitch)) {
+      return saveCurrentFolderFile();
+    }
+
+    return window.confirm(messages.folder.discardBeforeSwitch);
+  }
+
+  async function openFolderFile(path: string, hash?: string) {
+    const entry = getFolderEntry(path);
+
+    if (!entry) {
+      setStatusMessage(messages.folder.fileMissing(path));
+      return false;
+    }
+
+    if (!(await ensureFolderSwitchAllowed())) {
+      return false;
+    }
+
+    try {
+      const document = await readFolderDocument(entry.handle);
+      const savedHash = hashMarkdown(document.markdown);
+
+      setCurrentMarkdown(document.markdown);
+      setCurrentSource(`folder:${entry.path}`);
+      setActiveImportMode("file");
+      updateActiveTabMetadata({
+        folderFilePath: entry.path,
+        folderLastModified: document.lastModified,
+        hasExplicitSave: true,
+        markdown: document.markdown,
+        savedMarkdownHash: savedHash,
+        sourceInput: `folder:${entry.path}`,
+        sourceKind: "folder-file"
+      });
+      setSaveState("saved");
+      setStatusMessage(messages.status.loadedFile(entry.name));
+      setTocOpen(false);
+
+      if (hash) {
+        pendingFolderHashRef.current = hash;
+      }
+
+      return true;
+    } catch {
+      setStatusMessage(messages.status.readFileFailed);
+      return false;
+    }
+  }
+
+  async function handleNewFolderFile() {
+    if (!folderRootHandle || folderPermission !== "granted") {
+      setStatusMessage(messages.folder.reconnectNeeded);
+      return;
+    }
+
+    if (!(await ensureFolderSwitchAllowed())) {
+      return;
+    }
+
+    try {
+      const created = await createUntitledMarkdownDocument(
+        folderRootHandle,
+        folderFiles,
+        selectedFolderDirectory
+      );
+      const { markdown: nextMarkdown, ...fileEntry } = created;
+
+      setFolderFiles((currentFiles) => [...currentFiles, fileEntry]);
+      setCurrentMarkdown(nextMarkdown);
+      setCurrentSource(`folder:${created.path}`);
+      setActiveImportMode("file");
+      updateActiveTabMetadata({
+        folderFilePath: created.path,
+        folderLastModified: created.lastModified,
+        hasExplicitSave: true,
+        markdown: nextMarkdown,
+        savedMarkdownHash: hashMarkdown(nextMarkdown),
+        sourceInput: `folder:${created.path}`,
+        sourceKind: "folder-file"
+      });
+      setSaveState("saved");
+      setStatusMessage(messages.status.loadedFile(created.name));
+      setTocOpen(false);
+    } catch {
+      setSaveState("failed");
+      setStatusMessage(messages.folder.saveFailed);
+    }
+  }
+
   function openImportedFileTab(markdown: string, sourceInput: string, statusMessage: string) {
     const importedTab = createWorkspaceTab(markdown, sourceInput);
 
@@ -835,6 +1262,16 @@ export function WorkspaceShell({
     setActiveImportMode("file");
     setCurrentSource(importedTab.sourceInput);
     setCurrentMarkdown(importedTab.markdown);
+    setTabs((currentTabs) =>
+      currentTabs.map((tab) =>
+        tab.id === importedTab.id
+          ? {
+              ...tab,
+              sourceKind: "file-import"
+            }
+          : tab
+      )
+    );
     setStatusMessage(statusMessage);
     setTocOpen(false);
   }
@@ -851,6 +1288,15 @@ export function WorkspaceShell({
     setTocOpen(false);
   }
 
+  function switchToTab(selectedTab: WorkspaceTab) {
+    setActiveTabId(selectedTab.id);
+    setCurrentMarkdown(selectedTab.markdown);
+    setCurrentSource(selectedTab.sourceInput);
+    setActiveImportMode(deriveImportMode(selectedTab.sourceInput));
+    setStatusMessage(messages.status.switchedTo(getWorkspaceTabTitle(selectedTab, messages)));
+    setTocOpen(false);
+  }
+
   function handleSelectTab(tabId: string) {
     const selectedTab = tabs.find((tab) => tab.id === tabId);
 
@@ -858,12 +1304,16 @@ export function WorkspaceShell({
       return;
     }
 
-    setActiveTabId(selectedTab.id);
-    setCurrentMarkdown(selectedTab.markdown);
-    setCurrentSource(selectedTab.sourceInput);
-    setActiveImportMode(deriveImportMode(selectedTab.sourceInput));
-    setStatusMessage(messages.status.switchedTo(getWorkspaceTabTitle(selectedTab, messages)));
-    setTocOpen(false);
+    if (!activeFolderDirty) {
+      switchToTab(selectedTab);
+      return;
+    }
+
+    void (async () => {
+      if (await ensureFolderSwitchAllowed()) {
+        switchToTab(selectedTab);
+      }
+    })();
   }
 
   function handleCloseTab(tabId: string) {
@@ -909,6 +1359,12 @@ export function WorkspaceShell({
 
       setActiveImportMode("url");
       setCurrentMarkdown(result.markdown);
+      setCurrentSource(result.resolvedUrl ?? currentSource);
+      updateActiveTabMetadata({
+        markdown: result.markdown,
+        sourceInput: result.resolvedUrl ?? currentSource,
+        sourceKind: "remote-url"
+      });
       setStatusMessage(messages.status.loadedSource(result.label));
     } catch (error) {
       setStatusMessage(error instanceof Error ? error.message : messages.status.loadFailed);
@@ -921,6 +1377,11 @@ export function WorkspaceShell({
     setActiveImportMode("file");
     setCurrentSource(`file:${file.name}`);
     setCurrentMarkdown(nextMarkdown);
+    updateActiveTabMetadata({
+      markdown: nextMarkdown,
+      sourceInput: `file:${file.name}`,
+      sourceKind: "file-import"
+    });
     setStatusMessage(messages.status.loadedFile(file.name));
   }
 
@@ -1200,9 +1661,49 @@ export function WorkspaceShell({
     }
   }
 
+  function handlePreviewLinkClick(href: string) {
+    if (!activeFolderPath) {
+      return false;
+    }
+
+    const resolved = resolveMarkdownLink(activeFolderPath, href);
+
+    if (!resolved) {
+      return false;
+    }
+
+    if (!getFolderEntry(resolved.path)) {
+      setStatusMessage(messages.folder.fileMissing(resolved.path));
+      return true;
+    }
+
+    void openFolderFile(resolved.path, resolved.hash);
+    return true;
+  }
+
   return (
     <div className="workspace-page page-shell" data-tabs-collapsed={tabsCollapsed}>
       {!tabsCollapsed ? (
+        folderRootHandle ? (
+          <FolderRail
+            activePath={activeFolderPath}
+            files={folderFiles}
+            messages={messages.folder}
+            onNewFile={handleNewFolderFile}
+            onOpenFile={(path) => {
+              void openFolderFile(path);
+            }}
+            onReconnect={handleReconnectFolder}
+            onSearchOpenChange={setFolderSearchOpen}
+            onSearchQueryChange={setFolderSearchQuery}
+            partial={folderPartial}
+            rootName={folderRootName || "Local folder"}
+            searchOpen={folderSearchOpen}
+            searchQuery={folderSearchQuery}
+            selectedDirectory={selectedFolderDirectory}
+            skippedCount={folderSkippedCount}
+          />
+        ) : (
         <aside className="workspace-tabs-rail" aria-label={messages.tabs.railLabel}>
           <div className="workspace-tabs-rail-header">
             <span className="workspace-tabs-title">{messages.tabs.title}</span>
@@ -1243,7 +1744,19 @@ export function WorkspaceShell({
               </div>
             ))}
           </div>
+          {compactWorkspace ? (
+            <button
+              aria-label={messages.tabs.newTab}
+              className="workspace-new-tab-button workspace-new-tab-button--footer"
+              onClick={handleNewTab}
+              title={messages.tabs.newTab}
+              type="button"
+            >
+              +
+            </button>
+          ) : null}
         </aside>
+        )
       ) : null}
       <section
         aria-label={documentTitle}
@@ -1260,7 +1773,11 @@ export function WorkspaceShell({
           title={tabsCollapsed ? messages.tabs.expand : messages.tabs.collapse}
           type="button"
         >
-          <span aria-hidden="true" className="workspace-tabs-toggle-icon" />
+          {tabsCollapsed ? (
+            <PanelLeftOpen aria-hidden="true" className="workspace-tabs-toggle-icon" size={22} strokeWidth={2} />
+          ) : (
+            <PanelLeftClose aria-hidden="true" className="workspace-tabs-toggle-icon" size={22} strokeWidth={2} />
+          )}
         </button>
         <div className="workspace-header">
           <div className="workspace-header-meta">
@@ -1278,15 +1795,35 @@ export function WorkspaceShell({
           </div>
             <WorkspaceToolbar
               activeImportMode={activeImportMode}
+              compact={compactWorkspace}
+              compactSettingsItems={
+                <>
+                  <WorkspaceThemeSelector messages={messages.preview} onThemeChange={setTheme} theme={theme} />
+                  <WorkspacePreviewTypographyControls
+                    font={previewFont}
+                    fontSize={previewFontSize}
+                    maxFontSize={maxPreviewFontSize}
+                    messages={messages.preview}
+                    minFontSize={minPreviewFontSize}
+                    onFontChange={setPreviewFont}
+                    onFontSizeChange={(nextFontSize) => setPreviewFontSize(clampPreviewFontSize(nextFontSize))}
+                  />
+                </>
+              }
               messages={messages.toolbar}
               mode={currentMode}
+              showImportActions={!hasCurrentDocument}
             onExportHtml={handleExportHtml}
             onExportPdf={handleExportPdf}
             onActiveImportModeChange={setActiveImportMode}
             onFileImport={handleFileImport}
             onModeChange={setCurrentMode}
+            onOpenFolder={handleOpenFolder}
             onParseSource={handleParseSource}
             onPasteIntoEditor={handlePasteIntoEditor}
+            onSaveToDisk={() => {
+              void saveCurrentFolderFile();
+            }}
             onShare={handleShare}
             onSourceChange={setCurrentSource}
             sourceValue={currentSource}
@@ -1355,18 +1892,7 @@ export function WorkspaceShell({
                     onFontSizeChange={(nextFontSize) => setPreviewFontSize(clampPreviewFontSize(nextFontSize))}
                   />
                 </div>
-                {hasHeadings ? (
-                  <OutlinePanel
-                    documentTitle={documentTitle}
-                    headings={headings}
-                    messages={messages.preview}
-                    onNavigate={handleTocNavigate}
-                    onToggle={() => setTocOpen((current) => !current)}
-                    open={tocOpen}
-                  />
-                ) : (
-                  <div className="workspace-pane-header-spacer" />
-                )}
+                <div className="workspace-pane-header-spacer" />
               </div>
               <div
                 className="workspace-reader-body"
@@ -1381,11 +1907,21 @@ export function WorkspaceShell({
                 ref={previewRef}
                 style={previewReaderStyle}
               >
-                <MarkdownRenderer markdown={previewMarkdown} />
+                <MarkdownRenderer markdown={previewMarkdown} onLinkClick={handlePreviewLinkClick} />
               </div>
             </section>
           ) : null}
         </div>
+        {currentMode !== "editor" && hasHeadings ? (
+          <OutlinePanel
+            documentTitle={documentTitle}
+            headings={headings}
+            messages={messages.preview}
+            onNavigate={handleTocNavigate}
+            onToggle={() => setTocOpen((current) => !current)}
+            open={tocOpen}
+          />
+        ) : null}
       </section>
     </div>
   );

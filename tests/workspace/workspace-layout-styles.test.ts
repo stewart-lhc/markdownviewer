@@ -48,11 +48,24 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain("left: 0;");
     expect(css).toContain(".workspace-preview-header-controls {");
     expect(css).toContain(".workspace-preview-type-controls {");
-    expect(css).toContain(".workspace-preview-font-select {");
+    expect(css).toContain(".workspace-preview-font-button {");
+    expect(css).toContain(".workspace-preview-font-list {");
     expect(css).toContain(".workspace-preview-size-control {");
     expect(css).toContain('.workspace-toc[data-open="false"] .workspace-toc-panel {');
+    expect(css).toContain(".workspace-toc {");
+    expect(css).toContain("position: fixed;");
     expect(css).not.toContain(".workspace-pane-header--preview-fixed {");
     expect(css).not.toContain(".workspace-reader-body--with-preview-nav {");
+  });
+
+  it("keeps the compact workspace header aligned and fixed on mobile", () => {
+    expect(css).toContain("@media (max-width: 720px)");
+    expect(css).toContain("grid-template-columns: 76px minmax(0, 1fr) 112px;");
+    expect(css).toContain("grid-template-rows: 48px 44px;");
+    expect(css).toContain("position: fixed;");
+    expect(css).toContain("padding-top: 128px;");
+    expect(css).toContain(".toolbar-mobile-settings-strip .workspace-preview-type-controls {");
+    expect(css).toContain(".toolbar-mobile-settings-strip .workspace-preview-font-list {");
   });
 
   it("keeps rich mode as a single editable styled surface instead of a textarea overlay", () => {
