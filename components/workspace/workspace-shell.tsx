@@ -3,6 +3,7 @@
 import {
   type CSSProperties,
   type ChangeEvent,
+  type DragEvent as ReactDragEvent,
   type FormEvent,
   type KeyboardEvent as ReactKeyboardEvent,
   type PointerEvent as ReactPointerEvent,
@@ -525,6 +526,7 @@ export function WorkspaceShell({
   const [folderSearchQuery, setFolderSearchQuery] = useState("");
   const [newTabDialogOpen, setNewTabDialogOpen] = useState(false);
   const [newTabUrlInput, setNewTabUrlInput] = useState("");
+  const [fileDragActive, setFileDragActive] = useState(false);
   const [saveState, setSaveState] = useState<FolderSaveState>("idle");
   const gridRef = useRef<HTMLDivElement | null>(null);
   const editorRef = useRef<HTMLElement | null>(null);
@@ -862,18 +864,18 @@ export function WorkspaceShell({
     }
 
     launchQueue.setConsumer((launchParams) => {
-      const firstFileHandle = launchParams.files?.[0];
+      const fileHandles = launchParams.files?.filter((fileHandle) => typeof fileHandle.getFile === "function") ?? [];
 
-      if (!firstFileHandle || typeof firstFileHandle.getFile !== "function") {
+      if (fileHandles.length === 0) {
         return;
       }
 
       void (async () => {
         try {
-          const file = await firstFileHandle.getFile();
-          const nextMarkdown = await readFileContents(file);
-
-          openImportedFileTab(nextMarkdown, `file:${file.name}`, messages.status.loadedFile(file.name));
+          for (const fileHandle of fileHandles) {
+            const file = await fileHandle.getFile();
+            await openFileInNewTab(file);
+          }
         } catch {
           setStatusMessage(messages.status.readFileFailed);
         }
@@ -1013,6 +1015,14 @@ export function WorkspaceShell({
       reader.onerror = () => reject(new Error(messages.status.readFileFailed));
       reader.readAsText(file);
     });
+  }
+
+  function isMarkdownImportFile(file: File) {
+    return /\.(?:md|markdown|mdown|mkd|mdx|txt)$/i.test(file.name);
+  }
+
+  function getMarkdownFiles(dataTransfer: DataTransfer) {
+    return Array.from(dataTransfer.files).filter(isMarkdownImportFile);
   }
 
   function updateActiveTabMetadata(patch: Partial<WorkspaceTab>) {
@@ -1268,30 +1278,25 @@ export function WorkspaceShell({
   }
 
   function openImportedFileTab(markdown: string, sourceInput: string, statusMessage: string) {
-    const importedTab = createWorkspaceTab(markdown, sourceInput);
+    const importedTab = createExplicitImportTab(markdown, sourceInput, {
+      sourceKind: "file-import"
+    });
 
-    setTabs((currentTabs) => [...currentTabs, importedTab].slice(-maxStoredWorkspaceTabs));
-    setActiveTabId(importedTab.id);
-    setActiveImportMode("file");
-    setCurrentSource(importedTab.sourceInput);
-    setCurrentMarkdown(importedTab.markdown);
-    setTabs((currentTabs) =>
-      currentTabs.map((tab) =>
-        tab.id === importedTab.id
-          ? {
-              ...tab,
-              hasExplicitImportChoice: true,
-              sourceKind: "file-import"
-            }
-          : tab
-      )
-    );
-    setStatusMessage(statusMessage);
-    setTocOpen(false);
+    activateWorkspaceTab(importedTab, "file", statusMessage);
   }
 
   function activateWorkspaceTab(nextTab: WorkspaceTab, importMode: SourcePanelMode, statusMessage?: string) {
-    setTabs((currentTabs) => [...currentTabs, nextTab].slice(-maxStoredWorkspaceTabs));
+    setTabs((currentTabs) =>
+      [
+        ...getActiveWorkspaceTabsSnapshot(
+          currentTabs,
+          activeTabIdRef.current,
+          latestMarkdownRef.current,
+          latestSourceRef.current
+        ),
+        nextTab
+      ].slice(-maxStoredWorkspaceTabs)
+    );
     setActiveTabId(nextTab.id);
     setCurrentMarkdown(nextTab.markdown);
     setCurrentSource(nextTab.sourceInput);
@@ -1310,6 +1315,15 @@ export function WorkspaceShell({
       hasExplicitImportChoice: true,
       ...patch
     };
+  }
+
+  async function openFileInNewTab(file: File) {
+    const nextMarkdown = await readFileContents(file);
+    const nextTab = createExplicitImportTab(nextMarkdown, `file:${file.name}`, {
+      sourceKind: "file-import"
+    });
+
+    activateWorkspaceTab(nextTab, "file", messages.status.loadedFile(file.name));
   }
 
   function handleNewTab() {
@@ -1359,12 +1373,7 @@ export function WorkspaceShell({
   }
 
   async function handleNewTabFileSelected(file: File) {
-    const nextMarkdown = await readFileContents(file);
-    const nextTab = createExplicitImportTab(nextMarkdown, `file:${file.name}`, {
-      sourceKind: "file-import"
-    });
-
-    activateWorkspaceTab(nextTab, "file", messages.status.loadedFile(file.name));
+    await openFileInNewTab(file);
   }
 
   async function handleNewTabUrlSubmit(event: FormEvent<HTMLFormElement>) {
@@ -1403,6 +1412,59 @@ export function WorkspaceShell({
 
     setNewTabDialogOpen(false);
     await handleOpenFolder();
+  }
+
+  function handleWorkspaceDragEnter(event: ReactDragEvent<HTMLDivElement>) {
+    if (!Array.from(event.dataTransfer.types).includes("Files")) {
+      return;
+    }
+
+    event.preventDefault();
+    setFileDragActive(true);
+  }
+
+  function handleWorkspaceDragOver(event: ReactDragEvent<HTMLDivElement>) {
+    if (!Array.from(event.dataTransfer.types).includes("Files")) {
+      return;
+    }
+
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "copy";
+    setFileDragActive(true);
+  }
+
+  function handleWorkspaceDragLeave(event: ReactDragEvent<HTMLDivElement>) {
+    const nextTarget = event.relatedTarget;
+
+    if (nextTarget instanceof Node && event.currentTarget.contains(nextTarget)) {
+      return;
+    }
+
+    setFileDragActive(false);
+  }
+
+  async function handleWorkspaceDrop(event: ReactDragEvent<HTMLDivElement>) {
+    const droppedFiles = getMarkdownFiles(event.dataTransfer);
+
+    if (droppedFiles.length === 0) {
+      setFileDragActive(false);
+      return;
+    }
+
+    event.preventDefault();
+    setFileDragActive(false);
+
+    if (!(await ensureFolderSwitchAllowed())) {
+      return;
+    }
+
+    try {
+      for (const file of droppedFiles) {
+        await openFileInNewTab(file);
+      }
+    } catch {
+      setStatusMessage(messages.status.readFileFailed);
+    }
   }
 
   function switchToTab(selectedTab: WorkspaceTab) {
@@ -1817,9 +1879,69 @@ export function WorkspaceShell({
     return true;
   }
 
+  function renderTabsToggleButton() {
+    return (
+      <button
+        aria-expanded={!tabsCollapsed}
+        aria-label={tabsCollapsed ? messages.tabs.expand : messages.tabs.collapse}
+        className="workspace-tabs-toggle-button"
+        data-collapsed={tabsCollapsed}
+        onClick={() => setTabsCollapsed((current) => !current)}
+        title={tabsCollapsed ? messages.tabs.expand : messages.tabs.collapse}
+        type="button"
+      >
+        {tabsCollapsed ? (
+          <PanelLeftOpen aria-hidden="true" className="workspace-tabs-toggle-icon" size={22} strokeWidth={2} />
+        ) : (
+          <PanelLeftClose aria-hidden="true" className="workspace-tabs-toggle-icon" size={22} strokeWidth={2} />
+        )}
+      </button>
+    );
+  }
+
+  function renderRailTopControls(showNewTab = false) {
+    return (
+      <div className="workspace-rail-topbar">
+        <BrandLink
+          ariaLabel={messages.header.home}
+          className="workspace-home"
+          compact
+          href={localizePath("/", locale)}
+          title="Markdownviewer"
+        />
+        {renderTabsToggleButton()}
+        {showNewTab ? (
+          <button
+            aria-label={messages.tabs.newTab}
+            className="workspace-new-tab-button"
+            onClick={handleNewTab}
+            title={messages.tabs.newTab}
+            type="button"
+          >
+            +
+          </button>
+        ) : null}
+      </div>
+    );
+  }
+
   return (
-    <div className="workspace-page page-shell" data-tabs-collapsed={tabsCollapsed}>
-      {!tabsCollapsed ? (
+    <div
+      className="workspace-page page-shell"
+      data-file-drag-active={fileDragActive}
+      data-tabs-collapsed={tabsCollapsed}
+      onDragEnter={handleWorkspaceDragEnter}
+      onDragLeave={handleWorkspaceDragLeave}
+      onDragOver={handleWorkspaceDragOver}
+      onDrop={(event) => {
+        void handleWorkspaceDrop(event);
+      }}
+    >
+      {tabsCollapsed ? (
+        <aside className="workspace-tabs-rail workspace-tabs-rail--collapsed" aria-label={messages.tabs.railLabel}>
+          {renderRailTopControls(false)}
+        </aside>
+      ) : (
         folderRootHandle ? (
           <FolderRail
             activePath={activeFolderPath}
@@ -1838,20 +1960,12 @@ export function WorkspaceShell({
             searchQuery={folderSearchQuery}
             selectedDirectory={selectedFolderDirectory}
             skippedCount={folderSkippedCount}
+            topControls={renderRailTopControls(false)}
           />
         ) : (
         <aside className="workspace-tabs-rail" aria-label={messages.tabs.railLabel}>
           <div className="workspace-tabs-rail-header">
-            <span className="workspace-tabs-title">{messages.tabs.title}</span>
-            <button
-              aria-label={messages.tabs.newTab}
-              className="workspace-new-tab-button"
-              onClick={handleNewTab}
-              title={messages.tabs.newTab}
-              type="button"
-            >
-              +
-            </button>
+            {renderRailTopControls(true)}
           </div>
           <div aria-label={messages.tabs.railLabel} className="workspace-tabs-list" role="tablist">
             {tabItems.map((tab) => (
@@ -1893,37 +2007,15 @@ export function WorkspaceShell({
           ) : null}
         </aside>
         )
-      ) : null}
+      )}
       <section
         aria-label={documentTitle}
         className="workspace-shell-card"
         id="workspace-active-tab-panel"
         role="tabpanel"
       >
-        <button
-          aria-expanded={!tabsCollapsed}
-          aria-label={tabsCollapsed ? messages.tabs.expand : messages.tabs.collapse}
-          className="workspace-tabs-toggle-button"
-          data-collapsed={tabsCollapsed}
-          onClick={() => setTabsCollapsed((current) => !current)}
-          title={tabsCollapsed ? messages.tabs.expand : messages.tabs.collapse}
-          type="button"
-        >
-          {tabsCollapsed ? (
-            <PanelLeftOpen aria-hidden="true" className="workspace-tabs-toggle-icon" size={22} strokeWidth={2} />
-          ) : (
-            <PanelLeftClose aria-hidden="true" className="workspace-tabs-toggle-icon" size={22} strokeWidth={2} />
-          )}
-        </button>
         <div className="workspace-header">
           <div className="workspace-header-meta">
-            <BrandLink
-              ariaLabel={messages.header.home}
-              className="workspace-home"
-              compact
-              href={localizePath("/", locale)}
-              title="Markdownviewer"
-            />
             {sourceLabel ? <div className="workspace-source-chip">{sourceLabel}</div> : null}
           </div>
           <div className="workspace-header-title" title={documentTitle}>

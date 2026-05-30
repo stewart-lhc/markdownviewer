@@ -10,6 +10,9 @@ describe("PWA manifest", () => {
 
     expect(manifest.display).toBe("standalone");
     expect(manifest.start_url).toBe("/workspace");
+    expect(manifest.launch_handler).toEqual({
+      client_mode: ["focus-existing", "navigate-existing"]
+    });
     expect(manifest.icons[0]).toEqual(
       expect.objectContaining({
         src: "/markdownviewer-icon.svg",

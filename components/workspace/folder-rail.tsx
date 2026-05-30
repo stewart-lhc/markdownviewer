@@ -1,7 +1,7 @@
 "use client";
 
 import { FileText, FolderOpen, Plus, RefreshCw, Search, X } from "lucide-react";
-import { type CSSProperties, useMemo } from "react";
+import { type CSSProperties, type ReactNode, useMemo } from "react";
 import type { WorkspaceMessages } from "@/lib/i18n/messages";
 import { getFolderPathDirectory, getFolderPathName } from "@/lib/workspace/folder-paths";
 import type { FolderFileEntry } from "@/lib/workspace/folder-scan";
@@ -16,6 +16,7 @@ type FolderRailProps = {
   searchQuery: string;
   selectedDirectory: string;
   skippedCount: number;
+  topControls?: ReactNode;
   onNewFile: () => void;
   onOpenFile: (path: string) => void;
   onReconnect: () => void;
@@ -47,6 +48,7 @@ export function FolderRail({
   searchQuery,
   selectedDirectory,
   skippedCount,
+  topControls,
   onNewFile,
   onOpenFile,
   onReconnect,
@@ -68,6 +70,7 @@ export function FolderRail({
 
   return (
     <aside className="workspace-tabs-rail workspace-folder-rail" aria-label={messages.railLabel}>
+      {topControls}
       <div className="workspace-folder-rail-header">
         <div className="workspace-folder-title-row">
           <FolderOpen aria-hidden="true" size={17} strokeWidth={2} />

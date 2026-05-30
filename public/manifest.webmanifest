@@ -6,6 +6,9 @@
   "start_url": "/workspace",
   "scope": "/",
   "display": "standalone",
+  "launch_handler": {
+    "client_mode": ["focus-existing", "navigate-existing"]
+  },
   "background_color": "#f6f1e9",
   "theme_color": "#181714",
   "categories": ["productivity", "utilities", "developer"],

@@ -175,6 +175,8 @@ describe("WorkspaceShell interactions", () => {
     expect(screen.getByRole("tablist", { name: /open tabs/i })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: /first draft/i })).toHaveAttribute("aria-selected", "true");
     expect(screen.getByRole("button", { name: /new tab/i })).toBeInTheDocument();
+    expect(screen.getByLabelText(/markdownviewer home/i).closest(".workspace-tabs-rail")).not.toBeNull();
+    expect(screen.queryByText(/^tabs$/i)).not.toBeInTheDocument();
     const sourcePanel = screen.getByTestId("source-panel");
     const richEditor = screen.getByTestId("editor-rich-surface");
 
@@ -413,8 +415,9 @@ describe("WorkspaceShell interactions", () => {
     await user.click(screen.getByRole("button", { name: /collapse tabs sidebar/i }));
 
     expect(screen.getByText("First draft", { selector: ".workspace-header-title" })).toBeInTheDocument();
-    expect(container.querySelector(".workspace-tabs-rail")).toBeNull();
     expect(container.querySelector(".workspace-page")).toHaveAttribute("data-tabs-collapsed", "true");
+    expect(container.querySelector(".workspace-tabs-rail--collapsed")).not.toBeNull();
+    expect(screen.getByLabelText(/markdownviewer home/i).closest(".workspace-tabs-rail--collapsed")).not.toBeNull();
     expect(screen.queryByRole("tablist", { name: /open tabs/i })).not.toBeInTheDocument();
 
     await waitFor(() => {
@@ -1136,6 +1139,38 @@ describe("WorkspaceShell interactions", () => {
     expect(screen.queryByTestId("preview-panel")).not.toBeInTheDocument();
   });
 
+  it("opens a dragged Markdown file as a new workspace tab", async () => {
+    const { container } = render(<WorkspaceShell markdown="# Existing draft" sourceInput="" />);
+    const page = container.querySelector(".workspace-page");
+    const file = new File(["# Dragged file"], "dragged.md", { type: "text/markdown" });
+
+    expect(page).not.toBeNull();
+
+    fireEvent.dragOver(page as Element, {
+      dataTransfer: {
+        dropEffect: "copy",
+        files: [file],
+        types: ["Files"]
+      }
+    });
+
+    expect(page).toHaveAttribute("data-file-drag-active", "true");
+
+    fireEvent.drop(page as Element, {
+      dataTransfer: {
+        files: [file],
+        types: ["Files"]
+      }
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole("tab", { name: /dragged file/i })).toHaveAttribute("aria-selected", "true");
+    });
+
+    expect(screen.getByRole("tab", { name: /existing draft/i })).toBeInTheDocument();
+    expect(page).toHaveAttribute("data-file-drag-active", "false");
+  });
+
   it("opens a file handed off from the homepage import action", async () => {
     window.history.pushState(null, "", "/workspace?import=file");
     window.localStorage.setItem(
@@ -1167,7 +1202,7 @@ describe("WorkspaceShell interactions", () => {
     }
   });
 
-  it("opens a markdown file passed to the installed PWA launch queue", async () => {
+  it("opens markdown files passed to the installed PWA launch queue as workspace tabs", async () => {
     let launchConsumer:
       | ((launchParams: { files?: Array<{ getFile: () => Promise<File> }> }) => void)
       | undefined;
@@ -1189,20 +1224,26 @@ describe("WorkspaceShell interactions", () => {
         files: [
           {
             getFile: () => Promise.resolve(new File(["# System file"], "system.md", { type: "text/markdown" }))
+          },
+          {
+            getFile: () => Promise.resolve(new File(["# Follow-up file"], "follow-up.md", { type: "text/markdown" }))
           }
         ]
+      });
+
+      await waitFor(() => {
+        expect(screen.getByRole("tab", { name: /system file/i })).toBeInTheDocument();
       });
 
       await waitFor(() => {
         expect(
           within(screen.getByTestId("preview-panel")).getByRole("heading", {
             level: 1,
-            name: "System file"
+            name: "Follow-up file"
           })
         ).toBeInTheDocument();
+        expect(screen.getByRole("tab", { name: /follow-up file/i })).toHaveAttribute("aria-selected", "true");
       });
-
-      expect(screen.getByRole("tab", { name: /system file/i })).toHaveAttribute("aria-selected", "true");
     } finally {
       Object.defineProperty(window, "launchQueue", {
         configurable: true,

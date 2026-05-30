@@ -34,6 +34,13 @@
   --workspace-reader-table-bg: rgba(255, 255, 255, 0.6);
   --workspace-reader-table-border: rgba(23, 23, 26, 0.12);
   --workspace-reader-blockquote: rgba(68, 79, 101, 0.96);
+  --workspace-scrollbar-color-scheme: light;
+  --workspace-scrollbar-track: rgba(250, 246, 240, 0.92);
+  --workspace-scrollbar-track-border: rgba(44, 39, 32, 0.08);
+  --workspace-scrollbar-thumb: rgba(154, 138, 116, 0.72);
+  --workspace-scrollbar-thumb-hover: rgba(128, 110, 89, 0.86);
+  --workspace-scrollbar-thumb-border: rgba(255, 252, 247, 0.9);
+  --workspace-scrollbar-corner: rgba(250, 246, 240, 0.92);
   --doc-chip-bg: rgba(255, 255, 255, 0.82);
   --doc-chip-border: rgba(23, 23, 26, 0.08);
   --doc-chip-ink: var(--ink);
@@ -142,6 +149,13 @@ html[data-theme="night"] {
   --workspace-reader-table-bg: rgba(255, 255, 255, 0.05);
   --workspace-reader-table-border: rgba(255, 255, 255, 0.1);
   --workspace-reader-blockquote: rgba(221, 227, 236, 0.84);
+  --workspace-scrollbar-color-scheme: dark;
+  --workspace-scrollbar-track: rgba(12, 15, 20, 0.92);
+  --workspace-scrollbar-track-border: rgba(255, 255, 255, 0.06);
+  --workspace-scrollbar-thumb: rgba(102, 112, 130, 0.82);
+  --workspace-scrollbar-thumb-hover: rgba(128, 140, 160, 0.92);
+  --workspace-scrollbar-thumb-border: rgba(9, 11, 15, 0.94);
+  --workspace-scrollbar-corner: rgba(12, 15, 20, 0.92);
   --doc-chip-bg: rgba(255, 255, 255, 0.05);
   --doc-chip-border: rgba(255, 255, 255, 0.08);
   --doc-chip-ink: rgba(244, 239, 232, 0.9);
@@ -225,6 +239,13 @@ html[data-theme="sepia"] {
   --workspace-reader-table-bg: rgba(246, 235, 220, 0.68);
   --workspace-reader-table-border: rgba(112, 87, 56, 0.14);
   --workspace-reader-blockquote: rgba(101, 82, 63, 0.94);
+  --workspace-scrollbar-color-scheme: light;
+  --workspace-scrollbar-track: rgba(249, 238, 224, 0.94);
+  --workspace-scrollbar-track-border: rgba(112, 87, 56, 0.1);
+  --workspace-scrollbar-thumb: rgba(172, 123, 88, 0.72);
+  --workspace-scrollbar-thumb-hover: rgba(142, 93, 61, 0.86);
+  --workspace-scrollbar-thumb-border: rgba(253, 247, 239, 0.92);
+  --workspace-scrollbar-corner: rgba(249, 238, 224, 0.94);
   --md-emphasis: #815c3f;
   --md-code-ink: #8d4d2a;
   --md-link: #a5542d;
@@ -259,6 +280,13 @@ html[data-theme="porcelain"] {
   --workspace-reader-table-bg: rgba(240, 246, 252, 0.86);
   --workspace-reader-table-border: rgba(85, 112, 141, 0.14);
   --workspace-reader-blockquote: rgba(74, 93, 117, 0.94);
+  --workspace-scrollbar-color-scheme: light;
+  --workspace-scrollbar-track: rgba(239, 246, 252, 0.94);
+  --workspace-scrollbar-track-border: rgba(85, 112, 141, 0.11);
+  --workspace-scrollbar-thumb: rgba(104, 132, 160, 0.7);
+  --workspace-scrollbar-thumb-hover: rgba(76, 105, 136, 0.84);
+  --workspace-scrollbar-thumb-border: rgba(252, 254, 255, 0.92);
+  --workspace-scrollbar-corner: rgba(239, 246, 252, 0.94);
   --md-emphasis: #46607c;
   --md-code-ink: #25577b;
   --md-link: #2b6aa3;
@@ -294,6 +322,13 @@ html[data-theme="primer"] {
   --workspace-reader-table-bg: #f6f8fa;
   --workspace-reader-table-border: #d0d7de;
   --workspace-reader-blockquote: #59636e;
+  --workspace-scrollbar-color-scheme: light;
+  --workspace-scrollbar-track: #f1f4f7;
+  --workspace-scrollbar-track-border: rgba(31, 35, 40, 0.1);
+  --workspace-scrollbar-thumb: rgba(129, 144, 160, 0.72);
+  --workspace-scrollbar-thumb-hover: rgba(96, 110, 126, 0.86);
+  --workspace-scrollbar-thumb-border: #ffffff;
+  --workspace-scrollbar-corner: #f1f4f7;
   --md-emphasis: #57606a;
   --md-code-bg: #f6f8fa;
   --md-code-ink: #24292f;
@@ -330,6 +365,13 @@ html[data-theme="manuscript"] {
   --workspace-reader-table-bg: #f7efe3;
   --workspace-reader-table-border: rgba(75, 55, 37, 0.18);
   --workspace-reader-blockquote: #5b4a3b;
+  --workspace-scrollbar-color-scheme: light;
+  --workspace-scrollbar-track: rgba(247, 239, 227, 0.95);
+  --workspace-scrollbar-track-border: rgba(75, 55, 37, 0.12);
+  --workspace-scrollbar-thumb: rgba(144, 115, 84, 0.7);
+  --workspace-scrollbar-thumb-hover: rgba(116, 88, 60, 0.86);
+  --workspace-scrollbar-thumb-border: #fffdf7;
+  --workspace-scrollbar-corner: rgba(247, 239, 227, 0.95);
   --md-emphasis: #6a4c38;
   --md-code-bg: #f1eadf;
   --md-code-ink: #4a3425;
@@ -366,6 +408,13 @@ html[data-theme="aurora"] {
   --workspace-reader-table-bg: #fbf8ff;
   --workspace-reader-table-border: rgba(68, 54, 115, 0.14);
   --workspace-reader-blockquote: #4e4f70;
+  --workspace-scrollbar-color-scheme: light;
+  --workspace-scrollbar-track: rgba(247, 243, 255, 0.95);
+  --workspace-scrollbar-track-border: rgba(68, 54, 115, 0.1);
+  --workspace-scrollbar-thumb: rgba(141, 123, 184, 0.68);
+  --workspace-scrollbar-thumb-hover: rgba(111, 89, 157, 0.84);
+  --workspace-scrollbar-thumb-border: rgba(255, 255, 255, 0.94);
+  --workspace-scrollbar-corner: rgba(247, 243, 255, 0.95);
   --md-emphasis: #6d5a8e;
   --md-code-bg: rgba(23, 32, 51, 0.08);
   --md-code-ink: #4c3aa1;
@@ -403,6 +452,13 @@ html[data-theme="graphite"] {
   --workspace-reader-table-bg: rgba(255, 255, 255, 0.05);
   --workspace-reader-table-border: rgba(201, 216, 233, 0.1);
   --workspace-reader-blockquote: rgba(221, 231, 242, 0.86);
+  --workspace-scrollbar-color-scheme: dark;
+  --workspace-scrollbar-track: rgba(9, 14, 20, 0.92);
+  --workspace-scrollbar-track-border: rgba(201, 216, 233, 0.07);
+  --workspace-scrollbar-thumb: rgba(92, 120, 151, 0.8);
+  --workspace-scrollbar-thumb-hover: rgba(116, 151, 189, 0.9);
+  --workspace-scrollbar-thumb-border: rgba(7, 11, 16, 0.94);
+  --workspace-scrollbar-corner: rgba(9, 14, 20, 0.92);
   --doc-chip-bg: rgba(255, 255, 255, 0.05);
   --doc-chip-border: rgba(201, 216, 233, 0.08);
   --doc-chip-ink: #edf3fb;
@@ -488,6 +544,13 @@ html[data-theme="evergreen"] {
   --workspace-reader-table-bg: rgba(255, 255, 255, 0.05);
   --workspace-reader-table-border: rgba(202, 221, 205, 0.1);
   --workspace-reader-blockquote: rgba(218, 230, 219, 0.86);
+  --workspace-scrollbar-color-scheme: dark;
+  --workspace-scrollbar-track: rgba(10, 16, 12, 0.92);
+  --workspace-scrollbar-track-border: rgba(202, 221, 205, 0.07);
+  --workspace-scrollbar-thumb: rgba(93, 126, 94, 0.8);
+  --workspace-scrollbar-thumb-hover: rgba(120, 158, 121, 0.9);
+  --workspace-scrollbar-thumb-border: rgba(8, 13, 9, 0.94);
+  --workspace-scrollbar-corner: rgba(10, 16, 12, 0.92);
   --doc-chip-bg: rgba(255, 255, 255, 0.05);
   --doc-chip-border: rgba(202, 221, 205, 0.08);
   --doc-chip-ink: #edf6ed;
@@ -573,6 +636,13 @@ html[data-theme="terminal"] {
   --workspace-reader-table-bg: rgba(53, 231, 165, 0.05);
   --workspace-reader-table-border: rgba(68, 239, 171, 0.16);
   --workspace-reader-blockquote: #b6e8d5;
+  --workspace-scrollbar-color-scheme: dark;
+  --workspace-scrollbar-track: rgba(3, 11, 14, 0.96);
+  --workspace-scrollbar-track-border: rgba(68, 239, 171, 0.11);
+  --workspace-scrollbar-thumb: rgba(52, 201, 147, 0.66);
+  --workspace-scrollbar-thumb-hover: rgba(86, 239, 188, 0.8);
+  --workspace-scrollbar-thumb-border: rgba(3, 11, 14, 0.96);
+  --workspace-scrollbar-corner: rgba(3, 11, 14, 0.96);
   --doc-chip-bg: rgba(53, 231, 165, 0.05);
   --doc-chip-border: rgba(68, 239, 171, 0.14);
   --doc-chip-ink: #d8fff1;
@@ -1226,7 +1296,7 @@ button {
 }
 
 .workspace-page[data-tabs-collapsed="true"] {
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: 48px minmax(0, 1fr);
 }
 
 .workspace-page.page-shell {
@@ -1246,23 +1316,40 @@ button {
   overflow: hidden;
 }
 
+.workspace-tabs-rail--collapsed {
+  align-items: center;
+  padding: 8px 6px;
+}
+
 .workspace-tabs-rail-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 6px;
+  gap: 0;
   min-height: 32px;
   margin-bottom: 6px;
 }
 
-.workspace-tabs-title {
-  margin-right: auto;
-  color: var(--muted);
-  font-family: var(--mono);
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.workspace-rail-topbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 32px;
+}
+
+.workspace-tabs-rail--collapsed .workspace-rail-topbar {
+  flex-direction: column;
+  gap: 7px;
+}
+
+.workspace-tabs-rail--collapsed .workspace-home,
+.workspace-tabs-rail--collapsed .workspace-tabs-toggle-button {
+  width: 36px;
+  height: 36px;
+}
+
+.workspace-rail-topbar .workspace-new-tab-button {
+  margin-left: auto;
 }
 
 .workspace-new-tab-button,
@@ -1301,10 +1388,7 @@ button {
 }
 
 .workspace-tabs-toggle-button {
-  position: absolute;
-  top: 14px;
-  left: 12px;
-  z-index: 4;
+  position: static;
   width: 32px;
   height: 32px;
   border: 0;
@@ -1604,6 +1688,11 @@ button {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+.workspace-page[data-file-drag-active="true"] .workspace-shell-card {
+  outline: 2px solid color-mix(in srgb, var(--workspace-reader-link) 62%, transparent);
+  outline-offset: -4px;
 }
 
 .workspace-header {
@@ -2594,10 +2683,10 @@ button {
 .workspace-editor-surface,
 .workspace-editor-input,
 .workspace-reader-body {
-  color-scheme: dark;
+  color-scheme: var(--workspace-scrollbar-color-scheme);
   forced-color-adjust: none;
   scrollbar-width: thin;
-  scrollbar-color: rgba(77, 88, 105, 0.82) rgba(4, 7, 12, 0.72);
+  scrollbar-color: var(--workspace-scrollbar-thumb) var(--workspace-scrollbar-track);
 }
 
 .workspace-page .workspace-editor-surface::-webkit-scrollbar,
@@ -2605,36 +2694,29 @@ button {
 .workspace-page .workspace-reader-body::-webkit-scrollbar {
   width: 12px;
   height: 12px;
-  background: rgba(4, 7, 12, 0.72);
+  background: var(--workspace-scrollbar-track);
 }
 
 .workspace-page .workspace-editor-surface::-webkit-scrollbar-track,
 .workspace-page .workspace-editor-input::-webkit-scrollbar-track,
 .workspace-page .workspace-reader-body::-webkit-scrollbar-track {
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.045);
-  background:
-    linear-gradient(180deg, rgba(5, 8, 13, 0.96), rgba(16, 21, 28, 0.92)),
-    rgba(4, 7, 12, 0.86);
+  border: 1px solid var(--workspace-scrollbar-track-border);
+  background: var(--workspace-scrollbar-track);
 }
 
 .workspace-page .workspace-editor-surface::-webkit-scrollbar-thumb,
 .workspace-page .workspace-editor-input::-webkit-scrollbar-thumb,
 .workspace-page .workspace-reader-body::-webkit-scrollbar-thumb {
   border-radius: 999px;
-  border: 2px solid rgba(4, 7, 12, 0.9);
-  background:
-    linear-gradient(180deg, rgba(92, 104, 123, 0.94), rgba(57, 66, 80, 0.96)),
-    rgba(68, 78, 94, 0.94);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.055);
+  border: 2px solid var(--workspace-scrollbar-thumb-border);
+  background: var(--workspace-scrollbar-thumb);
 }
 
 .workspace-page .workspace-editor-surface::-webkit-scrollbar-thumb:hover,
 .workspace-page .workspace-editor-input::-webkit-scrollbar-thumb:hover,
 .workspace-page .workspace-reader-body::-webkit-scrollbar-thumb:hover {
-  background:
-    linear-gradient(180deg, rgba(116, 130, 152, 0.96), rgba(73, 84, 101, 0.98)),
-    rgba(86, 98, 117, 0.96);
+  background: var(--workspace-scrollbar-thumb-hover);
 }
 
 .workspace-page .workspace-editor-surface::-webkit-scrollbar-button,
@@ -2648,7 +2730,7 @@ button {
 .workspace-page .workspace-editor-surface::-webkit-scrollbar-corner,
 .workspace-page .workspace-editor-input::-webkit-scrollbar-corner,
 .workspace-page .workspace-reader-body::-webkit-scrollbar-corner {
-  background: rgba(4, 7, 12, 0.86);
+  background: var(--workspace-scrollbar-corner);
 }
 
 .workspace-reader-body .markdown-body > * {
@@ -3314,6 +3396,17 @@ html[data-theme="night"] .workspace-editor-surface--stackedit .token.md-token--l
   color: var(--workspace-reader-heading);
 }
 
+html[data-theme] .workspace-reader-body .markdown-body h1,
+html[data-theme] .workspace-reader-body .markdown-body h2,
+html[data-theme] .workspace-reader-body .markdown-body h3,
+html[data-theme] .workspace-reader-body .markdown-body h4,
+.workspace-reader-body .markdown-body h1,
+.workspace-reader-body .markdown-body h2,
+.workspace-reader-body .markdown-body h3,
+.workspace-reader-body .markdown-body h4 {
+  font-family: var(--workspace-preview-font-family);
+}
+
 .workspace-reader-body .markdown-body h1 {
   font-size: clamp(1.8em, 2.8vw, 2.55em);
 }
@@ -3749,6 +3842,10 @@ html[data-theme="night"] .workspace-editor-surface--stackedit .token.md-token--l
     padding: 8px;
   }
 
+  .workspace-page[data-tabs-collapsed="true"] {
+    grid-template-columns: 48px minmax(0, 1fr);
+  }
+
   .workspace-tabs-list {
     display: flex;
     gap: 6px;
@@ -3811,9 +3908,7 @@ html[data-theme="night"] .workspace-editor-surface--stackedit .token.md-token--l
   }
 
   .workspace-tabs-toggle-button {
-    position: absolute;
-    top: 13px;
-    left: 12px;
+    position: static;
     width: 40px;
     height: 40px;
     transform: none;
@@ -3837,7 +3932,7 @@ html[data-theme="night"] .workspace-editor-surface--stackedit .token.md-token--l
   }
 
   .workspace-tabs-toggle-button {
-    left: 10px;
+    left: auto;
   }
 }
 
@@ -3910,6 +4005,10 @@ html[data-theme="night"] .workspace-editor-surface--stackedit .token.md-token--l
     overflow-x: hidden;
   }
 
+  .workspace-page[data-tabs-collapsed="true"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .workspace-shell-card {
     padding: 8px 10px 10px;
     padding-top: 128px;
@@ -3926,7 +4025,7 @@ html[data-theme="night"] .workspace-editor-surface--stackedit .token.md-token--l
     z-index: 40;
     max-height: min(68vh, 520px);
     border-radius: 18px;
-    padding: 76px 14px 14px;
+    padding: 12px 14px 14px;
     border: 1px solid var(--workspace-shell-border);
     background:
       linear-gradient(
@@ -3941,20 +4040,25 @@ html[data-theme="night"] .workspace-editor-surface--stackedit .token.md-token--l
       inset 0 1px 0 var(--workspace-card-border);
   }
 
-  .workspace-tabs-rail-header {
-    display: none;
+  .workspace-tabs-rail--collapsed {
+    right: auto;
+    width: 52px;
+    height: auto;
+    max-height: none;
+    padding: 8px 6px;
+    border-radius: 16px;
   }
 
-  .workspace-tabs-title {
-    display: none;
+  .workspace-tabs-rail-header {
+    display: flex;
   }
 
   .workspace-tabs-rail-header .workspace-new-tab-button {
-    display: none;
+    display: inline-flex;
   }
 
   .workspace-new-tab-button--footer {
-    display: inline-flex;
+    display: none;
     width: 100%;
     height: 42px;
     margin-top: 8px;
@@ -4004,20 +4108,16 @@ html[data-theme="night"] .workspace-editor-surface--stackedit .token.md-token--l
   }
 
   .workspace-tabs-toggle-button {
-    position: fixed;
-    top: 8px;
-    left: 24px;
+    position: static;
     z-index: 41;
-    width: 48px;
-    height: 48px;
-    border-radius: 18px;
+    width: 40px;
+    height: 40px;
+    border-radius: 14px;
     transform: none;
   }
 
   .workspace-page[data-tabs-collapsed="false"] .workspace-tabs-toggle-button {
-    position: fixed;
-    top: 18px;
-    left: 22px;
+    position: static;
   }
 
   .workspace-tabs-toggle-icon {
@@ -4084,17 +4184,13 @@ html[data-theme="night"] .workspace-editor-surface--stackedit .token.md-token--l
   }
 
   .workspace-tabs-toggle-button {
-    position: fixed;
-    top: 8px;
-    left: 24px;
-    width: 48px;
-    height: 48px;
+    position: static;
+    width: 40px;
+    height: 40px;
   }
 
   .workspace-page[data-tabs-collapsed="false"] .workspace-tabs-toggle-button {
-    position: fixed;
-    top: 18px;
-    left: 22px;
+    position: static;
   }
 
   .workspace-header-title {
@@ -4591,9 +4687,9 @@ html[data-theme="night"] .workspace-editor-surface--stackedit .token.md-token--l
 
   .workspace-tabs-toggle-button {
     grid-area: tabs !important;
-    position: fixed !important;
-    top: 12px !important;
-    left: 22px !important;
+    position: static !important;
+    top: auto !important;
+    left: auto !important;
     width: 40px !important;
     height: 40px !important;
     border-radius: 14px !important;
@@ -4601,9 +4697,9 @@ html[data-theme="night"] .workspace-editor-surface--stackedit .token.md-token--l
   }
 
   .workspace-page[data-tabs-collapsed="false"] .workspace-tabs-toggle-button {
-    position: fixed !important;
-    top: 12px !important;
-    left: 22px !important;
+    position: static !important;
+    top: auto !important;
+    left: auto !important;
   }
 
   html,

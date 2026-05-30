@@ -18,15 +18,16 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain(".workspace-tabs-rail {");
     expect(css).toContain("grid-template-columns: 190px minmax(0, 1fr);");
     expect(css).toContain(".workspace-page[data-tabs-collapsed=\"true\"] {");
-    expect(css).toContain("grid-template-columns: minmax(0, 1fr);");
+    expect(css).toContain("grid-template-columns: 48px minmax(0, 1fr);");
     expect(css).toContain(".workspace-shell-card {");
     expect(css).toContain("position: relative;");
     expect(css).toContain("height: calc(100vh - 16px);");
     expect(css).toContain(".workspace-tabs-list {");
     expect(css).toContain(".workspace-tab-row[data-active=\"true\"] {");
+    expect(css).toContain(".workspace-rail-topbar {");
+    expect(css).toContain(".workspace-tabs-rail--collapsed {");
     expect(css).toContain(".workspace-tabs-toggle-button {");
-    expect(css).toContain("top: 50%;");
-    expect(css).toContain("left: -2px;");
+    expect(css).toContain("position: static;");
     expect(css).toContain(".workspace-pane {");
     expect(css).toContain("height: 100%;");
   });
@@ -89,19 +90,22 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain("--workspace-preview-font-size: 15px;");
     expect(css).toContain("font-family: var(--workspace-preview-font-family);");
     expect(css).toContain("font-size: var(--workspace-preview-font-size);");
+    expect(css).toContain("html[data-theme] .workspace-reader-body .markdown-body h1,");
   });
 
-  it("uses dark workspace scrollbars for editor and preview panes", () => {
+  it("uses theme-aware workspace scrollbars for editor and preview panes", () => {
     expect(css).toContain(".workspace-editor-surface,");
     expect(css).toContain(".workspace-editor-input,");
     expect(css).toContain(".workspace-reader-body {");
-    expect(css).toContain("color-scheme: dark;");
+    expect(css).toContain("--workspace-scrollbar-color-scheme: light;");
+    expect(css).toContain("--workspace-scrollbar-color-scheme: dark;");
+    expect(css).toContain("color-scheme: var(--workspace-scrollbar-color-scheme);");
     expect(css).toContain("forced-color-adjust: none;");
-    expect(css).toContain("scrollbar-color: rgba(77, 88, 105, 0.82) rgba(4, 7, 12, 0.72);");
+    expect(css).toContain("scrollbar-color: var(--workspace-scrollbar-thumb) var(--workspace-scrollbar-track);");
     expect(css).toContain(".workspace-page .workspace-editor-surface::-webkit-scrollbar-thumb,");
     expect(css).toContain(".workspace-page .workspace-editor-input::-webkit-scrollbar-thumb,");
     expect(css).toContain(".workspace-page .workspace-reader-body::-webkit-scrollbar-thumb {");
-    expect(css).toContain("border: 2px solid rgba(4, 7, 12, 0.9);");
+    expect(css).toContain("border: 2px solid var(--workspace-scrollbar-thumb-border);");
   });
 
   it("styles rich-mode blocks closer to StackEdit while still showing markdown syntax", () => {
