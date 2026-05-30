@@ -1,15 +1,13 @@
 "use client";
 
-import { type ReactNode, useEffect, useRef, useState } from "react";
-import { Clipboard, Columns2, Eye, FileUp, FolderOpen, Link, Pencil, Save, Share2, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Clipboard, Columns2, Eye, FileUp, FolderOpen, Link, MoreHorizontal, Pencil, Save, X } from "lucide-react";
 import type { SourcePanelMode } from "@/components/workspace/source-panel";
 import type { WorkspaceMessages } from "@/lib/i18n/messages";
 
 type WorkspaceToolbarProps = {
   activeImportMode: SourcePanelMode;
   compact?: boolean;
-  extraMenuItems?: ReactNode;
-  compactSettingsItems?: ReactNode;
   mode: "preview" | "split" | "editor";
   messages: WorkspaceMessages["toolbar"];
   showImportActions?: boolean;
@@ -22,7 +20,6 @@ type WorkspaceToolbarProps = {
   onSourceChange: (value: string) => void;
   onExportHtml: () => void;
   onExportPdf: () => void;
-  onShare: () => void;
   onOpenFolder: () => void;
   onSaveToDisk: () => void;
 };
@@ -44,8 +41,6 @@ function getModeIcon(mode: WorkspaceToolbarProps["mode"]) {
 export function WorkspaceToolbar({
   activeImportMode,
   compact = false,
-  compactSettingsItems,
-  extraMenuItems,
   mode,
   messages,
   showImportActions = true,
@@ -58,7 +53,6 @@ export function WorkspaceToolbar({
   onModeChange,
   onExportHtml,
   onExportPdf,
-  onShare,
   onOpenFolder,
   onSaveToDisk
 }: WorkspaceToolbarProps) {
@@ -310,9 +304,6 @@ export function WorkspaceToolbar({
           </button>
         </div>
       ) : null}
-      {compact && !showImportActions && compactSettingsItems ? (
-        <div className="toolbar-mobile-settings-strip">{compactSettingsItems}</div>
-      ) : null}
       <div className="toolbar-overflow" ref={menuRef}>
         <button
           aria-expanded={menuOpen}
@@ -323,7 +314,7 @@ export function WorkspaceToolbar({
         >
           {compact ? (
             <>
-              <Share2 aria-hidden="true" size={19} strokeWidth={2} />
+              <MoreHorizontal aria-hidden="true" size={19} strokeWidth={2} />
               <span className="sr-only">{messages.more}</span>
             </>
           ) : (
@@ -368,21 +359,6 @@ export function WorkspaceToolbar({
                 </button>
               </>
             ) : null}
-            {extraMenuItems ? (
-              <div
-                className="toolbar-menu-mobile-panel"
-                onClickCapture={(event) => {
-                  if ((event.target as HTMLElement).closest("[data-close-menu]")) {
-                    setMenuOpen(false);
-                  }
-                }}
-              >
-                {extraMenuItems}
-              </div>
-            ) : null}
-            <button className="toolbar-menu-button" onClick={() => runAction(onShare)} type="button">
-              {messages.shareLink}
-            </button>
             <button className="toolbar-menu-button" onClick={() => runAction(activateFolder)} type="button">
               <FolderOpen aria-hidden="true" size={16} strokeWidth={2} />
               <span>{messages.openFolder}</span>
