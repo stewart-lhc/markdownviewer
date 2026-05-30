@@ -1899,27 +1899,32 @@ export function WorkspaceShell({
     );
   }
 
-  function renderRailTopControls(showNewTab = false) {
+  function renderNewTabButton(className = "") {
+    return (
+      <button
+        aria-label={messages.tabs.newTab}
+        className={["workspace-new-tab-button", className].filter(Boolean).join(" ")}
+        onClick={handleNewTab}
+        title={messages.tabs.newTab}
+        type="button"
+      >
+        +
+      </button>
+    );
+  }
+
+  function renderRailTopControls({ showHome = true }: { showHome?: boolean } = {}) {
     return (
       <div className="workspace-rail-topbar">
-        <BrandLink
-          ariaLabel={messages.header.home}
-          className="workspace-home"
-          compact
-          href={localizePath("/", locale)}
-          title="Markdownviewer"
-        />
         {renderTabsToggleButton()}
-        {showNewTab ? (
-          <button
-            aria-label={messages.tabs.newTab}
-            className="workspace-new-tab-button"
-            onClick={handleNewTab}
-            title={messages.tabs.newTab}
-            type="button"
-          >
-            +
-          </button>
+        {showHome ? (
+          <BrandLink
+            ariaLabel={messages.header.home}
+            className="workspace-home"
+            compact
+            href={localizePath("/", locale)}
+            title="Markdownviewer"
+          />
         ) : null}
       </div>
     );
@@ -1939,7 +1944,7 @@ export function WorkspaceShell({
     >
       {tabsCollapsed ? (
         <aside className="workspace-tabs-rail workspace-tabs-rail--collapsed" aria-label={messages.tabs.railLabel}>
-          {renderRailTopControls(false)}
+          {renderRailTopControls({ showHome: false })}
         </aside>
       ) : (
         folderRootHandle ? (
@@ -1960,12 +1965,15 @@ export function WorkspaceShell({
             searchQuery={folderSearchQuery}
             selectedDirectory={selectedFolderDirectory}
             skippedCount={folderSkippedCount}
-            topControls={renderRailTopControls(false)}
+            topControls={renderRailTopControls()}
           />
         ) : (
         <aside className="workspace-tabs-rail" aria-label={messages.tabs.railLabel}>
           <div className="workspace-tabs-rail-header">
-            {renderRailTopControls(true)}
+            {renderRailTopControls()}
+          </div>
+          <div className="workspace-tabs-list-actions">
+            {renderNewTabButton("workspace-new-tab-button--list")}
           </div>
           <div aria-label={messages.tabs.railLabel} className="workspace-tabs-list" role="tablist">
             {tabItems.map((tab) => (
@@ -1994,17 +2002,6 @@ export function WorkspaceShell({
               </div>
             ))}
           </div>
-          {compactWorkspace ? (
-            <button
-              aria-label={messages.tabs.newTab}
-              className="workspace-new-tab-button workspace-new-tab-button--footer"
-              onClick={handleNewTab}
-              title={messages.tabs.newTab}
-              type="button"
-            >
-              +
-            </button>
-          ) : null}
         </aside>
         )
       )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type WheelEvent as ReactWheelEvent } from "react";
 import { ListTree, X } from "lucide-react";
 import type { WorkspaceMessages } from "@/lib/i18n/messages";
 import { ExtractedHeading } from "@/lib/markdown/extract-headings";
@@ -89,6 +89,20 @@ export function OutlinePanel({ headings, documentTitle, messages, onNavigate, on
     return null;
   }
 
+  function handlePanelWheel(event: ReactWheelEvent<HTMLElement>) {
+    const preview = document.querySelector<HTMLDivElement>("[data-testid='preview-scroll-region']");
+
+    if (!preview || event.deltaY === 0) {
+      return;
+    }
+
+    const deltaMultiplier = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? preview.clientHeight : 1;
+
+    event.preventDefault();
+    event.stopPropagation();
+    preview.scrollTop += event.deltaY * deltaMultiplier;
+  }
+
   return (
     <div className="workspace-toc" data-open={open} data-testid="floating-toc">
       <button
@@ -104,7 +118,7 @@ export function OutlinePanel({ headings, documentTitle, messages, onNavigate, on
           <ListTree aria-hidden="true" className="workspace-toc-trigger-icon" size={20} strokeWidth={2} />
         )}
       </button>
-      <aside aria-hidden={!open} className="workspace-toc-panel" aria-label={messages.contents}>
+      <aside aria-hidden={!open} className="workspace-toc-panel" aria-label={messages.contents} onWheel={handlePanelWheel}>
         <div className="workspace-toc-title">{documentTitle}</div>
         <div className="outline-list">
           {headings.map((heading) => (

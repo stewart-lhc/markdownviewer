@@ -175,6 +175,7 @@ describe("WorkspaceShell interactions", () => {
     expect(screen.getByRole("tablist", { name: /open tabs/i })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: /first draft/i })).toHaveAttribute("aria-selected", "true");
     expect(screen.getByRole("button", { name: /new tab/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /new tab/i }).closest(".workspace-tabs-list-actions")).not.toBeNull();
     expect(screen.getByLabelText(/markdownviewer home/i).closest(".workspace-tabs-rail")).not.toBeNull();
     expect(screen.queryByText(/^tabs$/i)).not.toBeInTheDocument();
     const sourcePanel = screen.getByTestId("source-panel");
@@ -416,8 +417,10 @@ describe("WorkspaceShell interactions", () => {
 
     expect(screen.getByText("First draft", { selector: ".workspace-header-title" })).toBeInTheDocument();
     expect(container.querySelector(".workspace-page")).toHaveAttribute("data-tabs-collapsed", "true");
-    expect(container.querySelector(".workspace-tabs-rail--collapsed")).not.toBeNull();
-    expect(screen.getByLabelText(/markdownviewer home/i).closest(".workspace-tabs-rail--collapsed")).not.toBeNull();
+    const collapsedRail = container.querySelector(".workspace-tabs-rail--collapsed") as HTMLElement;
+    expect(collapsedRail).not.toBeNull();
+    expect(within(collapsedRail).getByRole("button", { name: /expand tabs sidebar/i })).toBeInTheDocument();
+    expect(within(collapsedRail).queryByLabelText(/markdownviewer home/i)).not.toBeInTheDocument();
     expect(screen.queryByRole("tablist", { name: /open tabs/i })).not.toBeInTheDocument();
 
     await waitFor(() => {
@@ -1520,6 +1523,20 @@ describe("WorkspaceShell interactions", () => {
 
     await user.click(screen.getByRole("button", { name: /close contents/i }));
     expect(screen.queryByRole("complementary", { name: /contents/i })).not.toBeInTheDocument();
+  });
+
+  it("forwards contents panel wheel scrolling to the preview region", async () => {
+    const user = userEvent.setup();
+
+    render(<WorkspaceShell markdown={"# Title\n\n## Alpha\n\n## Beta"} sourceInput="" />);
+
+    const preview = screen.getByTestId("preview-scroll-region") as HTMLDivElement;
+    preview.scrollTop = 160;
+
+    await user.click(screen.getByRole("button", { name: /contents/i }));
+    fireEvent.wheel(screen.getByRole("complementary", { name: /contents/i }), { deltaY: 120 });
+
+    expect(preview.scrollTop).toBe(280);
   });
 
   it("scrolls the preview region directly when a contents entry is selected", async () => {

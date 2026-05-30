@@ -1342,7 +1342,6 @@ button {
   gap: 7px;
 }
 
-.workspace-tabs-rail--collapsed .workspace-home,
 .workspace-tabs-rail--collapsed .workspace-tabs-toggle-button {
   width: 36px;
   height: 36px;
@@ -1373,6 +1372,19 @@ button {
   border-radius: 9px;
   font-size: 1rem;
   line-height: 1;
+}
+
+.workspace-tabs-list-actions {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.workspace-new-tab-button--list {
+  width: 100%;
+  height: 36px;
+  border-radius: 10px;
+  font-size: 1.15rem;
 }
 
 .workspace-new-tab-button--footer {
@@ -3258,7 +3270,7 @@ html[data-theme="night"] .workspace-editor-surface--stackedit .token.md-token--l
   position: absolute;
   top: 50%;
   right: calc(100% + 10px);
-  width: min(300px, calc(100vw - 84px));
+  width: min(260px, calc(100vw - 116px));
   max-height: min(70vh, 520px);
   overflow: auto;
   padding: 12px;
@@ -4027,13 +4039,7 @@ html[data-theme] .workspace-reader-body .markdown-body h4,
     border-radius: 18px;
     padding: 12px 14px 14px;
     border: 1px solid var(--workspace-shell-border);
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--workspace-card-bg) 34%, transparent),
-        transparent 46%
-      ),
-      color-mix(in srgb, var(--workspace-shell-bg) 92%, var(--workspace-reader-bg));
+    background: var(--panel-strong);
     box-shadow:
       var(--workspace-shell-shadow),
       0 22px 60px rgba(0, 0, 0, 0.34),
@@ -4053,8 +4059,16 @@ html[data-theme] .workspace-reader-body .markdown-body h4,
     display: flex;
   }
 
-  .workspace-tabs-rail-header .workspace-new-tab-button {
+  .workspace-tabs-list-actions {
+    margin-bottom: 6px;
+  }
+
+  .workspace-new-tab-button--list {
     display: inline-flex;
+    min-height: 48px;
+    width: 100%;
+    border-radius: 14px;
+    font-size: 1.18rem;
   }
 
   .workspace-new-tab-button--footer {
@@ -4228,7 +4242,6 @@ html[data-theme] .workspace-reader-body .markdown-body h4,
     display: inline-grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     width: 112px;
-    height: 48px;
     max-width: none;
     justify-self: end;
     border-radius: 18px;
@@ -4237,9 +4250,8 @@ html[data-theme] .workspace-reader-body .markdown-body h4,
 
   .toolbar-cluster--modes .toolbar-button {
     min-width: 0;
-    min-height: 44px;
-    padding: 0;
-    font-size: 1rem;
+    padding: 7px 0;
+    font-size: 0.9rem;
   }
 
   .toolbar-mode-icon {
@@ -4630,6 +4642,16 @@ html[data-theme] .workspace-reader-body .markdown-body h4,
     display: flex !important;
   }
 
+  .workspace-grid {
+    gap: 0 !important;
+  }
+
+  .workspace-pane--preview {
+    padding: 0 !important;
+    border-radius: 0 !important;
+    backdrop-filter: none !important;
+  }
+
   .toolbar {
     display: contents !important;
     grid-template-columns: none !important;
@@ -4642,7 +4664,6 @@ html[data-theme] .workspace-reader-body .markdown-body h4,
     grid-area: modes !important;
     position: static !important;
     width: 96px !important;
-    height: 48px !important;
     justify-self: end !important;
   }
 
@@ -4711,17 +4732,24 @@ html[data-theme] .workspace-reader-body .markdown-body h4,
     overflow: hidden !important;
   }
 
+  .workspace-page {
+    height: 100svh !important;
+    padding: 0 !important;
+  }
+
   .workspace-shell-card {
     max-width: 100%;
-    height: calc(100svh - 16px) !important;
+    height: 100svh !important;
     min-height: 0 !important;
-    padding: 66px 10px 10px !important;
+    padding: 66px 0 calc(62px + env(safe-area-inset-bottom, 0px)) !important;
     overflow: hidden !important;
   }
 
   .workspace-reader-body {
     flex: 1 1 auto;
     min-height: 0;
+    border-radius: 0 !important;
+    padding: 12px 10px !important;
     overflow: auto !important;
     contain: layout paint style;
   }
@@ -4731,12 +4759,24 @@ html[data-theme] .workspace-reader-body .markdown-body h4,
   }
 
   .workspace-preview-bottom-bar {
-    min-height: 48px;
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    z-index: 60 !important;
+    min-height: calc(56px + env(safe-area-inset-bottom, 0px));
+    padding: 6px 10px calc(6px + env(safe-area-inset-bottom, 0px));
+    border-radius: 16px 16px 0 0;
+    background: var(--panel-strong);
+    box-shadow:
+      0 -14px 32px rgba(0, 0, 0, 0.32),
+      inset 0 1px 0 var(--workspace-card-border);
     overflow: visible;
   }
 
   .workspace-preview-bottom-controls {
     flex: 1 1 auto;
+    gap: 6px;
     overflow-x: auto;
     overflow-y: visible;
     scrollbar-width: none;
@@ -4752,13 +4792,41 @@ html[data-theme] .workspace-reader-body .markdown-body h4,
 
   .workspace-preview-bottom-bar .workspace-preview-template > .toolbar-button {
     min-width: 52px;
+    min-height: 40px;
     padding-inline: 9px;
   }
 
   .workspace-preview-bottom-bar .workspace-preview-font-button {
     min-width: 74px;
     max-width: 86px;
+    min-height: 40px;
     padding-inline: 9px;
+  }
+
+  .workspace-preview-bottom-bar .workspace-preview-size-control {
+    min-height: 40px;
+  }
+
+  .workspace-preview-bottom-bar .workspace-preview-size-button {
+    min-height: 36px;
+  }
+
+  .workspace-preview-bottom-bar .workspace-preview-template,
+  .workspace-preview-bottom-bar .workspace-preview-font-menu {
+    position: static !important;
+  }
+
+  .workspace-preview-bottom-bar .workspace-preview-template .theme-menu,
+  .workspace-preview-bottom-bar .workspace-preview-font-list {
+    position: fixed !important;
+    top: auto !important;
+    left: 10px !important;
+    right: 10px !important;
+    bottom: calc(66px + env(safe-area-inset-bottom, 0px)) !important;
+    width: auto !important;
+    max-height: min(54vh, 420px);
+    border-radius: 16px;
+    z-index: 70 !important;
   }
 
   .toolbar-mobile-quick-actions {
@@ -4772,6 +4840,7 @@ html[data-theme] .workspace-reader-body .markdown-body h4,
   .workspace-preview-share-button {
     min-width: 44px;
     width: 44px;
+    min-height: 40px;
     padding: 0;
     justify-content: center;
   }
