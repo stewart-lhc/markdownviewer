@@ -2,6 +2,43 @@
 
 All notable changes to this project are documented in this file.
 
+## 26.531 - 2026-05-31
+
+### Added
+
+- Added a public `/changelog` page and `/zh-CN/changelog` route with date-based product versions.
+- Added latest deploy summaries to the homepage so new capabilities are visible without opening the repository.
+- Added fixed top navigation on landing-style pages with language, GitHub, Workspace, and Changelog controls.
+
+### Changed
+
+- Updated homepage positioning to include local folder editing, persistent workspace tabs, PWA file handling, sharing, export, Chinese localization, and mobile layout fixes.
+- Enlarged the mobile workspace new-tab import buttons for Paste, File, Folder, and URL.
+- Refined the mobile preview bottom bar into larger app-style controls that use the available width.
+- Mobile workspace now collapses the tab rail after a tab is created, imported, or selected so the reader can focus on the document.
+- Mobile workspace now blurs the background when the tab rail is open.
+
+## 26.530 - 2026-05-30
+
+### Added
+
+- Added Local Folder Workspace support for Chromium desktop browsers through the File System Access API.
+- Added folder file browsing, new Markdown file creation, relative Markdown link navigation, and save-to-disk behavior.
+- Added folder conflict handling and reconnect states for local folder sessions.
+
+### Changed
+
+- Refined the mobile workspace chrome, preview mode, and tab import flow.
+- Improved PWA file tab handling so operating-system-opened Markdown files land in dedicated workspace tabs.
+
+## 26.529 - 2026-05-29
+
+### Added
+
+- Added zh-CN landing and workspace routes with localized metadata and controls.
+- Added installable PWA metadata, service worker support, and Markdown file handlers.
+- Added desktop launch handling for Markdown files opened through the operating system.
+
 ## 0.2.0 - 2026-05-30
 
 ### Added

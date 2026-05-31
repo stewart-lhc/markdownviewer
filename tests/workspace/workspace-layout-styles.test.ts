@@ -67,6 +67,14 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain("padding-top: 128px;");
     expect(css).toContain(".toolbar-mobile-settings-strip .workspace-preview-type-controls {");
     expect(css).toContain(".toolbar-mobile-settings-strip .workspace-preview-font-list {");
+    expect(css).toContain(".workspace-preview-bottom-bar {");
+    expect(css).toContain("grid-template-columns: minmax(0, 4fr) minmax(88px, 1.2fr);");
+    expect(css).toContain("grid-template-columns: repeat(4, minmax(0, 1fr));");
+    expect(css).toContain(".workspace-preview-bottom-bar .toolbar-overflow {");
+    expect(css).toContain("justify-self: stretch !important;");
+    expect(css).toContain(".workspace-preview-bottom-bar .workspace-preview-size-control {");
+    expect(css).toContain("display: contents !important;");
+    expect(css).toContain(".workspace-preview-share-label-compact {");
   });
 
   it("keeps rich mode as a single editable styled surface instead of a textarea overlay", () => {

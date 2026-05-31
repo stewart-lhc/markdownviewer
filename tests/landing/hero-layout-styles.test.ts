@@ -75,4 +75,14 @@ describe("landing hero layout styles", () => {
     expect(css).toContain(".site-footer__legal {");
     expect(css).toContain(".site-footer__bottom {");
   });
+
+  it("keeps the landing navigation sticky and styles the changelog sections", () => {
+    const topbarRule = getRule(".topbar");
+
+    expect(topbarRule).toContain("position: sticky;");
+    expect(topbarRule).toContain("top: 10px;");
+    expect(css).toContain(".update-grid {");
+    expect(css).toContain(".changelog-hero {");
+    expect(css).toContain(".release-card {");
+  });
 });

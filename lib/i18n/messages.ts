@@ -71,9 +71,16 @@ export type Messages = {
       title: string;
     };
     nav: {
+      changelog: string;
       github: string;
       primary: string;
       workspace: string;
+    };
+    updates: {
+      copy: string;
+      eyebrow: string;
+      link: string;
+      title: string;
     };
     sources: {
       ariaLabel: string;
@@ -226,18 +233,26 @@ export const messages: Record<Locale, Messages> = {
         "AI markdown viewer"
       ],
       workspaceDescription:
-        "Paste, edit, or load Markdown from files, GitHub, Gists, and raw URLs in a live online Markdown preview workspace.",
+        "Paste, edit, or load Markdown from files, local folders, GitHub, Gists, and raw URLs in a live online Markdown preview workspace.",
       workspaceTitle: "Online Markdown Viewer Workspace - Live Preview"
     },
     landing: {
       nav: {
+        changelog: "Updates",
         github: "GitHub",
         primary: "Primary",
         workspace: "Workspace"
       },
+      updates: {
+        copy:
+          "The product now includes local folder editing, installable PWA file handling, persistent tabs, share/export tools, Chinese localization, and mobile layout fixes.",
+        eyebrow: "Latest deploys",
+        link: "Read the changelog",
+        title: "Recent features are already live in the workspace."
+      },
       hero: {
         body:
-          "Open Markdown like it deserves. `markdownviewer.run` turns project notes, READMEs, AI output, and technical writing into a polished live preview. Start with a file, paste raw Markdown, or send a GitHub, Gist, or remote URL straight into the workspace.",
+          "Open Markdown like it deserves. `markdownviewer.run` turns project notes, READMEs, AI output, and technical writing into a polished live preview. Paste Markdown, open local files or folders, send GitHub, Gist, and raw URLs into the workspace, install it as a PWA, and keep multi-tab docs ready for export or sharing.",
         dropFile: "Drop a file",
         eyebrow: "Markdown without the utility-site look",
         loadedFile: (fileName) => `Loaded ${fileName}.`,
@@ -252,7 +267,7 @@ export const messages: Record<Locale, Messages> = {
       },
       sources: {
         ariaLabel: "Supported sources",
-        items: ["Local files", "GitHub", "Gist", "Raw URLs", "Pasted Markdown", "AI output"]
+        items: ["Files & folders", "Paste", "GitHub/Gist", "Raw URLs", "PWA open with", "Share/export"]
       },
       features: {
         copy:
@@ -262,21 +277,37 @@ export const messages: Record<Locale, Messages> = {
         items: [
           {
             title: "Live preview",
-            description: "Edit or paste Markdown and watch the rendered document update in the workspace."
+            description: "Edit or paste Markdown and watch the rendered document update in a polished workspace."
           },
           {
-            title: "Technical-ready",
+            title: "Local folder workspace",
+            description:
+              "Open a docs folder in Chrome or Edge desktop, browse Markdown files, follow relative links, and save back to disk."
+          },
+          {
+            title: "PWA file opening",
+            description:
+              "Install Markdownviewer and open .md, .markdown, .mdx, and text files from the operating system into new tabs."
+          },
+          {
+            title: "Persistent workspace tabs",
+            description:
+              "Keep multiple Markdown documents open with independent source labels, restored tabs, and import choices."
+          },
+          {
+            title: "Technical-ready rendering",
             description:
               "Code fences, tables, KaTeX math, and Mermaid diagrams stay readable instead of collapsing into plain text."
           },
           {
-            title: "Fast import",
-            description: "Open local files, pasted Markdown, GitHub content, Gists, and raw URLs from the same surface."
+            title: "Fast import and export",
+            description:
+              "Load pasted Markdown, GitHub content, Gists, raw URLs, and sample docs, then share links or export HTML/PDF."
           },
           {
-            title: "README friendly",
+            title: "README and AI-output friendly",
             description:
-              "Preview README.md files, changelogs, API docs, and AI-generated Markdown without a docs-site setup."
+              "Preview README.md files, changelogs, API docs, specs, and AI-generated Markdown without a docs-site setup."
           }
         ]
       },
@@ -339,6 +370,7 @@ export const messages: Record<Locale, Messages> = {
             links: [
               { label: "Workspace", href: "/workspace" },
               { label: "Sample document", href: "/workspace?sample=starter" },
+              { label: "Changelog", href: "/changelog" },
               { label: "GitHub repository", href: githubRepositoryUrl },
               { label: "FAQ", href: "#markdown-viewer-faq" }
             ]
@@ -525,7 +557,7 @@ export const messages: Record<Locale, Messages> = {
     },
     schema: {
       softwareDescription:
-        "A free online Markdown viewer and live preview workspace for README files, GitHub Flavored Markdown, Mermaid diagrams, KaTeX math, code blocks, local files, pasted Markdown, and raw URLs.",
+        "A free online Markdown viewer and live preview workspace for README files, GitHub Flavored Markdown, Mermaid diagrams, KaTeX math, code blocks, local files, local folders, pasted Markdown, and raw URLs.",
       softwareKeywords:
         "markdown viewer, online markdown viewer, markdown preview, GitHub Flavored Markdown viewer, README viewer, Mermaid markdown viewer, markdown viewer with math",
       featureList: [
@@ -534,7 +566,10 @@ export const messages: Record<Locale, Messages> = {
         "Mermaid diagram rendering",
         "KaTeX math rendering",
         "Syntax highlighted code blocks",
-        "Local file, paste, GitHub, Gist, and raw URL import"
+        "Local file, local folder, paste, GitHub, Gist, and raw URL import",
+        "Persistent workspace tabs",
+        "Installable PWA file handling",
+        "Share links plus HTML and PDF export"
       ],
       faq: [
         {
@@ -577,18 +612,26 @@ export const messages: Record<Locale, Messages> = {
         "AI Markdown 查看器"
       ],
       workspaceDescription:
-        "在实时在线 Markdown 预览工作区中粘贴、编辑，或从文件、GitHub、Gist 和原始 URL 加载 Markdown。",
+        "在实时在线 Markdown 预览工作区中粘贴、编辑，或从文件、本地文件夹、GitHub、Gist 和原始 URL 加载 Markdown。",
       workspaceTitle: "在线 Markdown 查看器工作区 - 实时预览"
     },
     landing: {
       nav: {
+        changelog: "更新",
         github: "GitHub",
         primary: "主导航",
         workspace: "工作区"
       },
+      updates: {
+        copy:
+          "产品现在已经包含本地文件夹编辑、可安装 PWA 文件打开、持久 tabs、分享/导出、中文界面和移动端布局修复。",
+        eyebrow: "最新部署",
+        link: "查看更新日志",
+        title: "最近上线的功能已经进入工作区。"
+      },
       hero: {
         body:
-          "用更体面的方式打开 Markdown。`markdownviewer.run` 能把项目笔记、README、AI 输出和技术写作转换成精致的实时预览。你可以从文件开始，粘贴原始 Markdown，或把 GitHub、Gist、远程 URL 直接送进工作区。",
+          "用更体面的方式打开 Markdown。`markdownviewer.run` 能把项目笔记、README、AI 输出和技术写作转换成精致的实时预览。你可以粘贴 Markdown、打开本地文件或文件夹，把 GitHub、Gist、原始 URL 送进工作区，也可以安装为 PWA，让多标签文档随时可导出或分享。",
         dropFile: "选择文件",
         eyebrow: "不止是工具站的 Markdown 体验",
         loadedFile: (fileName) => `已加载 ${fileName}。`,
@@ -603,22 +646,34 @@ export const messages: Record<Locale, Messages> = {
       },
       sources: {
         ariaLabel: "支持的来源",
-        items: ["本地文件", "GitHub", "Gist", "原始 URL", "粘贴 Markdown", "AI 输出"]
+        items: ["文件/文件夹", "粘贴", "GitHub/Gist", "原始 URL", "PWA 打开", "分享/导出"]
       },
       features: {
         copy: "首次使用路径足够清楚，渲染界面也认真对待代码、图表、数学公式、README 文件和阅读节奏。",
         eyebrow: "为什么好用",
         title: "一个有编辑质感的在线 Markdown 查看器。",
         items: [
-          { title: "实时预览", description: "编辑或粘贴 Markdown，在工作区中即时查看渲染后的文档。" },
+          { title: "实时预览", description: "编辑或粘贴 Markdown，在精致工作区中即时查看渲染后的文档。" },
+          {
+            title: "本地文件夹工作区",
+            description: "在 Chrome 或 Edge 桌面版中打开 docs 文件夹，浏览 Markdown 文件、跳转相对 links，并保存回磁盘。"
+          },
+          {
+            title: "PWA 文件打开",
+            description: "安装 Markdownviewer 后，可从系统把 .md、.markdown、.mdx 和文本文件打开到新的工作区标签。"
+          },
+          {
+            title: "持久 workspace tabs",
+            description: "同时保留多个 Markdown 文档，每个 tab 都有独立来源、恢复状态和导入方式。"
+          },
           {
             title: "面向技术文档",
             description: "代码围栏、表格、KaTeX 公式和 Mermaid 图表都能保持清晰，而不是退化成纯文本。"
           },
-          { title: "快速导入", description: "在同一个界面打开本地文件、粘贴内容、GitHub 内容、Gist 和原始 URL。" },
+          { title: "快速导入和导出", description: "在同一个界面打开粘贴内容、GitHub、Gist、原始 URL 和示例文档，并分享链接或导出 HTML/PDF。" },
           {
-            title: "适合 README",
-            description: "无需搭建文档站，也能预览 README.md、更新日志、API 文档和 AI 生成的 Markdown。"
+            title: "适合 README 和 AI 输出",
+            description: "无需搭建文档站，也能预览 README.md、更新日志、API 文档、规格说明和 AI 生成的 Markdown。"
           }
         ]
       },
@@ -668,6 +723,7 @@ export const messages: Record<Locale, Messages> = {
             links: [
               { label: "工作区", href: "/workspace" },
               { label: "示例文档", href: "/workspace?sample=starter" },
+              { label: "更新日志", href: "/changelog" },
               { label: "GitHub 仓库", href: githubRepositoryUrl },
               { label: "常见问题", href: "#markdown-viewer-faq" }
             ]
@@ -853,7 +909,7 @@ export const messages: Record<Locale, Messages> = {
     },
     schema: {
       softwareDescription:
-        "免费的在线 Markdown 查看器和实时预览工作区，适合 README 文件、GitHub Flavored Markdown、Mermaid 图表、KaTeX 数学公式、代码块、本地文件、粘贴的 Markdown 和原始 URL。",
+        "免费的在线 Markdown 查看器和实时预览工作区，适合 README 文件、GitHub Flavored Markdown、Mermaid 图表、KaTeX 数学公式、代码块、本地文件、本地文件夹、粘贴的 Markdown 和原始 URL。",
       softwareKeywords:
         "Markdown 查看器,在线 Markdown 查看器,Markdown 预览,GitHub Flavored Markdown 查看器,README 查看器,Mermaid Markdown 查看器,支持数学公式的 Markdown 查看器",
       featureList: [
@@ -862,7 +918,10 @@ export const messages: Record<Locale, Messages> = {
         "Mermaid 图表渲染",
         "KaTeX 数学公式渲染",
         "语法高亮代码块",
-        "本地文件、粘贴、GitHub、Gist 和原始 URL 导入"
+        "本地文件、本地文件夹、粘贴、GitHub、Gist 和原始 URL 导入",
+        "持久 workspace tabs",
+        "可安装 PWA 文件处理",
+        "分享链接以及 HTML/PDF 导出"
       ],
       faq: [
         {

@@ -14,6 +14,9 @@ describe("homepage", () => {
     );
     expect(screen.getByLabelText(/markdown source url/i)).toHaveAttribute("name", "source");
     expect(screen.getByRole("button", { name: /^open$/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /updates/i })).toHaveAttribute("href", "/changelog");
+    expect(screen.getByRole("heading", { level: 2, name: /recent features/i })).toBeInTheDocument();
+    expect(screen.getByText("26.531")).toBeInTheDocument();
     expect(container.querySelector(".hero-preview .markdown-body--compact")).toBeInTheDocument();
   });
 
@@ -34,6 +37,7 @@ describe("homepage", () => {
     expect(screen.getByRole("heading", { level: 1, name: /在线 markdown 查看器/i })).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: /工作区/i })[0]).toHaveAttribute("href", "/zh-CN/workspace");
     expect(screen.getByRole("link", { name: "en" })).toHaveAttribute("href", "/");
+    expect(screen.getAllByRole("link", { name: /更新/i })[0]).toHaveAttribute("href", "/zh-CN/changelog");
     expect(screen.getByRole("button", { name: /^打开$/i })).toBeInTheDocument();
   });
 });

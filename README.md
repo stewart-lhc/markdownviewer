@@ -9,17 +9,17 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-16a34a?style=for-the-badge)](LICENSE)
 [![Built with Next.js](https://img.shields.io/badge/Built%20with-Next.js-000000?style=for-the-badge&logo=nextdotjs)](https://nextjs.org/)
 
-[Live Markdown Viewer](https://markdownviewer.run/) - [Open the Workspace](https://markdownviewer.run/workspace) - [Star the Project](https://github.com/stewart-lhc/markdownviewer)
+[Live Markdown Viewer](https://markdownviewer.run/) - [Open the Workspace](https://markdownviewer.run/workspace) - [Changelog](https://markdownviewer.run/changelog) - [Star the Project](https://github.com/stewart-lhc/markdownviewer)
 
-Current release: **v0.2.0**. See [CHANGELOG.md](CHANGELOG.md) for release notes and update history.
+Current product update: **26.531**. Current package release: **v0.2.0**. See [CHANGELOG.md](CHANGELOG.md) and the live [Changelog](https://markdownviewer.run/changelog) for release notes and update history.
 
 </div>
 
 ## The Short Pitch
 
-[markdownviewer.run](https://markdownviewer.run/) is a free, open-source Markdown viewer built for people who care how technical Markdown looks before it ships. Paste Markdown, drop a file, open a GitHub README, load a Gist, or preview a raw URL and get a clean live preview in the browser.
+[markdownviewer.run](https://markdownviewer.run/) is a free, open-source Markdown viewer built for people who care how technical Markdown looks before it ships. Paste Markdown, drop a file, open a local docs folder, load a GitHub README, load a Gist, or preview a raw URL and get a clean live preview in the browser.
 
-It is designed to be more than another plain utility page: Markdownviewer gives README files, AI-generated Markdown, specs, changelogs, Mermaid diagrams, math notes, and code-heavy documents a focused reading surface.
+It is designed to be more than another plain utility page: Markdownviewer gives README files, AI-generated Markdown, specs, changelogs, Mermaid diagrams, math notes, and code-heavy documents a focused reading surface with persistent tabs, share links, HTML/PDF export, PWA file opening, and a local folder workspace.
 
 ## Why Developers Use It
 
@@ -29,7 +29,8 @@ It is designed to be more than another plain utility page: Markdownviewer gives 
 | **Read AI-generated Markdown** | Turn raw ChatGPT, Claude, Cursor, Copilot, or coding-agent output into a clean document. |
 | **Check GitHub Flavored Markdown** | Review tables, task lists, links, code fences, and README-style formatting. |
 | **Render technical Markdown** | Preview Mermaid diagrams, KaTeX math, and syntax-highlighted code blocks. |
-| **Open Markdown from anywhere** | Load local files, pasted Markdown, GitHub content, Gists, and raw URLs. |
+| **Open Markdown from anywhere** | Load local files, local folders, pasted Markdown, GitHub content, Gists, and raw URLs. |
+| **Keep docs organized** | Use persistent workspace tabs, folder browsing, relative Markdown links, and save-to-disk on supported browsers. |
 | **Skip editor setup** | Use a browser-based Markdown preview workspace without installing a desktop app. |
 
 ## Feature Highlights
@@ -40,11 +41,24 @@ It is designed to be more than another plain utility page: Markdownviewer gives 
 - **Mermaid diagram rendering** - preview flowcharts and architecture diagrams inside Markdown.
 - **KaTeX math rendering** - read inline and display formulas in technical notes.
 - **Syntax-highlighted code blocks** - keep code-heavy documents readable.
-- **Multiple import paths** - local files, pasted Markdown, GitHub URLs, Gists, raw Markdown URLs, and sample documents.
+- **Multiple import paths** - local files, local folders, pasted Markdown, GitHub URLs, Gists, raw Markdown URLs, and sample documents.
 - **Local Folder Workspace** - open a local docs folder in supported desktop browsers, browse Markdown files, follow relative links, and save changes back to disk.
+- **Persistent workspace tabs** - keep multiple Markdown documents open with independent source labels and restored tab state.
 - **Installable PWA** - install Markdownviewer from a supported desktop browser and open `.md` files with it through the operating system file picker.
+- **Share and export** - copy share links, export polished HTML, or print/PDF from the preview workspace.
+- **Chinese localization** - use localized landing and workspace routes at `/zh-CN`.
+- **Mobile app-style workspace** - refined mobile navigation, larger import controls, focused tab selection, and a full-width preview bottom bar.
 - **AI Markdown reader** - clean up Markdown from ChatGPT, Claude, Cursor, Copilot, and other AI tools.
 - **Open-source and self-hostable** - MIT licensed, built with Next.js, React, and TypeScript.
+
+## Recent Updates
+
+| Version | Date | Product update |
+| --- | --- | --- |
+| **26.531** | 2026-05-31 | Fixed mobile landing layout, added sticky navigation, shipped the live changelog page, enlarged mobile workspace import controls, auto-collapsed the mobile tab rail after tab selection/import, and refined the mobile preview bottom bar. |
+| **26.530** | 2026-05-30 | Added Local Folder Workspace, folder browsing, relative Markdown link navigation, save-to-disk, folder reconnect states, mobile workspace layout fixes, and PWA tab handling improvements. |
+| **26.529** | 2026-05-29 | Added Chinese localization, installable PWA metadata, service worker support, Markdown file handlers, and operating-system file launch handling. |
+| **26.524** | 2026-05-24 | Added persistent workspace tabs and expanded open-source packaging for README, metadata, and release hygiene. |
 
 ## Perfect For
 

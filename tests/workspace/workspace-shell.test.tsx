@@ -163,8 +163,29 @@ function mockDirectoryPicker(root: FakeDirectoryHandle) {
   return showDirectoryPicker;
 }
 
+function mockCompactWorkspace() {
+  const mediaQuery = {
+    matches: true,
+    media: "(max-width: 720px)",
+    onchange: null,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    dispatchEvent: vi.fn()
+  };
+
+  Object.defineProperty(window, "matchMedia", {
+    configurable: true,
+    value: vi.fn(() => mediaQuery)
+  });
+
+  return mediaQuery;
+}
+
 afterEach(() => {
   Reflect.deleteProperty(window, "showDirectoryPicker");
+  Reflect.deleteProperty(window, "matchMedia");
   vi.restoreAllMocks();
 });
 
@@ -432,6 +453,44 @@ describe("WorkspaceShell interactions", () => {
     expect(screen.getByRole("tablist", { name: /open tabs/i })).toBeInTheDocument();
     await waitFor(() => {
       expect(window.localStorage.getItem("markdownviewer.workspace.tabs.collapsed")).toBe("false");
+    });
+  });
+
+  it("collapses the mobile tabs rail after creating or switching tabs", async () => {
+    const user = userEvent.setup();
+    const readText = vi.fn().mockResolvedValue("# Mobile pasted tab");
+
+    mockCompactWorkspace();
+    Object.defineProperty(window.navigator, "clipboard", {
+      configurable: true,
+      value: { readText }
+    });
+
+    const { container } = render(<WorkspaceShell markdown="# First tab" sourceInput="" />);
+    const page = container.querySelector(".workspace-page");
+
+    await waitFor(() => {
+      expect(page).toHaveAttribute("data-tabs-collapsed", "true");
+    });
+
+    await user.click(screen.getByRole("button", { name: /expand tabs sidebar/i }));
+    expect(page).toHaveAttribute("data-tabs-collapsed", "false");
+
+    await user.click(screen.getByRole("button", { name: /new tab/i }));
+    await user.click(screen.getByRole("button", { name: /^paste$/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Mobile pasted tab", { selector: ".workspace-header-title" })).toBeInTheDocument();
+      expect(page).toHaveAttribute("data-tabs-collapsed", "true");
+    });
+
+    await user.click(screen.getByRole("button", { name: /expand tabs sidebar/i }));
+    expect(screen.getByRole("tab", { name: /mobile pasted tab/i })).toHaveAttribute("aria-selected", "true");
+    await user.click(screen.getByRole("tab", { name: /first tab/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText("First tab", { selector: ".workspace-header-title" })).toBeInTheDocument();
+      expect(page).toHaveAttribute("data-tabs-collapsed", "true");
     });
   });
 

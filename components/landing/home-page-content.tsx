@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { BrandLink } from "@/components/brand/brand-link";
-import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 import { FeatureGrid } from "@/components/landing/feature-grid";
 import { Hero } from "@/components/landing/hero";
 import { LiveSample } from "@/components/landing/live-sample";
+import { LandingTopbar } from "@/components/landing/topbar";
 import { defaultLocale, localizePath, type Locale } from "@/lib/i18n/locales";
 import { getMessages, type Messages } from "@/lib/i18n/messages";
+import { getProductUpdateText, productUpdates } from "@/lib/product-updates";
 
 const siteUrl = "https://markdownviewer.run";
 const githubRepositoryUrl = "https://github.com/stewart-lhc/markdownviewer";
@@ -106,24 +107,37 @@ export function HomePageContent({ locale = defaultLocale }: HomePageContentProps
         dangerouslySetInnerHTML={{ __html: JSON.stringify(buildFaqJsonLd(t)) }}
       />
       <div className="page-shell">
-        <header className="topbar">
-          <BrandLink className="brand" label={t.common.brand} title={t.common.brand} />
-          <nav className="topbar-actions" aria-label={t.landing.nav.primary}>
-            <LanguageSwitcher currentLocale={locale} path="/" />
-            <a aria-label={t.landing.nav.github} className="ghost-link ghost-link--icon" href={githubRepositoryUrl}>
-              <span aria-hidden="true" className="gh-mark">
-                gh
-              </span>
-            </a>
-            <a className="ghost-link" href={localizePath("/workspace", locale)}>
-              {t.landing.nav.workspace}
-            </a>
-          </nav>
-        </header>
+        <LandingTopbar currentPath="/" locale={locale} messages={t.landing.nav} />
         <div className="hero">
           <Hero locale={locale} messages={t.landing} />
           <LiveSample ribbon={t.landing.hero.sampleRibbon} />
         </div>
+
+        <section className="section section--updates">
+          <div className="section-head">
+            <div>
+              <p className="eyebrow">{t.landing.updates.eyebrow}</p>
+              <h2 className="section-title">{t.landing.updates.title}</h2>
+            </div>
+            <p className="section-copy">{t.landing.updates.copy}</p>
+          </div>
+          <div className="update-grid">
+            {productUpdates.slice(0, 3).map((update) => {
+              const copy = getProductUpdateText(update, locale);
+
+              return (
+                <article className="surface-card update-card" key={update.version}>
+                  <span>{update.version}</span>
+                  <h3>{copy.title}</h3>
+                  <p>{copy.summary}</p>
+                </article>
+              );
+            })}
+          </div>
+          <a className="button-secondary section-link" href={localizePath("/changelog", locale)}>
+            {t.landing.updates.link}
+          </a>
+        </section>
 
         <section className="section">
           <div className="section-head">

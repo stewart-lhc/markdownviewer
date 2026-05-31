@@ -590,6 +590,16 @@ export function WorkspaceShell({
     "--workspace-preview-font-size": `${previewFontSize}px`
   } as CSSProperties;
 
+  function collapseTabsForReading() {
+    if (compactWorkspace) {
+      setTabsCollapsed(true);
+    }
+  }
+
+  function isCompactViewport() {
+    return typeof window.matchMedia === "function" && window.matchMedia("(max-width: 720px)").matches;
+  }
+
   useEffect(() => {
     if (typeof window.matchMedia !== "function") {
       return;
@@ -1048,7 +1058,7 @@ export function WorkspaceShell({
     setFolderPermission("granted");
     setFolderPartial(scan.partial);
     setFolderSkippedCount(scan.skippedCount);
-    setTabsCollapsed(false);
+    setTabsCollapsed(isCompactViewport());
 
     if (status) {
       setStatusMessage(status);
@@ -1303,6 +1313,7 @@ export function WorkspaceShell({
     setActiveImportMode(importMode);
     setStatusMessage(statusMessage ?? messages.status.newTab);
     setTocOpen(false);
+    collapseTabsForReading();
   }
 
   function createExplicitImportTab(
@@ -1474,12 +1485,18 @@ export function WorkspaceShell({
     setActiveImportMode(deriveImportMode(selectedTab.sourceInput));
     setStatusMessage(messages.status.switchedTo(getWorkspaceTabTitle(selectedTab, messages)));
     setTocOpen(false);
+    collapseTabsForReading();
   }
 
   function handleSelectTab(tabId: string) {
     const selectedTab = tabs.find((tab) => tab.id === tabId);
 
-    if (!selectedTab || selectedTab.id === activeTabId) {
+    if (!selectedTab) {
+      return;
+    }
+
+    if (selectedTab.id === activeTabId) {
+      collapseTabsForReading();
       return;
     }
 
@@ -2184,7 +2201,10 @@ export function WorkspaceShell({
                 </div>
                 <button className="toolbar-button workspace-preview-share-button" onClick={handleShare} type="button">
                   <Share2 aria-hidden="true" size={16} strokeWidth={2} />
-                  <span>{messages.toolbar.shareLink}</span>
+                  <span className="workspace-preview-share-label-full">{messages.toolbar.shareLink}</span>
+                  <span className="workspace-preview-share-label-compact">
+                    {locale === "zh-CN" ? "分享" : "Share"}
+                  </span>
                 </button>
               </div>
             </section>

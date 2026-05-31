@@ -3,7 +3,7 @@ import type { MetadataRoute } from "next";
 const siteUrl = "https://markdownviewer.run";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const lastModified = new Date("2026-04-29");
+  const lastModified = new Date("2026-05-31");
   const homeAlternates = {
     languages: {
       en: siteUrl,
@@ -14,6 +14,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     languages: {
       en: `${siteUrl}/workspace`,
       "zh-CN": `${siteUrl}/zh-CN/workspace`
+    }
+  };
+  const changelogAlternates = {
+    languages: {
+      en: `${siteUrl}/changelog`,
+      "zh-CN": `${siteUrl}/zh-CN/changelog`
     }
   };
 
@@ -45,6 +51,20 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.8,
       alternates: workspaceAlternates
+    },
+    {
+      url: `${siteUrl}/changelog`,
+      lastModified,
+      changeFrequency: "weekly",
+      priority: 0.7,
+      alternates: changelogAlternates
+    },
+    {
+      url: `${siteUrl}/zh-CN/changelog`,
+      lastModified,
+      changeFrequency: "weekly",
+      priority: 0.7,
+      alternates: changelogAlternates
     }
   ];
 }
