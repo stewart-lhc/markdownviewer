@@ -305,7 +305,7 @@ describe("WorkspaceShell interactions", () => {
     expect(await screen.findByLabelText(/local folder files/i)).toBeInTheDocument();
     expect(screen.getByText("Docs", { selector: ".workspace-folder-title" })).toBeInTheDocument();
 
-    await user.click(screen.getByRole("treeitem", { name: "README.md" }));
+    await user.click(await screen.findByRole("treeitem", { name: "README.md" }));
 
     expect(
       await within(screen.getByTestId("preview-panel")).findByRole("heading", {
@@ -313,6 +313,9 @@ describe("WorkspaceShell interactions", () => {
         name: "Home"
       })
     ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole("treeitem", { name: "README.md" })).toHaveAttribute("aria-selected", "true");
+    });
 
     await user.click(screen.getByRole("treeitem", { name: "guide.md" }));
 
@@ -427,7 +430,7 @@ describe("WorkspaceShell interactions", () => {
     ).toBeInTheDocument();
   });
 
-  it("collapses the tabs sidebar and keeps the active tab title centered in the workspace header", async () => {
+  it("collapses the tabs sidebar into the workspace header without leaving a side rail", async () => {
     const user = userEvent.setup();
 
     const { container } = render(<WorkspaceShell markdown="# First draft" sourceInput="" />);
@@ -438,10 +441,10 @@ describe("WorkspaceShell interactions", () => {
 
     expect(screen.getByText("First draft", { selector: ".workspace-header-title" })).toBeInTheDocument();
     expect(container.querySelector(".workspace-page")).toHaveAttribute("data-tabs-collapsed", "true");
-    const collapsedRail = container.querySelector(".workspace-tabs-rail--collapsed") as HTMLElement;
-    expect(collapsedRail).not.toBeNull();
-    expect(within(collapsedRail).getByRole("button", { name: /expand tabs sidebar/i })).toBeInTheDocument();
-    expect(within(collapsedRail).queryByLabelText(/markdownviewer home/i)).not.toBeInTheDocument();
+    expect(container.querySelector(".workspace-tabs-rail")).not.toBeInTheDocument();
+    const header = container.querySelector(".workspace-header") as HTMLElement;
+    expect(within(header).getByRole("button", { name: /expand tabs sidebar/i })).toBeInTheDocument();
+    expect(within(header).queryByLabelText(/markdownviewer home/i)).not.toBeInTheDocument();
     expect(screen.queryByRole("tablist", { name: /open tabs/i })).not.toBeInTheDocument();
 
     await waitFor(() => {

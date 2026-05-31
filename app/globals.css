@@ -1465,14 +1465,15 @@ button {
   height: 100vh;
   padding: 6px;
   display: grid;
-  grid-template-columns: 190px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 6px;
   align-items: stretch;
   overflow: hidden;
+  position: relative;
 }
 
 .workspace-page[data-tabs-collapsed="true"] {
-  grid-template-columns: 48px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .workspace-page.page-shell {
@@ -1480,16 +1481,25 @@ button {
 }
 
 .workspace-tabs-rail {
-  height: calc(100vh - 12px);
+  position: absolute;
+  top: 68px;
+  left: 14px;
+  right: 14px;
+  z-index: 28;
+  height: auto;
+  max-height: min(52vh, 420px);
   min-height: 0;
   border: 0;
   border-radius: 12px;
-  background: color-mix(in srgb, var(--workspace-shell-bg) 42%, transparent);
-  box-shadow: none;
+  background: color-mix(in srgb, var(--workspace-shell-bg) 94%, transparent);
+  box-shadow:
+    0 24px 70px rgba(28, 24, 19, 0.2),
+    inset 0 1px 0 var(--workspace-card-border);
   padding: 8px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  backdrop-filter: blur(20px);
 }
 
 .workspace-tabs-rail--collapsed {
@@ -1886,20 +1896,29 @@ button {
 
 .workspace-header {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(180px, 2fr) auto;
+  grid-template-columns: 42px minmax(96px, 1fr) auto;
+  grid-template-areas: "tabs title toolbar";
   align-items: center;
   gap: 8px;
   min-height: 46px;
   margin-bottom: 6px;
-  padding: 6px 8px 6px 42px;
+  padding: 6px 8px;
   border-radius: 12px;
   background: color-mix(in srgb, var(--workspace-card-bg) 58%, transparent);
   flex: 0 0 auto;
   z-index: 3;
 }
 
-.workspace-header-meta {
+.workspace-header-tabs-control {
+  grid-area: tabs;
   display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 0;
+}
+
+.workspace-header-meta {
+  display: none;
   align-items: center;
   gap: 8px;
   min-width: 0;
@@ -1907,9 +1926,10 @@ button {
 }
 
 .workspace-header-title {
-  justify-self: center;
+  grid-area: title;
+  justify-self: start;
   min-width: 0;
-  max-width: 100%;
+  max-width: min(360px, 100%);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1926,6 +1946,7 @@ button {
 }
 
 .workspace-header > .toolbar {
+  grid-area: toolbar;
   justify-self: end;
   max-width: 100%;
 }
@@ -4129,7 +4150,7 @@ html[data-theme] .workspace-reader-body .markdown-body h4,
   }
 
   .workspace-page[data-tabs-collapsed="true"] {
-    grid-template-columns: 48px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .workspace-tabs-list {
@@ -4185,10 +4206,8 @@ html[data-theme] .workspace-reader-body .markdown-body h4,
   }
 
   .workspace-header {
-    grid-template-columns: 48px minmax(0, 1fr) auto;
-    grid-template-areas:
-      "tabs meta toolbar"
-      "title title title";
+    grid-template-columns: 44px minmax(96px, 1fr) auto;
+    grid-template-areas: "tabs title toolbar";
     align-items: center;
     justify-items: stretch;
   }
@@ -4201,15 +4220,13 @@ html[data-theme] .workspace-reader-body .markdown-body h4,
   }
 
   .workspace-header-meta {
-    grid-area: meta;
-    justify-content: flex-start;
-    min-width: 0;
+    display: none;
   }
 
   .workspace-header-title {
     grid-area: title;
-    justify-self: center;
-    max-width: min(720px, calc(100vw - 96px));
+    justify-self: start;
+    max-width: min(320px, calc(100vw - 420px));
   }
 
   .workspace-header > .toolbar {

@@ -16,9 +16,9 @@ describe("workspace core canvas styles", () => {
 
   it("locks the workspace into an app-like fixed-height shell with matched panes", () => {
     expect(css).toContain(".workspace-tabs-rail {");
-    expect(css).toContain("grid-template-columns: 190px minmax(0, 1fr);");
+    expect(css).toContain("grid-template-columns: minmax(0, 1fr);");
     expect(css).toContain(".workspace-page[data-tabs-collapsed=\"true\"] {");
-    expect(css).toContain("grid-template-columns: 48px minmax(0, 1fr);");
+    expect(css).toContain("position: absolute;");
     expect(css).toContain(".workspace-shell-card {");
     expect(css).toContain("position: relative;");
     expect(css).toContain("height: calc(100vh - 16px);");
@@ -44,7 +44,7 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain("justify-content: space-between;");
     expect(css).toContain("align-items: center;");
     expect(css).toContain(".workspace-header-title {");
-    expect(css).toContain("justify-self: center;");
+    expect(css).toContain("justify-self: start;");
     expect(css).toContain(".workspace-preview-template .theme-menu {");
     expect(css).toContain("left: 0;");
     expect(css).toContain(".workspace-preview-header-controls {");

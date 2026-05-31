@@ -1949,10 +1949,10 @@ export function WorkspaceShell({
     );
   }
 
-  function renderRailTopControls({ showHome = true }: { showHome?: boolean } = {}) {
+  function renderRailTopControls({ showHome = true, showToggle = false }: { showHome?: boolean; showToggle?: boolean } = {}) {
     return (
       <div className="workspace-rail-topbar">
-        {renderTabsToggleButton()}
+        {showToggle ? renderTabsToggleButton() : null}
         {showHome ? (
           <BrandLink
             ariaLabel={messages.header.home}
@@ -1986,11 +1986,7 @@ export function WorkspaceShell({
           type="button"
         />
       ) : null}
-      {tabsCollapsed ? (
-        <aside className="workspace-tabs-rail workspace-tabs-rail--collapsed" aria-label={messages.tabs.railLabel}>
-          {renderRailTopControls({ showHome: false })}
-        </aside>
-      ) : (
+      {!tabsCollapsed ? (
         folderRootHandle ? (
           <FolderRail
             activePath={activeFolderPath}
@@ -2048,7 +2044,7 @@ export function WorkspaceShell({
           </div>
         </aside>
         )
-      )}
+      ) : null}
       <section
         aria-label={documentTitle}
         className="workspace-shell-card"
@@ -2056,6 +2052,9 @@ export function WorkspaceShell({
         role="tabpanel"
       >
         <div className="workspace-header">
+          <div className="workspace-header-tabs-control">
+            {renderTabsToggleButton()}
+          </div>
           <div className="workspace-header-meta">
             {sourceLabel ? <div className="workspace-source-chip">{sourceLabel}</div> : null}
           </div>
