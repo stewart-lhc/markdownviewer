@@ -106,8 +106,8 @@ export function HomePageContent({ locale = defaultLocale }: HomePageContentProps
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(buildFaqJsonLd(t)) }}
       />
+      <LandingTopbar currentPath="/" locale={locale} messages={t.landing.nav} />
       <div className="page-shell">
-        <LandingTopbar currentPath="/" locale={locale} messages={t.landing.nav} />
         <div className="hero">
           <Hero locale={locale} messages={t.landing} />
           <LiveSample ribbon={t.landing.hero.sampleRibbon} />

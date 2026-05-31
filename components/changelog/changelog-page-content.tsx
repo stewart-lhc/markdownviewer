@@ -46,8 +46,8 @@ export function ChangelogPageContent({ locale = defaultLocale }: ChangelogPageCo
 
   return (
     <main className="landing changelog-page" lang={locale}>
+      <LandingTopbar currentPath="/changelog" locale={locale} messages={t.landing.nav} />
       <div className="page-shell">
-        <LandingTopbar currentPath="/changelog" locale={locale} messages={t.landing.nav} />
         <section className="changelog-hero">
           <p className="eyebrow">{isChinese ? "部署顺序" : "Deploy order"}</p>
           <h1>{isChinese ? "Markdownviewer 更新日志" : "Markdownviewer Changelog"}</h1>

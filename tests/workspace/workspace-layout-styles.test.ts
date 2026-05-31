@@ -64,7 +64,12 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain("grid-template-columns: 76px minmax(0, 1fr) 112px;");
     expect(css).toContain("grid-template-rows: 48px 44px;");
     expect(css).toContain("position: fixed;");
+    expect(css).toContain("top: 0 !important;");
+    expect(css).toContain("left: 0 !important;");
+    expect(css).toContain("right: 0 !important;");
     expect(css).toContain("padding-top: 128px;");
+    expect(css).toContain(".workspace-tabs-backdrop {");
+    expect(css).toContain("backdrop-filter: blur(8px) saturate(0.9);");
     expect(css).toContain(".toolbar-mobile-settings-strip .workspace-preview-type-controls {");
     expect(css).toContain(".toolbar-mobile-settings-strip .workspace-preview-font-list {");
     expect(css).toContain(".workspace-preview-bottom-bar {");

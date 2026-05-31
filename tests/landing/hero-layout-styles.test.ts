@@ -80,7 +80,9 @@ describe("landing hero layout styles", () => {
     const topbarRule = getRule(".topbar");
 
     expect(topbarRule).toContain("position: sticky;");
-    expect(topbarRule).toContain("top: 10px;");
+    expect(topbarRule).toContain("top: 0;");
+    expect(topbarRule).toContain("width: 100%;");
+    expect(topbarRule).toContain("margin: 0 0 18px;");
     expect(css).toContain(".update-grid {");
     expect(css).toContain(".changelog-hero {");
     expect(css).toContain(".release-card {");

@@ -476,6 +476,17 @@ describe("WorkspaceShell interactions", () => {
     await user.click(screen.getByRole("button", { name: /expand tabs sidebar/i }));
     expect(page).toHaveAttribute("data-tabs-collapsed", "false");
 
+    const backdrop = container.querySelector(".workspace-tabs-backdrop");
+    expect(backdrop).not.toBeNull();
+    fireEvent.click(backdrop as Element);
+
+    await waitFor(() => {
+      expect(page).toHaveAttribute("data-tabs-collapsed", "true");
+    });
+
+    await user.click(screen.getByRole("button", { name: /expand tabs sidebar/i }));
+    expect(page).toHaveAttribute("data-tabs-collapsed", "false");
+
     await user.click(screen.getByRole("button", { name: /new tab/i }));
     await user.click(screen.getByRole("button", { name: /^paste$/i }));
 
@@ -1169,8 +1180,12 @@ describe("WorkspaceShell interactions", () => {
     await user.click(screen.getByRole("button", { name: /share link/i }));
 
     await waitFor(() => {
-      expect(writeText).toHaveBeenCalled();
+      expect(writeText).toHaveBeenCalledWith(expect.stringMatching(/\/share\/md-/));
     });
+
+    const generatedShareLink = screen.getByRole("link", { name: /open generated share link/i });
+    expect(generatedShareLink).toHaveAttribute("href", expect.stringMatching(/\/share\/md-/));
+    expect(screen.getByText(/share link ready/i)).toBeInTheDocument();
   });
 
   it("loads a dropped file and switches between preview and editor modes", async () => {

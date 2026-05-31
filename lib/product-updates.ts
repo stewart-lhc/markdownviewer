@@ -22,9 +22,10 @@ export const productUpdates: ProductUpdate[] = [
       summary: "The homepage now stays usable on small screens while keeping the workspace path, language switch, GitHub link, and changelog visible.",
       highlights: [
         "Fixed the mobile homepage scroll lock that leaked from workspace-only layout rules.",
-        "Pinned the top navigation and kept the language, GitHub, Workspace, and Changelog controls on one row.",
+        "Pinned the full-width top navigation to the viewport edge and kept the language, GitHub, Workspace, and Changelog controls on one row.",
         "Rebuilt the hero import controls around the same Paste, File, URL, and Open language used by the workspace.",
-        "Constrained the live preview sample to one mobile viewport with its own internal scroll."
+        "Constrained the live preview sample to one mobile viewport with its own internal scroll.",
+        "Made the mobile tab rail dismiss when a document is chosen or the blurred backdrop is tapped, and surfaced real generated share links."
       ]
     },
     "zh-CN": {
@@ -32,9 +33,10 @@ export const productUpdates: ProductUpdate[] = [
       summary: "首页在小屏上保持可滚动，同时保留语言切换、GitHub、Workspace 和 Changelog 入口。",
       highlights: [
         "修复 workspace 专用布局规则误锁首页滚动的问题。",
-        "固定顶部导航，并让语言、GitHub、Workspace、Changelog 控制保持单行。",
+        "把满宽顶部导航固定到视口最顶，并让语言、GitHub、Workspace、Changelog 控制保持单行。",
         "把 hero 导入控件统一到 workspace 里的 Paste、File、URL、Open 语义。",
-        "把实时预览示例限制在一个移动端视口内，由预览卡片内部滚动。"
+        "把实时预览示例限制在一个移动端视口内，由预览卡片内部滚动。",
+        "移动端选择文档或点击模糊背景后会收起 tab 栏，并直接显示真实生成的分享链接。"
       ]
     }
   },

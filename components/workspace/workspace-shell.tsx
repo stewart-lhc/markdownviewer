@@ -506,6 +506,7 @@ export function WorkspaceShell({
   const [currentMode, setCurrentMode] = useState<WorkspaceMode>(mode);
   const [theme, setTheme] = useState<WorkspaceTheme>(defaultWorkspaceTheme);
   const [statusMessage, setStatusMessage] = useState<string | undefined>(initialStatusMessage);
+  const [shareUrl, setShareUrl] = useState("");
   const [activeImportMode, setActiveImportMode] = useState<SourcePanelMode>(deriveImportMode(sourceInput));
   const [editorPresentationMode, setEditorPresentationMode] = useState<EditorPresentationMode>("rich");
   const [compactWorkspace, setCompactWorkspace] = useState(false);
@@ -633,6 +634,10 @@ export function WorkspaceShell({
   useEffect(() => {
     latestSourceRef.current = currentSource;
   }, [currentSource]);
+
+  useEffect(() => {
+    setShareUrl("");
+  }, [currentMarkdown]);
 
   useEffect(() => {
     tabsRef.current = tabs;
@@ -1638,10 +1643,24 @@ export function WorkspaceShell({
 
     const shareId = share.id;
     const shareUrl = `${window.location.origin}${localizePath(`/share/${shareId}`, locale)}`;
+    setShareUrl(shareUrl);
 
     try {
       await navigator.clipboard.writeText(shareUrl);
-      setStatusMessage(messages.status.linkCopied);
+      setStatusMessage(`${messages.status.linkCopied} ${shareUrl}`);
+    } catch {
+      setStatusMessage(shareUrl);
+    }
+  }
+
+  async function handleCopyShareUrl() {
+    if (!shareUrl) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setStatusMessage(`${messages.status.linkCopied} ${shareUrl}`);
     } catch {
       setStatusMessage(shareUrl);
     }
@@ -1959,6 +1978,14 @@ export function WorkspaceShell({
         void handleWorkspaceDrop(event);
       }}
     >
+      {compactWorkspace && !tabsCollapsed ? (
+        <button
+          aria-label={messages.tabs.collapse}
+          className="workspace-tabs-backdrop"
+          onClick={() => setTabsCollapsed(true)}
+          type="button"
+        />
+      ) : null}
       {tabsCollapsed ? (
         <aside className="workspace-tabs-rail workspace-tabs-rail--collapsed" aria-label={messages.tabs.railLabel}>
           {renderRailTopControls({ showHome: false })}
@@ -2057,6 +2084,22 @@ export function WorkspaceShell({
           />
         </div>
         {statusMessage ? <p aria-live="polite" className="sr-only" role="status">{statusMessage}</p> : null}
+        {shareUrl ? (
+          <div className="workspace-share-link" role="status">
+            <span>{locale === "zh-CN" ? "分享链接已生成" : "Share link ready"}</span>
+            <a
+              aria-label={locale === "zh-CN" ? "打开生成的分享链接" : "Open generated share link"}
+              href={shareUrl}
+              rel="noreferrer"
+              target="_blank"
+            >
+              {shareUrl}
+            </a>
+            <button className="toolbar-button" onClick={handleCopyShareUrl} type="button">
+              {locale === "zh-CN" ? "复制" : "Copy"}
+            </button>
+          </div>
+        ) : null}
         <input
           aria-hidden="true"
           className="sr-only"

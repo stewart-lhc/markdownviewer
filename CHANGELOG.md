@@ -16,7 +16,9 @@ All notable changes to this project are documented in this file.
 - Enlarged the mobile workspace new-tab import buttons for Paste, File, Folder, and URL.
 - Refined the mobile preview bottom bar into larger app-style controls that use the available width.
 - Mobile workspace now collapses the tab rail after a tab is created, imported, or selected so the reader can focus on the document.
-- Mobile workspace now blurs the background when the tab rail is open.
+- Mobile workspace now blurs the background when the tab rail is open and collapses it when the reader taps outside the rail.
+- Landing and mobile workspace top navigation now sit flush to the top edge and span the viewport width.
+- Share actions now expose the generated `/share/md-...` link as a visible, clickable URL after copying it.
 
 ## 26.530 - 2026-05-30
 
