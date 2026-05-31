@@ -208,10 +208,10 @@ describe("WorkspaceShell interactions", () => {
     expect(screen.getByRole("button", { name: /template: paper/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /template: paper/i }).closest(".toolbar")).toBeNull();
     expect(
-      screen.getByRole("button", { name: /template: paper/i }).closest(".workspace-preview-bottom-bar")
+      screen.getByRole("button", { name: /template: paper/i }).closest(".workspace-pane-header--preview")
     ).not.toBeNull();
     expect(
-      within(screen.getByTestId("preview-panel")).getByLabelText(/^preview font$/i).closest(".workspace-preview-bottom-bar")
+      within(screen.getByTestId("preview-panel")).getByLabelText(/^preview font$/i).closest(".workspace-pane-header--preview")
     ).not.toBeNull();
     expect(
       within(screen.getByTestId("preview-panel")).getByRole("button", { name: /increase preview font size/i })

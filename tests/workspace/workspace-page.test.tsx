@@ -18,8 +18,8 @@ describe("workspace page", () => {
     expect(screen.getByTestId("preview-panel")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /template: paper/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /template: paper/i }).closest(".toolbar")).toBeNull();
-    expect(screen.getByRole("button", { name: /template: paper/i }).closest(".workspace-preview-bottom-bar")).not.toBeNull();
-    expect(screen.getByLabelText(/^preview font$/i).closest(".workspace-preview-bottom-bar")).not.toBeNull();
+    expect(screen.getByRole("button", { name: /template: paper/i }).closest(".workspace-pane-header--preview")).not.toBeNull();
+    expect(screen.getByLabelText(/^preview font$/i).closest(".workspace-pane-header--preview")).not.toBeNull();
     expect(screen.getByRole("button", { name: /increase preview font size/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /more/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /markdownviewer home/i })).toBeInTheDocument();

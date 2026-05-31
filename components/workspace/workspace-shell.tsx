@@ -2243,6 +2243,29 @@ export function WorkspaceShell({
               data-testid="preview-panel"
               data-visible
             >
+              {!compactWorkspace ? (
+                <div className="workspace-pane-header workspace-pane-header--preview">
+                  <div className="workspace-preview-header-controls">
+                    <WorkspaceThemeSelector messages={messages.preview} onThemeChange={setTheme} theme={theme} />
+                    <WorkspacePreviewTypographyControls
+                      font={previewFont}
+                      fontSize={previewFontSize}
+                      maxFontSize={maxPreviewFontSize}
+                      messages={messages.preview}
+                      minFontSize={minPreviewFontSize}
+                      onFontChange={setPreviewFont}
+                      onFontSizeChange={(nextFontSize) => setPreviewFontSize(clampPreviewFontSize(nextFontSize))}
+                    />
+                  </div>
+                  <button className="toolbar-button workspace-preview-share-button" onClick={handleShare} type="button">
+                    <Share2 aria-hidden="true" size={16} strokeWidth={2} />
+                    <span className="workspace-preview-share-label-full">{messages.toolbar.shareLink}</span>
+                    <span className="workspace-preview-share-label-compact">
+                      {locale === "zh-CN" ? "分享" : "Share"}
+                    </span>
+                  </button>
+                </div>
+              ) : null}
               <div
                 className="workspace-reader-body"
                 data-testid="preview-scroll-region"
@@ -2258,27 +2281,29 @@ export function WorkspaceShell({
               >
                 <MarkdownRenderer markdown={previewMarkdown} onLinkClick={handlePreviewLinkClick} />
               </div>
-              <div className="workspace-preview-bottom-bar">
-                <div className="workspace-preview-bottom-controls">
-                  <WorkspaceThemeSelector messages={messages.preview} onThemeChange={setTheme} theme={theme} />
-                  <WorkspacePreviewTypographyControls
-                    font={previewFont}
-                    fontSize={previewFontSize}
-                    maxFontSize={maxPreviewFontSize}
-                    messages={messages.preview}
-                    minFontSize={minPreviewFontSize}
-                    onFontChange={setPreviewFont}
-                    onFontSizeChange={(nextFontSize) => setPreviewFontSize(clampPreviewFontSize(nextFontSize))}
-                  />
+              {compactWorkspace ? (
+                <div className="workspace-preview-bottom-bar">
+                  <div className="workspace-preview-bottom-controls">
+                    <WorkspaceThemeSelector messages={messages.preview} onThemeChange={setTheme} theme={theme} />
+                    <WorkspacePreviewTypographyControls
+                      font={previewFont}
+                      fontSize={previewFontSize}
+                      maxFontSize={maxPreviewFontSize}
+                      messages={messages.preview}
+                      minFontSize={minPreviewFontSize}
+                      onFontChange={setPreviewFont}
+                      onFontSizeChange={(nextFontSize) => setPreviewFontSize(clampPreviewFontSize(nextFontSize))}
+                    />
+                  </div>
+                  <button className="toolbar-button workspace-preview-share-button" onClick={handleShare} type="button">
+                    <Share2 aria-hidden="true" size={16} strokeWidth={2} />
+                    <span className="workspace-preview-share-label-full">{messages.toolbar.shareLink}</span>
+                    <span className="workspace-preview-share-label-compact">
+                      {locale === "zh-CN" ? "分享" : "Share"}
+                    </span>
+                  </button>
                 </div>
-                <button className="toolbar-button workspace-preview-share-button" onClick={handleShare} type="button">
-                  <Share2 aria-hidden="true" size={16} strokeWidth={2} />
-                  <span className="workspace-preview-share-label-full">{messages.toolbar.shareLink}</span>
-                  <span className="workspace-preview-share-label-compact">
-                    {locale === "zh-CN" ? "分享" : "Share"}
-                  </span>
-                </button>
-              </div>
+              ) : null}
             </section>
           ) : null}
         </div>
