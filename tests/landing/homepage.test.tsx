@@ -15,6 +15,8 @@ describe("homepage", () => {
     expect(screen.getByLabelText(/markdown source url/i)).toHaveAttribute("name", "source");
     expect(screen.getByRole("button", { name: /^open$/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /updates/i })).toHaveAttribute("href", "/changelog");
+    expect(container.querySelector(".topbar-actions .github-mark")).not.toBeNull();
+    expect(container.querySelector(".topbar-actions > .ghost-link:last-child")).toHaveClass("ghost-link--primary");
     expect(screen.getByRole("heading", { level: 2, name: /recent features/i })).toBeInTheDocument();
     expect(screen.getByText("26.531")).toBeInTheDocument();
     expect(container.querySelector(".hero-preview .markdown-body--compact")).toBeInTheDocument();

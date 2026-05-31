@@ -50,25 +50,33 @@ export function WorkspaceThemeSelector({ messages, onThemeChange, theme }: Works
         </span>
       </button>
       {themeMenuOpen ? (
-        <div aria-label={messages.templatePalette} className="theme-menu" role="menu">
-          {workspaceThemeOptions.map((option) => (
-            <button
-              aria-checked={theme === option.id}
-              className="theme-option"
-              data-active={theme === option.id}
-              key={option.id}
-              onClick={() => selectTheme(option.id)}
-              role="menuitemradio"
-              type="button"
-            >
-              <span aria-hidden="true" className="theme-option__swatch" data-theme-id={option.id} />
-              <span className="theme-option__meta">
-                <span className="theme-option__label">{messages.themes[option.id].label}</span>
-                <span className="theme-option__description">{messages.themes[option.id].description}</span>
-              </span>
-            </button>
-          ))}
-        </div>
+        <>
+          <button
+            aria-label={messages.close}
+            className="workspace-popup-backdrop workspace-menu-backdrop"
+            onClick={() => setThemeMenuOpen(false)}
+            type="button"
+          />
+          <div aria-label={messages.templatePalette} className="theme-menu" role="menu">
+            {workspaceThemeOptions.map((option) => (
+              <button
+                aria-checked={theme === option.id}
+                className="theme-option"
+                data-active={theme === option.id}
+                key={option.id}
+                onClick={() => selectTheme(option.id)}
+                role="menuitemradio"
+                type="button"
+              >
+                <span aria-hidden="true" className="theme-option__swatch" data-theme-id={option.id} />
+                <span className="theme-option__meta">
+                  <span className="theme-option__label">{messages.themes[option.id].label}</span>
+                  <span className="theme-option__description">{messages.themes[option.id].description}</span>
+                </span>
+              </button>
+            ))}
+          </div>
+        </>
       ) : null}
     </div>
   );

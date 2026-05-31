@@ -15,6 +15,14 @@ function isCurrentPath(currentPath: string, path: string) {
   return currentPath === path;
 }
 
+function GithubMark() {
+  return (
+    <svg aria-hidden="true" className="github-mark" fill="currentColor" viewBox="0 0 24 24">
+      <path d="M12 .5A12 12 0 0 0 8.2 23.9c.6.1.8-.3.8-.6v-2.1c-3.3.7-4-1.4-4-1.4-.5-1.3-1.2-1.7-1.2-1.7-1-.7.1-.7.1-.7 1.1.1 1.7 1.2 1.7 1.2 1 .1.5 1.8 4 .2.1-.7.4-1.2.7-1.5-2.6-.3-5.4-1.3-5.4-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.6.1-3.2 0 0 1-.3 3.3 1.2a11.3 11.3 0 0 1 6 0C17.8 4.7 18.8 5 18.8 5c.6 1.6.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.4 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .5Z" />
+    </svg>
+  );
+}
+
 export function LandingTopbar({ currentPath, locale, messages }: LandingTopbarProps) {
   return (
     <header className="topbar">
@@ -22,16 +30,7 @@ export function LandingTopbar({ currentPath, locale, messages }: LandingTopbarPr
       <nav className="topbar-actions" aria-label={messages.primary}>
         <LanguageSwitcher currentLocale={locale} path={currentPath} />
         <a aria-label={messages.github} className="ghost-link ghost-link--icon" href={githubRepositoryUrl}>
-          <span aria-hidden="true" className="gh-mark">
-            gh
-          </span>
-        </a>
-        <a
-          aria-current={isCurrentPath(currentPath, "/workspace") ? "page" : undefined}
-          className="ghost-link"
-          href={localizePath("/workspace", locale)}
-        >
-          {messages.workspace}
+          <GithubMark />
         </a>
         <a
           aria-current={isCurrentPath(currentPath, "/changelog") ? "page" : undefined}
@@ -39,6 +38,13 @@ export function LandingTopbar({ currentPath, locale, messages }: LandingTopbarPr
           href={localizePath("/changelog", locale)}
         >
           {messages.changelog}
+        </a>
+        <a
+          aria-current={isCurrentPath(currentPath, "/workspace") ? "page" : undefined}
+          className="ghost-link ghost-link--primary"
+          href={localizePath("/workspace", locale)}
+        >
+          {messages.workspace}
         </a>
       </nav>
     </header>

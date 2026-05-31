@@ -70,6 +70,14 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain("padding-top: 128px;");
     expect(css).toContain(".workspace-tabs-backdrop {");
     expect(css).toContain("backdrop-filter: blur(8px) saturate(0.9);");
+    expect(css).toContain(".workspace-menu-backdrop {");
+    expect(css).toContain(".workspace-rail-topbar .workspace-home {");
+    expect(css).toContain("width: 40px;");
+    expect(css).toContain(".workspace-share-link {");
+    expect(css).toContain("transform: translate(-50%, -50%);");
+    expect(css).toContain(".workspace-share-link__header {");
+    expect(css).toContain(".workspace-new-tab-dialog {");
+    expect(css).toContain("z-index: 110;");
     expect(css).toContain(".toolbar-mobile-settings-strip .workspace-preview-type-controls {");
     expect(css).toContain(".toolbar-mobile-settings-strip .workspace-preview-font-list {");
     expect(css).toContain(".workspace-preview-bottom-bar {");

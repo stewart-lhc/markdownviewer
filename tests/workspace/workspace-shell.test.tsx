@@ -488,6 +488,13 @@ describe("WorkspaceShell interactions", () => {
     expect(page).toHaveAttribute("data-tabs-collapsed", "false");
 
     await user.click(screen.getByRole("button", { name: /new tab/i }));
+    expect(screen.getByRole("dialog", { name: /new tab/i })).toBeInTheDocument();
+    fireEvent.click(container.querySelector(".workspace-new-tab-dialog-backdrop") as Element);
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog", { name: /new tab/i })).not.toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole("button", { name: /new tab/i }));
     await user.click(screen.getByRole("button", { name: /^paste$/i }));
 
     await waitFor(() => {
@@ -1163,8 +1170,13 @@ describe("WorkspaceShell interactions", () => {
     const themePalette = screen.getByRole("menu", { name: /template palette/i });
 
     expect(within(themePalette).getAllByRole("menuitemradio")).toHaveLength(10);
+    expect(document.querySelector(".workspace-menu-backdrop")).not.toBeNull();
+    fireEvent.click(document.querySelector(".workspace-menu-backdrop") as Element);
+    expect(screen.queryByRole("menu", { name: /template palette/i })).not.toBeInTheDocument();
 
-    await user.click(within(themePalette).getByRole("menuitemradio", { name: /graphite/i }));
+    await user.click(screen.getByRole("button", { name: /template: paper/i }));
+
+    await user.click(within(screen.getByRole("menu", { name: /template palette/i })).getByRole("menuitemradio", { name: /graphite/i }));
     expect(document.documentElement.dataset.theme).toBe("graphite");
     expect(screen.getByRole("button", { name: /template: graphite/i })).toBeInTheDocument();
 
@@ -1186,6 +1198,9 @@ describe("WorkspaceShell interactions", () => {
     const generatedShareLink = screen.getByRole("link", { name: /open generated share link/i });
     expect(generatedShareLink).toHaveAttribute("href", expect.stringMatching(/\/share\/md-/));
     expect(screen.getByText(/share link ready/i)).toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: /share link/i })).toBeInTheDocument();
+    fireEvent.click(document.querySelector(".workspace-share-backdrop") as Element);
+    expect(screen.queryByRole("dialog", { name: /share link/i })).not.toBeInTheDocument();
   });
 
   it("loads a dropped file and switches between preview and editor modes", async () => {

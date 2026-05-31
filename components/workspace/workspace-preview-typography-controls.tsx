@@ -154,24 +154,32 @@ export function WorkspacePreviewTypographyControls({
           {selectedFontLabel}
         </button>
         {fontMenuOpen ? (
-          <div aria-label={messages.font} className="workspace-preview-font-list" role="menu">
-            {workspacePreviewFontOptions.map((option) => (
-              <button
-                aria-checked={font === option.id}
-                className="workspace-preview-font-option"
-                data-active={font === option.id}
-                key={option.id}
-                onClick={() => selectFont(option.id)}
-                role="menuitemradio"
-                type="button"
-              >
-                <span>{messages.fontOptions[option.id] ?? option.label}</span>
-                <span aria-hidden="true" style={{ fontFamily: option.stack }}>
-                  Aa 字
-                </span>
-              </button>
-            ))}
-          </div>
+          <>
+            <button
+              aria-label={messages.close}
+              className="workspace-popup-backdrop workspace-menu-backdrop"
+              onClick={() => setFontMenuOpen(false)}
+              type="button"
+            />
+            <div aria-label={messages.font} className="workspace-preview-font-list" role="menu">
+              {workspacePreviewFontOptions.map((option) => (
+                <button
+                  aria-checked={font === option.id}
+                  className="workspace-preview-font-option"
+                  data-active={font === option.id}
+                  key={option.id}
+                  onClick={() => selectFont(option.id)}
+                  role="menuitemradio"
+                  type="button"
+                >
+                  <span>{messages.fontOptions[option.id] ?? option.label}</span>
+                  <span aria-hidden="true" style={{ fontFamily: option.stack }}>
+                    Aa 字
+                  </span>
+                </button>
+              ))}
+            </div>
+          </>
         ) : null}
       </div>
       <div className="workspace-preview-size-control">

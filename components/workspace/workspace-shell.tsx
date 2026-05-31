@@ -2085,20 +2085,98 @@ export function WorkspaceShell({
         </div>
         {statusMessage ? <p aria-live="polite" className="sr-only" role="status">{statusMessage}</p> : null}
         {shareUrl ? (
-          <div className="workspace-share-link" role="status">
-            <span>{locale === "zh-CN" ? "分享链接已生成" : "Share link ready"}</span>
-            <a
-              aria-label={locale === "zh-CN" ? "打开生成的分享链接" : "Open generated share link"}
-              href={shareUrl}
-              rel="noreferrer"
-              target="_blank"
+          <>
+            <button
+              aria-label={locale === "zh-CN" ? "关闭分享链接" : "Close share link"}
+              className="workspace-popup-backdrop workspace-share-backdrop"
+              onClick={() => setShareUrl("")}
+              type="button"
+            />
+            <div
+              aria-label={locale === "zh-CN" ? "分享链接" : "Share link"}
+              aria-modal="true"
+              className="workspace-share-link"
+              role="dialog"
             >
-              {shareUrl}
-            </a>
-            <button className="toolbar-button" onClick={handleCopyShareUrl} type="button">
-              {locale === "zh-CN" ? "复制" : "Copy"}
-            </button>
-          </div>
+              <div className="workspace-share-link__header">
+                <span>{locale === "zh-CN" ? "分享链接已生成" : "Share link ready"}</span>
+                <button
+                  aria-label={locale === "zh-CN" ? "关闭分享链接" : "Close share link"}
+                  className="workspace-share-link__close"
+                  onClick={() => setShareUrl("")}
+                  type="button"
+                >
+                  <X aria-hidden="true" size={18} strokeWidth={2} />
+                </button>
+              </div>
+              <a
+                aria-label={locale === "zh-CN" ? "打开生成的分享链接" : "Open generated share link"}
+                href={shareUrl}
+                rel="noreferrer"
+                target="_blank"
+              >
+                {shareUrl}
+              </a>
+              <button className="toolbar-button" onClick={handleCopyShareUrl} type="button">
+                {locale === "zh-CN" ? "复制链接" : "Copy link"}
+              </button>
+            </div>
+          </>
+        ) : null}
+        {newTabDialogOpen ? (
+          <>
+            <button
+              aria-label={locale === "zh-CN" ? "关闭新建 tab" : "Close new tab dialog"}
+              className="workspace-popup-backdrop workspace-new-tab-dialog-backdrop"
+              onClick={() => setNewTabDialogOpen(false)}
+              type="button"
+            />
+            <div
+              aria-label={messages.tabs.importDialogTitle}
+              aria-modal="true"
+              className="workspace-new-tab-dialog"
+              role="dialog"
+            >
+              <div className="workspace-new-tab-dialog-header">
+                <h2>{messages.tabs.importDialogTitle}</h2>
+                <button
+                  aria-label={messages.preview.close}
+                  className="workspace-new-tab-dialog-close"
+                  onClick={() => setNewTabDialogOpen(false)}
+                  type="button"
+                >
+                  <X aria-hidden="true" size={18} strokeWidth={2} />
+                </button>
+              </div>
+              <div className="workspace-new-tab-choices">
+                <button className="workspace-new-tab-choice" onClick={handleNewTabPaste} type="button">
+                  <Clipboard aria-hidden="true" size={18} strokeWidth={2} />
+                  <span>{messages.toolbar.paste}</span>
+                </button>
+                <button className="workspace-new-tab-choice" onClick={handleNewTabFile} type="button">
+                  <FileUp aria-hidden="true" size={18} strokeWidth={2} />
+                  <span>{messages.toolbar.file}</span>
+                </button>
+                <button className="workspace-new-tab-choice" onClick={handleNewTabFolder} type="button">
+                  <FolderOpen aria-hidden="true" size={18} strokeWidth={2} />
+                  <span>{messages.toolbar.openFolder}</span>
+                </button>
+              </div>
+              <form className="workspace-new-tab-url-form" onSubmit={handleNewTabUrlSubmit}>
+                <Link aria-hidden="true" size={18} strokeWidth={2} />
+                <input
+                  aria-label={messages.toolbar.sourceUrlLabel}
+                  className="workspace-new-tab-url-input"
+                  onChange={(event) => setNewTabUrlInput(event.currentTarget.value)}
+                  placeholder={messages.tabs.importUrlPlaceholder}
+                  value={newTabUrlInput}
+                />
+                <button className="toolbar-button" type="submit">
+                  {messages.toolbar.open}
+                </button>
+              </form>
+            </div>
+          </>
         ) : null}
         <input
           aria-hidden="true"
@@ -2116,55 +2194,6 @@ export function WorkspaceShell({
           type="file"
           accept=".md,.markdown,.mdx,.txt,text/markdown,text/plain"
         />
-        {newTabDialogOpen ? (
-          <div className="workspace-new-tab-dialog-backdrop" role="presentation">
-            <div
-              aria-label={messages.tabs.importDialogTitle}
-              aria-modal="true"
-              className="workspace-new-tab-dialog"
-              role="dialog"
-            >
-              <div className="workspace-new-tab-dialog-header">
-                <span>{messages.tabs.importDialogTitle}</span>
-                <button
-                  aria-label={messages.preview.close}
-                  className="workspace-new-tab-dialog-close"
-                  onClick={() => setNewTabDialogOpen(false)}
-                  type="button"
-                >
-                  <X aria-hidden="true" size={18} strokeWidth={2} />
-                </button>
-              </div>
-              <div className="workspace-new-tab-choices">
-                <button className="workspace-new-tab-choice" onClick={() => void handleNewTabPaste()} type="button">
-                  <Clipboard aria-hidden="true" size={18} strokeWidth={2} />
-                  <span>{messages.toolbar.paste}</span>
-                </button>
-                <button className="workspace-new-tab-choice" onClick={() => void handleNewTabFile()} type="button">
-                  <FileUp aria-hidden="true" size={18} strokeWidth={2} />
-                  <span>{messages.toolbar.file}</span>
-                </button>
-                <button className="workspace-new-tab-choice" onClick={() => void handleNewTabFolder()} type="button">
-                  <FolderOpen aria-hidden="true" size={18} strokeWidth={2} />
-                  <span>{messages.toolbar.openFolder}</span>
-                </button>
-              </div>
-              <form className="workspace-new-tab-url-form" onSubmit={handleNewTabUrlSubmit}>
-                <Link aria-hidden="true" size={18} strokeWidth={2} />
-                <input
-                  aria-label={messages.toolbar.sourceUrlLabel}
-                  className="input input--compact workspace-new-tab-url-input"
-                  onChange={(event) => setNewTabUrlInput(event.currentTarget.value)}
-                  placeholder={messages.tabs.importUrlPlaceholder}
-                  value={newTabUrlInput}
-                />
-                <button className="toolbar-button" type="submit">
-                  {messages.toolbar.open}
-                </button>
-              </form>
-            </div>
-          </div>
-        ) : null}
         <div
           className="workspace-grid"
           data-mode={currentMode}

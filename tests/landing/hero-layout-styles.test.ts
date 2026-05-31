@@ -86,5 +86,8 @@ describe("landing hero layout styles", () => {
     expect(css).toContain(".update-grid {");
     expect(css).toContain(".changelog-hero {");
     expect(css).toContain(".release-card {");
+    expect(css).toContain(".github-mark {");
+    expect(css).toContain(".ghost-link--primary {");
+    expect(css).toContain("min-width: 118px;");
   });
 });

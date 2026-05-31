@@ -137,43 +137,51 @@ export function WorkspaceToolbar({
           <span>{messages.importAction}</span>
         </button>
         {importMenuOpen ? (
-          <div aria-label={messages.importOptions} className="toolbar-menu toolbar-menu--imports" role="menu">
+          <>
             <button
-              aria-checked={activeImportMode === "paste"}
-              className="toolbar-menu-button"
-              onClick={() => runAction(activatePaste)}
-              role="menuitemradio"
+              aria-label={messages.importOptions}
+              className="workspace-popup-backdrop workspace-menu-backdrop"
+              onClick={() => setImportMenuOpen(false)}
               type="button"
-            >
-              {messages.paste}
-            </button>
-            <button
-              aria-checked={activeImportMode === "file"}
-              className="toolbar-menu-button"
-              onClick={() => runAction(activateFile)}
-              role="menuitemradio"
-              type="button"
-            >
-              {messages.file}
-            </button>
-            <button
-              aria-checked={activeImportMode === "url"}
-              className="toolbar-menu-button"
-              onClick={() => runAction(activateUrl)}
-              role="menuitemradio"
-              type="button"
-            >
-              {messages.url}
-            </button>
-            <button
-              className="toolbar-menu-button"
-              onClick={() => runAction(activateFolder)}
-              role="menuitem"
-              type="button"
-            >
-              {messages.openFolder}
-            </button>
-          </div>
+            />
+            <div aria-label={messages.importOptions} className="toolbar-menu toolbar-menu--imports" role="menu">
+              <button
+                aria-checked={activeImportMode === "paste"}
+                className="toolbar-menu-button"
+                onClick={() => runAction(activatePaste)}
+                role="menuitemradio"
+                type="button"
+              >
+                {messages.paste}
+              </button>
+              <button
+                aria-checked={activeImportMode === "file"}
+                className="toolbar-menu-button"
+                onClick={() => runAction(activateFile)}
+                role="menuitemradio"
+                type="button"
+              >
+                {messages.file}
+              </button>
+              <button
+                aria-checked={activeImportMode === "url"}
+                className="toolbar-menu-button"
+                onClick={() => runAction(activateUrl)}
+                role="menuitemradio"
+                type="button"
+              >
+                {messages.url}
+              </button>
+              <button
+                className="toolbar-menu-button"
+                onClick={() => runAction(activateFolder)}
+                role="menuitem"
+                type="button"
+              >
+                {messages.openFolder}
+              </button>
+            </div>
+          </>
         ) : null}
       </div>
       ) : null}
@@ -322,66 +330,66 @@ export function WorkspaceToolbar({
           )}
         </button>
         {menuOpen ? (
-          <div className="toolbar-menu" role="menu">
-            {showImportActions ? (
-              <>
-                <button
-                  className="toolbar-menu-button toolbar-menu-mobile-action"
-                  onClick={() => runAction(activatePaste)}
-              type="button"
-            >
-              <Clipboard aria-hidden="true" size={16} strokeWidth={2} />
-              <span>{messages.paste}</span>
-            </button>
-                <button
-                  className="toolbar-menu-button toolbar-menu-mobile-action"
-                  onClick={() => runAction(activateFile)}
-              type="button"
-            >
-              <FileUp aria-hidden="true" size={16} strokeWidth={2} />
-              <span>{messages.file}</span>
-            </button>
+          <>
             <button
-                  className="toolbar-menu-button toolbar-menu-mobile-action"
-                  onClick={() => runAction(activateUrl)}
+              aria-label={messages.more}
+              className="workspace-popup-backdrop workspace-menu-backdrop"
+              onClick={() => setMenuOpen(false)}
               type="button"
-            >
-              <Link aria-hidden="true" size={16} strokeWidth={2} />
-              <span>{messages.url}</span>
-            </button>
-                <button
-                  className="toolbar-menu-button toolbar-menu-mobile-action"
-                  onClick={() => runAction(activateFolder)}
-                  type="button"
-                >
-                  <FolderOpen aria-hidden="true" size={16} strokeWidth={2} />
-                  <span>{messages.openFolder}</span>
-                </button>
-              </>
-            ) : null}
-            <button className="toolbar-menu-button" onClick={() => runAction(activateFolder)} type="button">
-              <FolderOpen aria-hidden="true" size={16} strokeWidth={2} />
-              <span>{messages.openFolder}</span>
-            </button>
-            <button className="toolbar-menu-button" onClick={() => runAction(onSaveToDisk)} type="button">
-              <Save aria-hidden="true" size={16} strokeWidth={2} />
-              <span>{messages.saveToDisk}</span>
-            </button>
-            <button
-              className="toolbar-menu-button"
-              onClick={() => runAction(onExportHtml)}
-              type="button"
-            >
-              {messages.exportHtml}
-            </button>
-            <button
-              className="toolbar-menu-button"
-              onClick={() => runAction(onExportPdf)}
-              type="button"
-            >
-              {messages.exportPdf}
-            </button>
-          </div>
+            />
+            <div className="toolbar-menu" role="menu">
+              {showImportActions ? (
+                <>
+                  <button
+                    className="toolbar-menu-button toolbar-menu-mobile-action"
+                    onClick={() => runAction(activatePaste)}
+                    type="button"
+                  >
+                    <Clipboard aria-hidden="true" size={16} strokeWidth={2} />
+                    <span>{messages.paste}</span>
+                  </button>
+                  <button
+                    className="toolbar-menu-button toolbar-menu-mobile-action"
+                    onClick={() => runAction(activateFile)}
+                    type="button"
+                  >
+                    <FileUp aria-hidden="true" size={16} strokeWidth={2} />
+                    <span>{messages.file}</span>
+                  </button>
+                  <button
+                    className="toolbar-menu-button toolbar-menu-mobile-action"
+                    onClick={() => runAction(activateUrl)}
+                    type="button"
+                  >
+                    <Link aria-hidden="true" size={16} strokeWidth={2} />
+                    <span>{messages.url}</span>
+                  </button>
+                  <button
+                    className="toolbar-menu-button toolbar-menu-mobile-action"
+                    onClick={() => runAction(activateFolder)}
+                    type="button"
+                  >
+                    <FolderOpen aria-hidden="true" size={16} strokeWidth={2} />
+                    <span>{messages.openFolder}</span>
+                  </button>
+                </>
+              ) : null}
+              <button className="toolbar-menu-button" onClick={() => runAction(activateFolder)} type="button">
+                <FolderOpen aria-hidden="true" size={16} strokeWidth={2} />
+                <span>{messages.openFolder}</span>
+              </button>
+              <button className="toolbar-menu-button" onClick={() => runAction(onSaveToDisk)} type="button">
+                <Save aria-hidden="true" size={16} strokeWidth={2} />
+                <span>{messages.saveToDisk}</span>
+              </button>
+              <button className="toolbar-menu-button" onClick={() => runAction(onExportHtml)} type="button">
+                {messages.exportHtml}
+              </button>
+              <button className="toolbar-menu-button" onClick={() => runAction(onExportPdf)} type="button">
+                {messages.exportPdf}
+              </button>
+            </div>
+          </>
         ) : null}
       </div>
       {compact && showImportActions && urlDialogOpen ? (
