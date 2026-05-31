@@ -1986,6 +1986,37 @@ export function WorkspaceShell({
           type="button"
         />
       ) : null}
+      <div className="workspace-header">
+        <div className="workspace-header-tabs-control">
+          {renderTabsToggleButton()}
+        </div>
+        <div className="workspace-header-meta">
+          {sourceLabel ? <div className="workspace-source-chip">{sourceLabel}</div> : null}
+        </div>
+        <div className="workspace-header-title" title={documentTitle}>
+          {documentTitle}
+        </div>
+        <WorkspaceToolbar
+          activeImportMode={activeImportMode}
+          compact={compactWorkspace}
+          messages={messages.toolbar}
+          mode={currentMode}
+          showImportActions={showToolbarImportActions}
+          onExportHtml={handleExportHtml}
+          onExportPdf={handleExportPdf}
+          onActiveImportModeChange={setActiveImportMode}
+          onFileImport={handleFileImport}
+          onModeChange={setCurrentMode}
+          onOpenFolder={handleOpenFolder}
+          onParseSource={handleParseSource}
+          onPasteIntoEditor={handlePasteIntoEditor}
+          onSaveToDisk={() => {
+            void saveCurrentFolderFile();
+          }}
+          onSourceChange={setCurrentSource}
+          sourceValue={currentSource}
+        />
+      </div>
       {!tabsCollapsed ? (
         folderRootHandle ? (
           <FolderRail
@@ -2051,37 +2082,6 @@ export function WorkspaceShell({
         id="workspace-active-tab-panel"
         role="tabpanel"
       >
-        <div className="workspace-header">
-          <div className="workspace-header-tabs-control">
-            {renderTabsToggleButton()}
-          </div>
-          <div className="workspace-header-meta">
-            {sourceLabel ? <div className="workspace-source-chip">{sourceLabel}</div> : null}
-          </div>
-          <div className="workspace-header-title" title={documentTitle}>
-            {documentTitle}
-          </div>
-            <WorkspaceToolbar
-              activeImportMode={activeImportMode}
-              compact={compactWorkspace}
-              messages={messages.toolbar}
-              mode={currentMode}
-              showImportActions={showToolbarImportActions}
-            onExportHtml={handleExportHtml}
-            onExportPdf={handleExportPdf}
-            onActiveImportModeChange={setActiveImportMode}
-            onFileImport={handleFileImport}
-            onModeChange={setCurrentMode}
-            onOpenFolder={handleOpenFolder}
-            onParseSource={handleParseSource}
-            onPasteIntoEditor={handlePasteIntoEditor}
-            onSaveToDisk={() => {
-              void saveCurrentFolderFile();
-            }}
-            onSourceChange={setCurrentSource}
-            sourceValue={currentSource}
-          />
-        </div>
         {statusMessage ? <p aria-live="polite" className="sr-only" role="status">{statusMessage}</p> : null}
         {shareUrl ? (
           <>
