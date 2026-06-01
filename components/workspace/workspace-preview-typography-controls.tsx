@@ -21,11 +21,16 @@ export type WorkspacePreviewFont =
 type WorkspacePreviewTypographyControlsProps = {
   font: WorkspacePreviewFont;
   fontSize: number;
+  margin: number;
+  maxMargin: number;
   maxFontSize: number;
   messages: WorkspaceMessages["preview"];
+  minMargin: number;
   minFontSize: number;
   onFontChange: (font: WorkspacePreviewFont) => void;
   onFontSizeChange: (fontSize: number) => void;
+  onMarginChange: (margin: number) => void;
+  showMarginControl?: boolean;
 };
 
 export const workspacePreviewFontOptions: Array<{
@@ -111,11 +116,16 @@ export function getWorkspacePreviewFontStack(font: WorkspacePreviewFont) {
 export function WorkspacePreviewTypographyControls({
   font,
   fontSize,
+  margin,
+  maxMargin,
   maxFontSize,
   messages,
+  minMargin,
   minFontSize,
   onFontChange,
-  onFontSizeChange
+  onFontSizeChange,
+  onMarginChange,
+  showMarginControl = true
 }: WorkspacePreviewTypographyControlsProps) {
   const [fontMenuOpen, setFontMenuOpen] = useState(false);
   const fontMenuRef = useRef<HTMLDivElement | null>(null);
@@ -205,6 +215,31 @@ export function WorkspacePreviewTypographyControls({
           A+
         </button>
       </div>
+      {showMarginControl ? (
+        <div className="workspace-preview-margin-control">
+          <button
+            aria-label={messages.decreaseMargin}
+            className="toolbar-button workspace-preview-margin-button"
+            disabled={margin <= minMargin}
+            onClick={() => onMarginChange(margin - 8)}
+            type="button"
+          >
+            M-
+          </button>
+          <output aria-label={messages.margin} className="workspace-preview-margin-value sr-only">
+            {margin}px
+          </output>
+          <button
+            aria-label={messages.increaseMargin}
+            className="toolbar-button workspace-preview-margin-button"
+            disabled={margin >= maxMargin}
+            onClick={() => onMarginChange(margin + 8)}
+            type="button"
+          >
+            M+
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }

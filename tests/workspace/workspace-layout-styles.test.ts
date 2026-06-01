@@ -46,6 +46,7 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain("align-items: center;");
     expect(css).toContain(".workspace-header-title {");
     expect(css).toContain("justify-self: start;");
+    expect(css).toContain(".workspace-header-language {");
     expect(css).toContain(".workspace-preview-template .theme-menu {");
     expect(css).toContain("left: 0;");
     expect(css).toContain(".workspace-preview-header-controls {");
@@ -53,6 +54,7 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain(".workspace-preview-font-button {");
     expect(css).toContain(".workspace-preview-font-list {");
     expect(css).toContain(".workspace-preview-size-control {");
+    expect(css).toContain(".workspace-preview-margin-control {");
     expect(css).toContain('.workspace-toc[data-open="false"] .workspace-toc-panel {');
     expect(css).toContain(".workspace-toc {");
     expect(css).toContain("position: fixed;");
@@ -110,8 +112,11 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain(".workspace-reader-body {");
     expect(css).toContain("--workspace-preview-font-family: var(--body);");
     expect(css).toContain("--workspace-preview-font-size: 15px;");
+    expect(css).toContain("--workspace-preview-inline-margin: 40px;");
     expect(css).toContain("font-family: var(--workspace-preview-font-family);");
     expect(css).toContain("font-size: var(--workspace-preview-font-size);");
+    expect(css).toContain('.workspace-grid[data-mode="preview"] .workspace-reader-body .markdown-body {');
+    expect(css).toContain("max-width: max(520px, calc(100% - (var(--workspace-preview-inline-margin) * 2)));");
     expect(css).toContain("html[data-theme] .workspace-reader-body .markdown-body h1,");
   });
 

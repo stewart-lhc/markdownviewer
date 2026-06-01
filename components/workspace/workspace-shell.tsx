@@ -16,6 +16,7 @@ import {
 } from "react";
 import { Clipboard, FileUp, FolderOpen, Link, PanelLeftClose, PanelLeftOpen, Share2, X } from "lucide-react";
 import { BrandLink } from "@/components/brand/brand-link";
+import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 import { FolderRail } from "@/components/workspace/folder-rail";
 import { createMarkdownShare } from "@/lib/share/share-codec";
 import { exportMarkdownHtml } from "@/lib/workspace/export-html";
@@ -27,7 +28,12 @@ import {
   writeFolderDocument
 } from "@/lib/workspace/folder-documents";
 import { readRootFolderHandle, saveRootFolderHandle } from "@/lib/workspace/folder-handles";
-import { getFolderPathDirectory, getFolderPathName, resolveMarkdownLink } from "@/lib/workspace/folder-paths";
+import {
+  getFolderPathDirectory,
+  getFolderPathName,
+  normalizeFolderPath,
+  resolveMarkdownLink
+} from "@/lib/workspace/folder-paths";
 import { scanMarkdownFolder, type FolderFileEntry } from "@/lib/workspace/folder-scan";
 import { loadMarkdownSourceViaApi, LoadedMarkdownSource } from "@/lib/workspace/load-markdown-source";
 import { MarkdownRenderer } from "@/components/markdown/markdown-renderer";
@@ -110,6 +116,7 @@ type PwaLaunchWindow = Window & typeof globalThis & {
 const workspaceDraftStorageKey = "markdownviewer.workspace.current";
 const workspacePreviewFontStorageKey = "markdownviewer.workspace.preview.font";
 const workspacePreviewFontSizeStorageKey = "markdownviewer.workspace.preview.fontSize";
+const workspacePreviewMarginStorageKey = "markdownviewer.workspace.preview.margin.v2";
 const workspaceSplitStorageKey = "markdownviewer.workspace.split";
 const workspaceTabsCollapsedStorageKey = "markdownviewer.workspace.tabs.collapsed";
 const workspaceTabsStorageKey = "markdownviewer.workspace.tabs.v1";
@@ -122,6 +129,9 @@ const defaultPreviewFont: WorkspacePreviewFont = "system";
 const defaultPreviewFontSize = 15;
 const minPreviewFontSize = 13;
 const maxPreviewFontSize = 21;
+const defaultPreviewMargin = 40;
+const minPreviewMargin = 12;
+const maxPreviewMargin = 72;
 
 function clampSplitPercent(value: number) {
   return Math.min(Math.max(value, splitMinPercent), splitMaxPercent);
@@ -129,6 +139,10 @@ function clampSplitPercent(value: number) {
 
 function clampPreviewFontSize(value: number) {
   return Math.min(Math.max(Math.round(value), minPreviewFontSize), maxPreviewFontSize);
+}
+
+function clampPreviewMargin(value: number) {
+  return Math.min(Math.max(Math.round(value / 8) * 8, minPreviewMargin), maxPreviewMargin);
 }
 
 function deriveDocumentTitle(
@@ -180,6 +194,34 @@ function createWorkspaceTab(markdown = "", sourceInput = "", id = createWorkspac
 
 function createInitialWorkspaceTab(markdown: string, sourceInput: string) {
   return createWorkspaceTab(markdown, sourceInput, initialWorkspaceTabId);
+}
+
+function readFolderPathFromSourceInput(sourceInput: string) {
+  if (!sourceInput.startsWith("folder:")) {
+    return undefined;
+  }
+
+  return normalizeFolderPath(sourceInput);
+}
+
+function normalizePreviewMarkdownHref(href: string) {
+  const trimmed = href.trim();
+
+  if (!/^[a-z][a-z0-9+.-]*:/i.test(trimmed) || typeof window === "undefined") {
+    return trimmed;
+  }
+
+  try {
+    const url = new URL(trimmed);
+
+    if (url.origin !== window.location.origin) {
+      return trimmed;
+    }
+
+    return `${url.pathname}${url.hash}`;
+  } catch {
+    return trimmed;
+  }
 }
 
 function normalizeStoredWorkspaceTab(value: unknown, index: number): WorkspaceTab | null {
@@ -512,6 +554,7 @@ export function WorkspaceShell({
   const [compactWorkspace, setCompactWorkspace] = useState(false);
   const [previewFont, setPreviewFont] = useState<WorkspacePreviewFont>(defaultPreviewFont);
   const [previewFontSize, setPreviewFontSize] = useState(defaultPreviewFontSize);
+  const [previewMargin, setPreviewMargin] = useState(defaultPreviewMargin);
   const [splitEditorPercent, setSplitEditorPercent] = useState(50);
   const [splitResizing, setSplitResizing] = useState(false);
   const [tabsCollapsed, setTabsCollapsed] = useState(false);
@@ -561,7 +604,9 @@ export function WorkspaceShell({
   const sourceLabel = useMemo(() => describeSource(currentSource), [currentSource]);
   const hasCurrentDocument = currentMarkdown.trim().length > 0;
   const activeTab = tabs.find((tab) => tab.id === activeTabId) ?? tabs[0];
-  const activeFolderPath = activeTab?.sourceKind === "folder-file" ? activeTab.folderFilePath : undefined;
+  const activeTabFolderPath = activeTab?.sourceKind === "folder-file" ? activeTab.folderFilePath : undefined;
+  const activeSourceFolderPath = folderRootHandle ? readFolderPathFromSourceInput(currentSource) : undefined;
+  const activeFolderPath = activeTabFolderPath ?? activeSourceFolderPath;
   const selectedFolderDirectory = activeFolderPath ? getFolderPathDirectory(activeFolderPath) : "/";
   const activeFolderEntry = activeFolderPath
     ? folderFiles.find((file) => file.path === activeFolderPath)
@@ -589,7 +634,8 @@ export function WorkspaceShell({
       : undefined;
   const previewReaderStyle = {
     "--workspace-preview-font-family": getWorkspacePreviewFontStack(previewFont),
-    "--workspace-preview-font-size": `${previewFontSize}px`
+    "--workspace-preview-font-size": `${previewFontSize}px`,
+    "--workspace-preview-inline-margin": `${previewMargin}px`
   } as CSSProperties;
 
   function collapseTabsForReading() {
@@ -780,6 +826,7 @@ export function WorkspaceShell({
     const storedTabsCollapsed = window.localStorage.getItem(workspaceTabsCollapsedStorageKey);
     const storedPreviewFont = window.localStorage.getItem(workspacePreviewFontStorageKey);
     const storedPreviewFontSize = Number.parseFloat(window.localStorage.getItem(workspacePreviewFontSizeStorageKey) ?? "");
+    const storedPreviewMargin = Number.parseFloat(window.localStorage.getItem(workspacePreviewMarginStorageKey) ?? "");
 
     if (isWorkspaceTheme(storedTheme)) {
       setTheme(storedTheme);
@@ -805,6 +852,10 @@ export function WorkspaceShell({
 
     if (Number.isFinite(storedPreviewFontSize)) {
       setPreviewFontSize(clampPreviewFontSize(storedPreviewFontSize));
+    }
+
+    if (Number.isFinite(storedPreviewMargin)) {
+      setPreviewMargin(clampPreviewMargin(storedPreviewMargin));
     }
   }, []);
 
@@ -832,6 +883,10 @@ export function WorkspaceShell({
   useEffect(() => {
     window.localStorage.setItem(workspacePreviewFontSizeStorageKey, String(previewFontSize));
   }, [previewFontSize]);
+
+  useEffect(() => {
+    window.localStorage.setItem(workspacePreviewMarginStorageKey, String(previewMargin));
+  }, [previewMargin]);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -1910,7 +1965,7 @@ export function WorkspaceShell({
       return false;
     }
 
-    const resolved = resolveMarkdownLink(activeFolderPath, href);
+    const resolved = resolveMarkdownLink(activeFolderPath, normalizePreviewMarkdownHref(href));
 
     if (!resolved) {
       return false;
@@ -2005,6 +2060,9 @@ export function WorkspaceShell({
         </div>
         <div className="workspace-header-title" title={documentTitle}>
           {documentTitle}
+        </div>
+        <div className="workspace-header-language">
+          <LanguageSwitcher currentLocale={locale} path="/workspace" />
         </div>
         <WorkspaceToolbar
           activeImportMode={activeImportMode}
@@ -2259,11 +2317,15 @@ export function WorkspaceShell({
                     <WorkspacePreviewTypographyControls
                       font={previewFont}
                       fontSize={previewFontSize}
+                      margin={previewMargin}
+                      maxMargin={maxPreviewMargin}
                       maxFontSize={maxPreviewFontSize}
                       messages={messages.preview}
+                      minMargin={minPreviewMargin}
                       minFontSize={minPreviewFontSize}
                       onFontChange={setPreviewFont}
                       onFontSizeChange={(nextFontSize) => setPreviewFontSize(clampPreviewFontSize(nextFontSize))}
+                      onMarginChange={(nextMargin) => setPreviewMargin(clampPreviewMargin(nextMargin))}
                     />
                   </div>
                   <button className="toolbar-button workspace-preview-share-button" onClick={handleShare} type="button">
@@ -2297,11 +2359,16 @@ export function WorkspaceShell({
                     <WorkspacePreviewTypographyControls
                       font={previewFont}
                       fontSize={previewFontSize}
+                      margin={previewMargin}
+                      maxMargin={maxPreviewMargin}
                       maxFontSize={maxPreviewFontSize}
                       messages={messages.preview}
+                      minMargin={minPreviewMargin}
                       minFontSize={minPreviewFontSize}
                       onFontChange={setPreviewFont}
                       onFontSizeChange={(nextFontSize) => setPreviewFontSize(clampPreviewFontSize(nextFontSize))}
+                      onMarginChange={(nextMargin) => setPreviewMargin(clampPreviewMargin(nextMargin))}
+                      showMarginControl={false}
                     />
                   </div>
                   <button className="toolbar-button workspace-preview-share-button" onClick={handleShare} type="button">

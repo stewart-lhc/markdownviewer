@@ -416,14 +416,18 @@ describe("WorkspaceShell interactions", () => {
     await user.click(screen.getByRole("button", { name: /^folder$/i }));
     await user.click(await screen.findByRole("treeitem", { name: "README.md" }));
 
-    await user.click(await screen.findByRole("link", { name: "Missing" }));
-    expect(await screen.findByText(/could not find \/missing\.md/i)).toBeInTheDocument();
-    expect(within(screen.getByTestId("preview-panel")).getByRole("heading", { name: "Home" })).toBeInTheDocument();
+    const previewPanel = screen.getByTestId("preview-panel");
 
-    await user.click(screen.getByRole("link", { name: "Guide" }));
+    await user.click(await within(previewPanel).findByRole("link", { name: "Missing" }));
+    expect(await screen.findByText(/could not find \/missing\.md/i)).toBeInTheDocument();
+    expect(within(previewPanel).getByRole("heading", { name: "Home" })).toBeInTheDocument();
+
+    const refreshedPreviewPanel = screen.getByTestId("preview-panel");
+
+    await user.click(within(refreshedPreviewPanel).getByRole("link", { name: "Guide" }));
 
     expect(
-      await within(screen.getByTestId("preview-panel")).findByRole("heading", {
+      await within(refreshedPreviewPanel).findByRole("heading", {
         level: 1,
         name: "Guide"
       })
@@ -658,6 +662,7 @@ describe("WorkspaceShell interactions", () => {
   it("lets the reader adjust preview font and size from the preview header", async () => {
     window.localStorage.removeItem("markdownviewer.workspace.preview.font");
     window.localStorage.removeItem("markdownviewer.workspace.preview.fontSize");
+    window.localStorage.removeItem("markdownviewer.workspace.preview.margin.v2");
     const user = userEvent.setup();
 
     render(<WorkspaceShell markdown="# Typography\n\nReadable preview text." sourceInput="" />);
@@ -670,13 +675,16 @@ describe("WorkspaceShell interactions", () => {
     await user.click(screen.getByRole("menuitemradio", { name: /^serif/i }));
     await user.click(within(previewPanel).getByRole("button", { name: /increase preview font size/i }));
     await user.click(within(previewPanel).getByRole("button", { name: /increase preview font size/i }));
+    await user.click(within(previewPanel).getByRole("button", { name: /increase preview margin/i }));
 
     expect(previewRegion).toHaveStyle({
       "--workspace-preview-font-family": "Georgia, 'Times New Roman', serif",
-      "--workspace-preview-font-size": "17px"
+      "--workspace-preview-font-size": "17px",
+      "--workspace-preview-inline-margin": "48px"
     });
     expect(window.localStorage.getItem("markdownviewer.workspace.preview.font")).toBe("serif");
     expect(window.localStorage.getItem("markdownviewer.workspace.preview.fontSize")).toBe("17");
+    expect(window.localStorage.getItem("markdownviewer.workspace.preview.margin.v2")).toBe("48");
   });
 
   it("moves editor formatting tools into an overflow menu when the pane is narrow", async () => {

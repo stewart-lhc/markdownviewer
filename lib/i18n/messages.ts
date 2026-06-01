@@ -148,10 +148,13 @@ export type Messages = {
       closeContents: string;
       contents: string;
       decreaseFont: string;
+      decreaseMargin: string;
       font: string;
       fontOptions: Record<string, string>;
       fontSize: string;
       increaseFont: string;
+      increaseMargin: string;
+      margin: string;
       resizeLabel: string;
       resizeTitle: string;
       templateButton: (theme: string) => string;
@@ -512,6 +515,7 @@ export const messages: Record<Locale, Messages> = {
         closeContents: "Close contents",
         contents: "Contents",
         decreaseFont: "Decrease preview font size",
+        decreaseMargin: "Decrease preview margin",
         font: "Preview font",
         fontOptions: {
           athelas: "Athelas",
@@ -530,6 +534,8 @@ export const messages: Record<Locale, Messages> = {
         },
         fontSize: "Preview font size",
         increaseFont: "Increase preview font size",
+        increaseMargin: "Increase preview margin",
+        margin: "Preview margin",
         resizeLabel: "Resize editor and preview panes",
         resizeTitle: "Drag to resize editor and preview",
         templateButton: (theme) => `Template: ${theme}`,
@@ -864,6 +870,7 @@ export const messages: Record<Locale, Messages> = {
         closeContents: "关闭目录",
         contents: "目录",
         decreaseFont: "减小预览字体",
+        decreaseMargin: "减小预览留白",
         font: "预览字体",
         fontOptions: {
           athelas: "Athelas",
@@ -882,6 +889,8 @@ export const messages: Record<Locale, Messages> = {
         },
         fontSize: "预览字号",
         increaseFont: "增大预览字体",
+        increaseMargin: "增大预览留白",
+        margin: "预览留白",
         resizeLabel: "调整编辑器和预览窗格大小",
         resizeTitle: "拖动以调整编辑器和预览大小",
         templateButton: (theme) => `模板：${theme}`,
