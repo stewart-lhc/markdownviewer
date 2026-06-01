@@ -7,6 +7,7 @@ import { LandingTopbar } from "@/components/landing/topbar";
 import { defaultLocale, localizePath, type Locale } from "@/lib/i18n/locales";
 import { getMessages, type Messages } from "@/lib/i18n/messages";
 import { getProductUpdateText, productUpdates } from "@/lib/product-updates";
+import { seoLandingPages } from "@/lib/seo/landing-pages";
 
 const siteUrl = "https://markdownviewer.run";
 const githubRepositoryUrl = "https://github.com/stewart-lhc/markdownviewer";
@@ -167,6 +168,30 @@ export function HomePageContent({ locale = defaultLocale }: HomePageContentProps
             ))}
           </div>
         </section>
+
+        {locale === defaultLocale ? (
+          <section className="section">
+            <div className="section-head">
+              <div>
+                <p className="eyebrow">Popular Markdown workflows</p>
+                <h2 className="section-title">More focused ways to preview Markdown online.</h2>
+              </div>
+              <p className="section-copy">
+                Start from the Markdown task you searched for, then open the same live workspace with the right context.
+              </p>
+            </div>
+            <div className="intent-grid">
+              {seoLandingPages.map((page) => (
+                <article className="surface-card intent-card" key={page.slug}>
+                  <h3>
+                    <a href={page.path}>{page.h1}</a>
+                  </h3>
+                  <p>{page.summary}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         <section className="section section--compact" aria-labelledby="markdown-viewer-faq">
           <div className="section-head">

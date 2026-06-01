@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { seoLandingPages } from "@/lib/seo/landing-pages";
 
 const siteUrl = "https://markdownviewer.run";
 
@@ -65,6 +66,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 0.7,
       alternates: changelogAlternates
-    }
+    },
+    ...seoLandingPages.map((page) => ({
+      url: `${siteUrl}${page.path}`,
+      lastModified,
+      changeFrequency: "monthly" as const,
+      priority: 0.75
+    }))
   ];
 }
