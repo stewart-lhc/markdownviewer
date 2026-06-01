@@ -294,10 +294,6 @@ function getActiveWorkspaceTabsSnapshot(
       return tab;
     }
 
-    if (tab.markdown === markdown && tab.sourceInput === sourceInput) {
-      return tab;
-    }
-
     return {
       ...tab,
       markdown,
@@ -554,7 +550,6 @@ export function WorkspaceShell({
   const latestMarkdownRef = useRef(currentMarkdown);
   const latestSourceRef = useRef(currentSource);
   const pendingFolderHashRef = useRef<string | undefined>(undefined);
-  const lastStoredTabsJsonRef = useRef<string | null>(null);
   const lastStoredDraftRef = useRef<string | null>(null);
   const previewMarkdown = useDeferredValue(currentMarkdown);
   const headings = useMemo(() => extractHeadings(previewMarkdown), [previewMarkdown]);
@@ -581,9 +576,9 @@ export function WorkspaceShell({
       tabs.map((tab) => ({
         ...tab,
         sourceLabel: getWorkspaceTabSourceLabel(tab, messages),
-        title: tab.id === activeTabId ? documentTitle : getWorkspaceTabTitle(tab, messages)
+        title: getWorkspaceTabTitle(tab, messages)
       })),
-    [activeTabId, documentTitle, messages, tabs]
+    [messages, tabs]
   );
   const workspaceGridStyle =
     currentMode === "split"
@@ -605,30 +600,6 @@ export function WorkspaceShell({
 
   function isCompactViewport() {
     return typeof window.matchMedia === "function" && window.matchMedia("(max-width: 720px)").matches;
-  }
-
-  function persistStoredWorkspaceTabs(nextTabs: WorkspaceTab[], nextActiveTabId: string) {
-    const normalizedTabs = nextTabs.slice(0, maxStoredWorkspaceTabs);
-    const normalizedActiveTabId = normalizedTabs.some((tab) => tab.id === nextActiveTabId)
-      ? nextActiveTabId
-      : normalizedTabs[0]?.id;
-
-    if (!normalizedActiveTabId) {
-      return;
-    }
-
-    const nextJson = JSON.stringify({
-      version: workspaceTabsStorageVersion,
-      activeTabId: normalizedActiveTabId,
-      tabs: normalizedTabs
-    });
-
-    if (lastStoredTabsJsonRef.current === nextJson) {
-      return;
-    }
-
-    window.localStorage.setItem(workspaceTabsStorageKey, nextJson);
-    lastStoredTabsJsonRef.current = nextJson;
   }
 
   function persistWorkspaceDraft(nextMarkdown: string) {
@@ -750,7 +721,7 @@ export function WorkspaceShell({
     }
 
     const saveTimer = window.setTimeout(() => {
-      persistStoredWorkspaceTabs(
+      writeStoredWorkspaceTabs(
         getActiveWorkspaceTabsSnapshot(tabs, activeTabId, currentMarkdown, currentSource),
         activeTabId
       );
@@ -764,7 +735,7 @@ export function WorkspaceShell({
   useEffect(() => {
     const saveDraft = () => {
       persistWorkspaceDraft(latestMarkdownRef.current);
-      persistStoredWorkspaceTabs(
+      writeStoredWorkspaceTabs(
         getActiveWorkspaceTabsSnapshot(
           tabsRef.current,
           activeTabIdRef.current,

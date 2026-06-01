@@ -9,14 +9,8 @@ describe("workspace performance guards", () => {
     expect(source).toContain("useMemo(() => extractHeadings(previewMarkdown), [previewMarkdown])");
   });
 
-  it("does not recompute the active tab title from immediate markdown during tab rendering", () => {
-    expect(source).toContain("tab.id === activeTabId ? documentTitle : getWorkspaceTabTitle(tab, messages)");
-  });
-
-  it("skips unchanged draft and tab storage writes", () => {
-    expect(source).toContain("lastStoredTabsJsonRef");
+  it("skips unchanged draft storage writes", () => {
     expect(source).toContain("lastStoredDraftRef");
-    expect(source).toContain("persistStoredWorkspaceTabs");
     expect(source).toContain("persistWorkspaceDraft");
   });
 });
