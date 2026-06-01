@@ -294,6 +294,10 @@ function getActiveWorkspaceTabsSnapshot(
       return tab;
     }
 
+    if (tab.markdown === markdown && tab.sourceInput === sourceInput) {
+      return tab;
+    }
+
     return {
       ...tab,
       markdown,
@@ -550,6 +554,8 @@ export function WorkspaceShell({
   const latestMarkdownRef = useRef(currentMarkdown);
   const latestSourceRef = useRef(currentSource);
   const pendingFolderHashRef = useRef<string | undefined>(undefined);
+  const lastStoredTabsJsonRef = useRef<string | null>(null);
+  const lastStoredDraftRef = useRef<string | null>(null);
   const previewMarkdown = useDeferredValue(currentMarkdown);
   const headings = useMemo(() => extractHeadings(previewMarkdown), [previewMarkdown]);
   const hasHeadings = headings.length > 0;
@@ -575,9 +581,9 @@ export function WorkspaceShell({
       tabs.map((tab) => ({
         ...tab,
         sourceLabel: getWorkspaceTabSourceLabel(tab, messages),
-        title: getWorkspaceTabTitle(tab, messages)
+        title: tab.id === activeTabId ? documentTitle : getWorkspaceTabTitle(tab, messages)
       })),
-    [messages, tabs]
+    [activeTabId, documentTitle, messages, tabs]
   );
   const workspaceGridStyle =
     currentMode === "split"
@@ -599,6 +605,39 @@ export function WorkspaceShell({
 
   function isCompactViewport() {
     return typeof window.matchMedia === "function" && window.matchMedia("(max-width: 720px)").matches;
+  }
+
+  function persistStoredWorkspaceTabs(nextTabs: WorkspaceTab[], nextActiveTabId: string) {
+    const normalizedTabs = nextTabs.slice(0, maxStoredWorkspaceTabs);
+    const normalizedActiveTabId = normalizedTabs.some((tab) => tab.id === nextActiveTabId)
+      ? nextActiveTabId
+      : normalizedTabs[0]?.id;
+
+    if (!normalizedActiveTabId) {
+      return;
+    }
+
+    const nextJson = JSON.stringify({
+      version: workspaceTabsStorageVersion,
+      activeTabId: normalizedActiveTabId,
+      tabs: normalizedTabs
+    });
+
+    if (lastStoredTabsJsonRef.current === nextJson) {
+      return;
+    }
+
+    window.localStorage.setItem(workspaceTabsStorageKey, nextJson);
+    lastStoredTabsJsonRef.current = nextJson;
+  }
+
+  function persistWorkspaceDraft(nextMarkdown: string) {
+    if (lastStoredDraftRef.current === nextMarkdown) {
+      return;
+    }
+
+    window.localStorage.setItem(workspaceDraftStorageKey, nextMarkdown);
+    lastStoredDraftRef.current = nextMarkdown;
   }
 
   useEffect(() => {
@@ -711,7 +750,7 @@ export function WorkspaceShell({
     }
 
     const saveTimer = window.setTimeout(() => {
-      writeStoredWorkspaceTabs(
+      persistStoredWorkspaceTabs(
         getActiveWorkspaceTabsSnapshot(tabs, activeTabId, currentMarkdown, currentSource),
         activeTabId
       );
@@ -724,8 +763,8 @@ export function WorkspaceShell({
 
   useEffect(() => {
     const saveDraft = () => {
-      window.localStorage.setItem(workspaceDraftStorageKey, latestMarkdownRef.current);
-      writeStoredWorkspaceTabs(
+      persistWorkspaceDraft(latestMarkdownRef.current);
+      persistStoredWorkspaceTabs(
         getActiveWorkspaceTabsSnapshot(
           tabsRef.current,
           activeTabIdRef.current,
@@ -746,7 +785,7 @@ export function WorkspaceShell({
 
   useEffect(() => {
     const saveTimer = window.setTimeout(() => {
-      window.localStorage.setItem(workspaceDraftStorageKey, currentMarkdown);
+      persistWorkspaceDraft(currentMarkdown);
     }, 320);
 
     return () => {
