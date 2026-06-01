@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import HomePage from "@/app/page";
 import ChineseHomePage from "@/app/zh-CN/page";
 
@@ -19,7 +19,12 @@ describe("homepage", () => {
     expect(container.querySelector(".topbar-actions > .ghost-link:last-child")).toHaveClass("ghost-link--primary");
     expect(screen.getByRole("heading", { level: 2, name: /recent features/i })).toBeInTheDocument();
     expect(screen.getByText("26.531")).toBeInTheDocument();
-    expect(container.querySelector(".hero-preview .markdown-body--compact")).toBeInTheDocument();
+    const preview = container.querySelector(".hero-preview .markdown-body--compact");
+
+    expect(preview).toBeInTheDocument();
+    expect(within(preview as HTMLElement).getByRole("heading", { level: 1, name: /markdown feature atlas/i })).toBeInTheDocument();
+    expect(container.querySelector(".hero-preview .code-frame")).toBeInTheDocument();
+    expect(container.querySelector(".hero-preview .mermaid-compact")).toBeInTheDocument();
   });
 
   it("renders a formal site footer with company and legal links", () => {
