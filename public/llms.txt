@@ -29,6 +29,12 @@ The product is designed for fast review of project notes, README.md files, API d
 |------|-------------|
 | `/` | Main landing page for the online Markdown viewer and live preview workspace. |
 | `/workspace` | Interactive Markdown viewer workspace for file, paste, GitHub, Gist, and raw URL preview. |
+| `/use-cases/readme-viewer` | README viewer for previewing README.md files before publishing. |
+| `/features/github-flavored-markdown-viewer` | GitHub Flavored Markdown viewer for tables, task lists, code fences, and README-style docs. |
+| `/features/mermaid-markdown-viewer` | Mermaid Markdown viewer for diagrams embedded in technical Markdown. |
+| `/features/markdown-math-preview` | Markdown math preview for KaTeX and LaTeX-style formulas in technical notes. |
+| `/use-cases/ai-markdown-viewer` | AI Markdown viewer for ChatGPT, Claude, Cursor, Copilot, and coding-agent output. |
+| `/use-cases/markdown-file-viewer-online` | Markdown file viewer for local .md files, pasted Markdown, GitHub, Gists, and raw URLs. |
 
 ## Use Cases
 
