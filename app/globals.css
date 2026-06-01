@@ -13,7 +13,8 @@
   --radius-lg: 24px;
   --radius-md: 18px;
   --hero-panel-height: 600px;
-  --mono: var(--font-mono, "SFMono-Regular"), Consolas, monospace;
+  --font-mono: "SFMono-Regular", "Cascadia Code", "Liberation Mono", Consolas, monospace;
+  --mono: var(--font-mono);
   --display: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
   --body: "Segoe UI", "Helvetica Neue", sans-serif;
   --body-glow-left: rgba(210, 91, 49, 0.18);

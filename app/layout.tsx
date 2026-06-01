@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono } from "next/font/google";
 import type { ReactNode } from "react";
 import "@/app/globals.css";
 import "katex/dist/katex.min.css";
@@ -11,13 +10,6 @@ const siteDescription =
   "Free online Markdown viewer with live preview for README.md, GitHub Flavored Markdown, Mermaid diagrams, KaTeX math, code blocks, and raw URLs.";
 const googleSiteVerification = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION;
 const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
-
-const mono = IBM_Plex_Mono({
-  display: "swap",
-  subsets: ["latin"],
-  variable: "--font-mono",
-  weight: ["400", "500", "600"]
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -80,7 +72,7 @@ type RootLayoutProps = {
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en">
-      <body className={mono.variable}>
+      <body>
         {children}
         <PwaRegistration />
         <GoogleAnalytics measurementId={gaMeasurementId} />

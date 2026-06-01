@@ -201,7 +201,7 @@ function readFolderPathFromSourceInput(sourceInput: string) {
     return undefined;
   }
 
-  return normalizeFolderPath(sourceInput);
+  return normalizeFolderPath(sourceInput) ?? undefined;
 }
 
 function normalizePreviewMarkdownHref(href: string) {
