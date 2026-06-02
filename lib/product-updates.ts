@@ -15,6 +15,32 @@ export type ProductUpdate = {
 
 export const productUpdates: ProductUpdate[] = [
   {
+    version: "26.602",
+    date: "2026-06-02",
+    en: {
+      title: "Long-tail SEO pages and build stability",
+      summary: "Markdownviewer now has focused public pages for key Markdown workflows, plus a more reliable production build path.",
+      highlights: [
+        "Added six crawlable pages for README preview, GitHub Flavored Markdown, Mermaid diagrams, Markdown math, AI-generated Markdown, and online Markdown file viewing.",
+        "Linked the new pages from the homepage, sitemap, and llms.txt so search crawlers and AI assistants can discover them.",
+        "Added FAQ and breadcrumb structured data to the new workflow pages.",
+        "Added preview margin controls and a workspace language switcher.",
+        "Removed the remote Google Fonts build dependency and switched to a local system monospace stack."
+      ]
+    },
+    "zh-CN": {
+      title: "长尾 SEO 页面和构建稳定性",
+      summary: "Markdownviewer 增加一组面向具体 Markdown 工作流的公开页面，并让生产构建更稳定。",
+      highlights: [
+        "新增 6 个可抓取页面，覆盖 README 预览、GitHub Flavored Markdown、Mermaid 图表、Markdown 数学公式、AI 生成 Markdown 和在线 Markdown 文件查看。",
+        "从首页、sitemap 和 llms.txt 暴露这些新页面，方便搜索爬虫和 AI 助手发现。",
+        "为新的工作流页面增加 FAQ 和 breadcrumb structured data。",
+        "增加预览留白控制和 workspace 语言切换入口。",
+        "移除远程 Google Fonts 构建依赖，改用本地系统 monospace 字体栈。"
+      ]
+    }
+  },
+  {
     version: "26.531",
     date: "2026-05-31",
     en: {

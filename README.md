@@ -11,7 +11,7 @@
 
 [Live Markdown Viewer](https://markdownviewer.run/) - [Open the Workspace](https://markdownviewer.run/workspace) - [Changelog](https://markdownviewer.run/changelog) - [Star the Project](https://github.com/stewart-lhc/markdownviewer)
 
-Current product update: **26.531**. Current package release: **v0.2.0**. See [CHANGELOG.md](CHANGELOG.md) and the live [Changelog](https://markdownviewer.run/changelog) for release notes and update history.
+Current product update: **26.602**. Current package release: **v0.2.0**. See [CHANGELOG.md](CHANGELOG.md) and the live [Changelog](https://markdownviewer.run/changelog) for release notes and update history.
 
 </div>
 
@@ -48,6 +48,7 @@ It is designed to be more than another plain utility page: Markdownviewer gives 
 - **Share and export** - copy share links, export polished HTML, or print/PDF from the preview workspace.
 - **Chinese localization** - use localized landing and workspace routes at `/zh-CN`.
 - **Mobile app-style workspace** - refined mobile navigation, larger import controls, focused tab selection, and a full-width preview bottom bar.
+- **Focused Markdown workflow pages** - dedicated pages for README preview, GFM, Mermaid, Markdown math, AI Markdown, and online Markdown file viewing.
 - **AI Markdown reader** - clean up Markdown from ChatGPT, Claude, Cursor, Copilot, and other AI tools.
 - **Open-source and self-hostable** - MIT licensed, built with Next.js, React, and TypeScript.
 
@@ -55,6 +56,7 @@ It is designed to be more than another plain utility page: Markdownviewer gives 
 
 | Version | Date | Product update |
 | --- | --- | --- |
+| **26.602** | 2026-06-02 | Added six long-tail SEO landing pages, homepage/sitemap/llms discovery links, FAQ structured data, workspace preview margin controls, workspace language switching, and a build-stable local monospace font stack. |
 | **26.531** | 2026-05-31 | Fixed mobile landing layout, added full-width top navigation, shipped the live changelog page, enlarged mobile workspace import controls, auto-collapsed the mobile tab rail after tab selection/import or backdrop taps, exposed real generated share links, and refined the mobile preview bottom bar. |
 | **26.530** | 2026-05-30 | Added Local Folder Workspace, folder browsing, relative Markdown link navigation, save-to-disk, folder reconnect states, mobile workspace layout fixes, and PWA tab handling improvements. |
 | **26.529** | 2026-05-29 | Added Chinese localization, installable PWA metadata, service worker support, Markdown file handlers, and operating-system file launch handling. |
@@ -99,6 +101,12 @@ Suggested anchor text:
 
 - Website: [https://markdownviewer.run/](https://markdownviewer.run/)
 - Workspace: [https://markdownviewer.run/workspace](https://markdownviewer.run/workspace)
+- README viewer: [https://markdownviewer.run/use-cases/readme-viewer](https://markdownviewer.run/use-cases/readme-viewer)
+- GitHub Flavored Markdown viewer: [https://markdownviewer.run/features/github-flavored-markdown-viewer](https://markdownviewer.run/features/github-flavored-markdown-viewer)
+- Mermaid Markdown viewer: [https://markdownviewer.run/features/mermaid-markdown-viewer](https://markdownviewer.run/features/mermaid-markdown-viewer)
+- Markdown math preview: [https://markdownviewer.run/features/markdown-math-preview](https://markdownviewer.run/features/markdown-math-preview)
+- AI Markdown viewer: [https://markdownviewer.run/use-cases/ai-markdown-viewer](https://markdownviewer.run/use-cases/ai-markdown-viewer)
+- Markdown file viewer online: [https://markdownviewer.run/use-cases/markdown-file-viewer-online](https://markdownviewer.run/use-cases/markdown-file-viewer-online)
 - Source code: [https://github.com/stewart-lhc/markdownviewer](https://github.com/stewart-lhc/markdownviewer)
 - Issues: [https://github.com/stewart-lhc/markdownviewer/issues](https://github.com/stewart-lhc/markdownviewer/issues)
 

@@ -2,6 +2,20 @@
 
 All notable changes to this project are documented in this file.
 
+## 26.602 - 2026-06-02
+
+### Added
+
+- Added six focused long-tail SEO landing pages for README preview, GitHub Flavored Markdown, Mermaid diagrams, Markdown math, AI-generated Markdown, and online Markdown file viewing.
+- Added homepage discovery links, sitemap entries, and `llms.txt` entries for the new SEO pages.
+- Added FAQ and breadcrumb structured data to each SEO landing page.
+- Added workspace preview margin controls and a workspace language switcher.
+
+### Changed
+
+- Updated folder Markdown link handling so preview links remain stable during fast local-folder interactions.
+- Removed the remote Google Fonts build dependency and switched the monospace stack to local system fonts for more reliable production builds.
+
 ## 26.531 - 2026-05-31
 
 ### Added
