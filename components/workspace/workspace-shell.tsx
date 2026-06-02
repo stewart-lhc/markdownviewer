@@ -39,6 +39,7 @@ import { loadMarkdownSourceViaApi, LoadedMarkdownSource } from "@/lib/workspace/
 import { MarkdownRenderer } from "@/components/markdown/markdown-renderer";
 import { OutlinePanel } from "@/components/workspace/outline-panel";
 import { EditorPresentationMode, SourcePanel, SourcePanelMode } from "@/components/workspace/source-panel";
+import { convertDocumentToMarkdown } from "@/lib/workspace/convert-document";
 import {
   getWorkspacePreviewFontStack,
   isWorkspacePreviewFont,
@@ -66,7 +67,7 @@ type WorkspaceShellProps = {
 };
 
 type WorkspaceTabRestoreStrategy = "restore" | "merge";
-type WorkspaceSourceKind = "draft" | "file-import" | "remote-url" | "folder-file";
+type WorkspaceSourceKind = "draft" | "file-import" | "remote-url" | "folder-file" | "converted-file";
 type FolderSaveState = "idle" | "dirty" | "saving" | "saved" | "failed" | "conflict";
 
 type WorkspaceTab = {
@@ -309,7 +310,8 @@ function normalizeStoredWorkspaceTab(value: unknown, index: number): WorkspaceTa
     record.sourceKind === "draft" ||
     record.sourceKind === "file-import" ||
     record.sourceKind === "remote-url" ||
-    record.sourceKind === "folder-file"
+    record.sourceKind === "folder-file" ||
+    record.sourceKind === "converted-file"
       ? record.sourceKind
       : undefined;
   const sourceInput = typeof record.sourceInput === "string" ? record.sourceInput : "";
@@ -443,6 +445,10 @@ function describeSource(sourceInput: string) {
 
   if (sourceInput.startsWith("file:")) {
     return sourceInput.replace(/^file:/, "");
+  }
+
+  if (sourceInput.startsWith("converted:")) {
+    return sourceInput.replace(/^converted:/, "");
   }
 
   try {
@@ -1466,6 +1472,17 @@ export function WorkspaceShell({
     activateWorkspaceTab(nextTab, "file", messages.status.loadedFile(file.name));
   }
 
+  async function openConvertedFileInNewTab(file: File) {
+    setStatusMessage(messages.status.convertingFile(file.name));
+
+    const result = await convertDocumentToMarkdown(file);
+    const nextTab = createExplicitImportTab(result.markdown, `converted:${result.sourceName}`, {
+      sourceKind: "converted-file"
+    });
+
+    activateWorkspaceTab(nextTab, "file", messages.status.convertedFile(result.sourceName));
+  }
+
   function handleNewTab() {
     setNewTabDialogOpen(true);
     setNewTabUrlInput("");
@@ -1710,6 +1727,14 @@ export function WorkspaceShell({
       sourceKind: "file-import"
     });
     setStatusMessage(messages.status.loadedFile(file.name));
+  }
+
+  async function handleConvertFile(file: File) {
+    try {
+      await openConvertedFileInNewTab(file);
+    } catch (error) {
+      setStatusMessage(error instanceof Error ? error.message : messages.status.loadFailed);
+    }
   }
 
   async function handlePasteIntoEditor() {
@@ -2121,6 +2146,7 @@ export function WorkspaceShell({
           messages={messages.toolbar}
           mode={currentMode}
           showImportActions={showToolbarImportActions}
+          onConvertFile={handleConvertFile}
           onExportHtml={handleExportHtml}
           onExportPdf={handleExportPdf}
           onActiveImportModeChange={setActiveImportMode}

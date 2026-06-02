@@ -164,6 +164,8 @@ export type Messages = {
     };
     status: {
       closedTab: string;
+      convertedFile: (fileName: string) => string;
+      convertingFile: (fileName: string) => string;
       exportedHtml: string;
       linkCopied: string;
       loadFailed: string;
@@ -190,6 +192,8 @@ export type Messages = {
       title: string;
     };
     toolbar: {
+      convertFile: string;
+      convertUploadLabel: string;
       exportHtml: string;
       exportPdf: string;
       file: string;
@@ -412,6 +416,8 @@ export const messages: Record<Locale, Messages> = {
       },
       status: {
         closedTab: "Closed tab.",
+        convertedFile: (fileName) => `Converted ${fileName} to Markdown.`,
+        convertingFile: (fileName) => `Converting ${fileName} to Markdown...`,
         exportedHtml: "Exported HTML.",
         linkCopied: "Link copied.",
         loadFailed: "Failed to load Markdown.",
@@ -441,6 +447,8 @@ export const messages: Record<Locale, Messages> = {
         home: "Markdownviewer home"
       },
       toolbar: {
+        convertFile: "Convert",
+        convertUploadLabel: "Convert document to Markdown",
         exportHtml: "Export HTML",
         exportPdf: "Export PDF",
         file: "File",
@@ -767,6 +775,8 @@ export const messages: Record<Locale, Messages> = {
       },
       status: {
         closedTab: "已关闭标签。",
+        convertedFile: (fileName) => `已将 ${fileName} 转换为 Markdown。`,
+        convertingFile: (fileName) => `正在将 ${fileName} 转换为 Markdown...`,
         exportedHtml: "已导出 HTML。",
         linkCopied: "链接已复制。",
         loadFailed: "加载 Markdown 失败。",
@@ -796,6 +806,8 @@ export const messages: Record<Locale, Messages> = {
         home: "Markdownviewer 首页"
       },
       toolbar: {
+        convertFile: "转换",
+        convertUploadLabel: "转换文档为 Markdown",
         exportHtml: "导出 HTML",
         exportPdf: "导出 PDF",
         file: "文件",

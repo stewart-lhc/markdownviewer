@@ -6,8 +6,19 @@ import { WorkspaceShell } from "@/components/workspace/workspace-shell";
 import { getBoundStackeditEditor } from "@/lib/workspace/stackedit-cledit";
 import { serializeRichEditorSurface } from "@/lib/workspace/rich-editor-surface";
 import { pendingWorkspaceImportKey } from "@/lib/workspace/pending-import";
+import { convertDocumentToMarkdown } from "@/lib/workspace/convert-document";
+
+vi.mock("@/lib/workspace/convert-document", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/workspace/convert-document")>();
+
+  return {
+    ...actual,
+    convertDocumentToMarkdown: vi.fn()
+  };
+});
 
 const workspaceTabsStorageKey = "markdownviewer.workspace.tabs.v1";
+const mockedConvertDocumentToMarkdown = vi.mocked(convertDocumentToMarkdown);
 
 function getStackeditEditor(richEditor: HTMLElement) {
   const editor = getBoundStackeditEditor(richEditor);
@@ -186,10 +197,17 @@ function mockCompactWorkspace() {
 afterEach(() => {
   Reflect.deleteProperty(window, "showDirectoryPicker");
   Reflect.deleteProperty(window, "matchMedia");
+  mockedConvertDocumentToMarkdown.mockReset();
   vi.restoreAllMocks();
 });
 
 describe("WorkspaceShell interactions", () => {
+  it("shows a dedicated document conversion entry in the import controls", () => {
+    render(<WorkspaceShell markdown="" sourceInput="" />);
+
+    expect(screen.getByRole("button", { name: /convert/i })).toBeInTheDocument();
+  });
+
   it("defaults to split mode, renders a syntax-visible rich editor, and updates the live preview while editing", async () => {
     render(<WorkspaceShell markdown="# First draft" sourceInput="" />);
 
@@ -1301,9 +1319,95 @@ describe("WorkspaceShell interactions", () => {
     await waitFor(() => {
       expect(screen.getByRole("tab", { name: /dragged file/i })).toHaveAttribute("aria-selected", "true");
     });
-
     expect(screen.getByRole("tab", { name: /existing draft/i })).toBeInTheDocument();
     expect(page).toHaveAttribute("data-file-drag-active", "false");
+  });
+
+  it("converts a supported document and opens the Markdown in a new workspace tab", async () => {
+    const user = userEvent.setup();
+    mockedConvertDocumentToMarkdown.mockResolvedValue({
+      markdown: "# Converted Brief\n\nGenerated from DOCX.",
+      label: "Converted document",
+      sourceName: "brief.docx"
+    });
+
+    render(<WorkspaceShell markdown="# Existing draft" sourceInput="" />);
+
+    await user.upload(
+      screen.getByLabelText(/convert document to markdown/i),
+      new File(["demo"], "brief.docx", {
+        type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      })
+    );
+
+    expect(mockedConvertDocumentToMarkdown).toHaveBeenCalledWith(expect.any(File));
+
+    await waitFor(() => {
+      expect(screen.getByRole("tab", { name: /converted brief/i })).toHaveAttribute(
+        "aria-selected",
+        "true"
+      );
+    });
+    await waitFor(() => {
+      expect(
+        within(screen.getByTestId("preview-panel")).getByRole("heading", { name: "Converted Brief" })
+      ).toBeInTheDocument();
+    });
+    expect(screen.getAllByText("brief.docx").length).toBeGreaterThan(0);
+    expect(screen.getByText("Converted brief.docx to Markdown.")).toBeInTheDocument();
+  });
+
+  it("persists converted document tabs in browser workspace storage", async () => {
+    const user = userEvent.setup();
+    mockedConvertDocumentToMarkdown.mockResolvedValue({
+      markdown: "# Converted Persisted",
+      label: "Converted document",
+      sourceName: "persisted.pdf"
+    });
+
+    render(<WorkspaceShell markdown="" sourceInput="" />);
+
+    await user.upload(
+      screen.getByLabelText(/convert document to markdown/i),
+      new File(["demo"], "persisted.pdf", { type: "application/pdf" })
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole("tab", { name: /converted persisted/i })).toHaveAttribute(
+        "aria-selected",
+        "true"
+      );
+    });
+
+    window.dispatchEvent(new Event("pagehide"));
+
+    const stored = JSON.parse(window.localStorage.getItem(workspaceTabsStorageKey) ?? "{}");
+    expect(stored.tabs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          markdown: "# Converted Persisted",
+          sourceInput: "converted:persisted.pdf",
+          sourceKind: "converted-file"
+        })
+      ])
+    );
+  });
+
+  it("reports conversion errors without replacing the active Markdown document", async () => {
+    const user = userEvent.setup();
+    mockedConvertDocumentToMarkdown.mockRejectedValue(new Error("This file is too large to convert."));
+
+    render(<WorkspaceShell markdown="# Existing draft" sourceInput="" />);
+
+    await user.upload(
+      screen.getByLabelText(/convert document to markdown/i),
+      new File(["demo"], "huge.pdf", { type: "application/pdf" })
+    );
+
+    expect(await screen.findByText("This file is too large to convert.")).toBeInTheDocument();
+    expect(
+      within(screen.getByTestId("preview-panel")).getByRole("heading", { name: "Existing draft" })
+    ).toBeInTheDocument();
   });
 
   it("opens a file handed off from the homepage import action", async () => {

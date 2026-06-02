@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Clipboard, Columns2, Eye, FileUp, FolderOpen, Link, MoreHorizontal, Pencil, Save, X } from "lucide-react";
+import { Clipboard, Columns2, Eye, FileUp, FolderOpen, Link, MoreHorizontal, Pencil, RefreshCw, Save, X } from "lucide-react";
 import type { SourcePanelMode } from "@/components/workspace/source-panel";
 import type { WorkspaceMessages } from "@/lib/i18n/messages";
+import { convertedDocumentAccept } from "@/lib/workspace/convert-document";
 
 type WorkspaceToolbarProps = {
   activeImportMode: SourcePanelMode;
@@ -15,6 +16,7 @@ type WorkspaceToolbarProps = {
   onActiveImportModeChange: (mode: SourcePanelMode) => void;
   onModeChange: (mode: "preview" | "split" | "editor") => void;
   onPasteIntoEditor: () => void;
+  onConvertFile: (file: File) => void;
   onFileImport: (file: File) => void;
   onParseSource: () => void;
   onSourceChange: (value: string) => void;
@@ -47,6 +49,7 @@ export function WorkspaceToolbar({
   sourceValue,
   onActiveImportModeChange,
   onPasteIntoEditor,
+  onConvertFile,
   onFileImport,
   onParseSource,
   onSourceChange,
@@ -59,6 +62,7 @@ export function WorkspaceToolbar({
   const [importMenuOpen, setImportMenuOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [urlDialogOpen, setUrlDialogOpen] = useState(false);
+  const convertFileInputRef = useRef<HTMLInputElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const importMenuRef = useRef<HTMLDivElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -102,6 +106,10 @@ export function WorkspaceToolbar({
   function activateFile() {
     onActiveImportModeChange("file");
     fileInputRef.current?.click();
+  }
+
+  function activateConvertFile() {
+    convertFileInputRef.current?.click();
   }
 
   function activateUrl() {
@@ -164,6 +172,14 @@ export function WorkspaceToolbar({
                 {messages.file}
               </button>
               <button
+                className="toolbar-menu-button"
+                onClick={() => runAction(activateConvertFile)}
+                role="menuitem"
+                type="button"
+              >
+                {messages.convertFile}
+              </button>
+              <button
                 aria-checked={activeImportMode === "url"}
                 className="toolbar-menu-button"
                 onClick={() => runAction(activateUrl)}
@@ -207,6 +223,14 @@ export function WorkspaceToolbar({
         </button>
         <button
           className="toolbar-button"
+          onClick={activateConvertFile}
+          type="button"
+        >
+          <RefreshCw aria-hidden="true" size={16} strokeWidth={2} />
+          <span>{messages.convertFile}</span>
+        </button>
+        <button
+          className="toolbar-button"
           data-active={activeImportMode === "url"}
           onClick={activateUrl}
           type="button"
@@ -239,25 +263,59 @@ export function WorkspaceToolbar({
           type="file"
           accept=".md,.markdown,.mdx,.txt,text/markdown,text/plain"
         />
-      </div>
-      ) : (
         <input
-          aria-label={messages.uploadLabel}
+          aria-label={messages.convertUploadLabel}
           className="sr-only"
           onChange={(event) => {
             const file = event.currentTarget.files?.[0];
 
             if (file) {
-              onActiveImportModeChange("file");
-              onFileImport(file);
+              onConvertFile(file);
             }
 
             event.currentTarget.value = "";
           }}
-          ref={fileInputRef}
+          ref={convertFileInputRef}
           type="file"
-          accept=".md,.markdown,.mdx,.txt,text/markdown,text/plain"
+          accept={convertedDocumentAccept}
         />
+      </div>
+      ) : (
+        <>
+          <input
+            aria-label={messages.uploadLabel}
+            className="sr-only"
+            onChange={(event) => {
+              const file = event.currentTarget.files?.[0];
+
+              if (file) {
+                onActiveImportModeChange("file");
+                onFileImport(file);
+              }
+
+              event.currentTarget.value = "";
+            }}
+            ref={fileInputRef}
+            type="file"
+            accept=".md,.markdown,.mdx,.txt,text/markdown,text/plain"
+          />
+          <input
+            aria-label={messages.convertUploadLabel}
+            className="sr-only"
+            onChange={(event) => {
+              const file = event.currentTarget.files?.[0];
+
+              if (file) {
+                onConvertFile(file);
+              }
+
+              event.currentTarget.value = "";
+            }}
+            ref={convertFileInputRef}
+            type="file"
+            accept={convertedDocumentAccept}
+          />
+        </>
       )}
       {showImportActions && activeImportMode === "url" && !compact ? (
         <div className="toolbar-url-row">
