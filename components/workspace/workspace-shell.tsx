@@ -116,7 +116,7 @@ type PwaLaunchWindow = Window & typeof globalThis & {
 const workspaceDraftStorageKey = "markdownviewer.workspace.current";
 const workspacePreviewFontStorageKey = "markdownviewer.workspace.preview.font";
 const workspacePreviewFontSizeStorageKey = "markdownviewer.workspace.preview.fontSize";
-const workspacePreviewMarginStorageKey = "markdownviewer.workspace.preview.margin.v2";
+const workspacePreviewMarginStorageKey = "markdownviewer.workspace.preview.margin.v3";
 const workspaceSplitStorageKey = "markdownviewer.workspace.split";
 const workspaceTabsCollapsedStorageKey = "markdownviewer.workspace.tabs.collapsed";
 const workspaceTabsStorageKey = "markdownviewer.workspace.tabs.v1";
@@ -129,9 +129,20 @@ const defaultPreviewFont: WorkspacePreviewFont = "system";
 const defaultPreviewFontSize = 15;
 const minPreviewFontSize = 13;
 const maxPreviewFontSize = 21;
-const defaultPreviewMargin = 40;
-const minPreviewMargin = 12;
-const maxPreviewMargin = 72;
+const previewMarginLevels = [
+  "12px",
+  "clamp(24px, 5%, 48px)",
+  "clamp(36px, 8%, 84px)",
+  "clamp(48px, 11%, 120px)",
+  "clamp(60px, 14%, 156px)",
+  "clamp(72px, 17%, 192px)",
+  "clamp(84px, 21%, 228px)",
+  "25%"
+] as const;
+const defaultPreviewMargin = previewMarginLevels.length - 1;
+const minPreviewMargin = 0;
+const maxPreviewMargin = previewMarginLevels.length - 1;
+const clipboardWriteTimeoutMs = 700;
 
 function clampSplitPercent(value: number) {
   return Math.min(Math.max(value, splitMinPercent), splitMaxPercent);
@@ -142,7 +153,55 @@ function clampPreviewFontSize(value: number) {
 }
 
 function clampPreviewMargin(value: number) {
-  return Math.min(Math.max(Math.round(value / 8) * 8, minPreviewMargin), maxPreviewMargin);
+  return Math.min(Math.max(Math.round(value), minPreviewMargin), maxPreviewMargin);
+}
+
+function getPreviewMarginCss(level: number) {
+  return previewMarginLevels[clampPreviewMargin(level)] ?? previewMarginLevels[defaultPreviewMargin];
+}
+
+async function writeClipboardWithTimeout(text: string) {
+  if (!navigator.clipboard?.writeText) {
+    return false;
+  }
+
+  try {
+    await Promise.race([
+      navigator.clipboard.writeText(text),
+      new Promise((_, reject) => window.setTimeout(reject, clipboardWriteTimeoutMs))
+    ]);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function writeClipboardWithTextareaFallback(text: string) {
+  const textarea = document.createElement("textarea");
+
+  textarea.value = text;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.top = "-9999px";
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.select();
+
+  try {
+    return document.execCommand("copy");
+  } catch {
+    return false;
+  } finally {
+    document.body.removeChild(textarea);
+  }
+}
+
+async function copyShareUrlToClipboard(text: string) {
+  if (await writeClipboardWithTimeout(text)) {
+    return true;
+  }
+
+  return writeClipboardWithTextareaFallback(text);
 }
 
 function deriveDocumentTitle(
@@ -635,7 +694,7 @@ export function WorkspaceShell({
   const previewReaderStyle = {
     "--workspace-preview-font-family": getWorkspacePreviewFontStack(previewFont),
     "--workspace-preview-font-size": `${previewFontSize}px`,
-    "--workspace-preview-inline-margin": `${previewMargin}px`
+    "--workspace-preview-inline-margin": getPreviewMarginCss(previewMargin)
   } as CSSProperties;
 
   function collapseTabsForReading() {
@@ -1710,12 +1769,8 @@ export function WorkspaceShell({
     const shareUrl = `${window.location.origin}${localizePath(`/share/${shareId}`, locale)}`;
     setShareUrl(shareUrl);
 
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      setStatusMessage(`${messages.status.linkCopied} ${shareUrl}`);
-    } catch {
-      setStatusMessage(shareUrl);
-    }
+    const copied = await copyShareUrlToClipboard(shareUrl);
+    setStatusMessage(copied ? `${messages.status.linkCopied} ${shareUrl}` : shareUrl);
   }
 
   async function handleCopyShareUrl() {
@@ -1723,12 +1778,8 @@ export function WorkspaceShell({
       return;
     }
 
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      setStatusMessage(`${messages.status.linkCopied} ${shareUrl}`);
-    } catch {
-      setStatusMessage(shareUrl);
-    }
+    const copied = await copyShareUrlToClipboard(shareUrl);
+    setStatusMessage(copied ? `${messages.status.linkCopied} ${shareUrl}` : shareUrl);
   }
 
   function getCurrentMarkdownLineForOffset(offset: number) {

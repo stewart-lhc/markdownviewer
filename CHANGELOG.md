@@ -10,10 +10,13 @@ All notable changes to this project are documented in this file.
 - Added homepage discovery links, sitemap entries, and `llms.txt` entries for the new SEO pages.
 - Added FAQ and breadcrumb structured data to each SEO landing page.
 - Added workspace preview margin controls and a workspace language switcher.
+- Added homepage quick links for the six focused Markdown workflow pages.
 
 ### Changed
 
+- Changed preview mode to default to the widest preview margin, with a 1:2:1 side/content/side reading ratio on desktop.
 - Updated folder Markdown link handling so preview links remain stable during fast local-folder interactions.
+- Improved share-link copying with a timeout and textarea fallback so the generated share link still appears when the Clipboard API stalls.
 - Removed the remote Google Fonts build dependency and switched the monospace stack to local system fonts for more reliable production builds.
 
 ## 26.531 - 2026-05-31

@@ -926,6 +926,32 @@ button {
   min-height: 0;
 }
 
+.workflow-link-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 22px 0 4px;
+}
+
+.workflow-link-bar a {
+  border: 1px solid var(--chip-border);
+  border-radius: 999px;
+  background: var(--chip-bg);
+  color: var(--ink);
+  padding: 9px 12px;
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  line-height: 1.2;
+  text-decoration: none;
+}
+
+.workflow-link-bar a:hover,
+.workflow-link-bar a:focus-visible {
+  border-color: rgba(210, 91, 49, 0.32);
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--accent);
+}
+
 .hero-copy,
 .surface-card,
 .workspace-card {
@@ -3025,12 +3051,12 @@ button {
   flex: 1;
   --workspace-preview-font-family: var(--body);
   --workspace-preview-font-size: 15px;
-  --workspace-preview-inline-margin: 40px;
+  --workspace-preview-inline-margin: 25%;
   min-height: 0;
   border-radius: 10px;
   border: 0;
   background: var(--workspace-reader-bg);
-  padding: 12px var(--workspace-preview-inline-margin);
+  padding: 12px clamp(12px, var(--workspace-preview-inline-margin), 72px);
   overflow: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
@@ -3106,7 +3132,7 @@ button {
 }
 
 html[data-theme="primer"] .workspace-reader-body {
-  padding: 22px var(--workspace-preview-inline-margin);
+  padding: 22px clamp(12px, var(--workspace-preview-inline-margin), 72px);
 }
 
 html[data-theme="primer"] .workspace-reader-body .markdown-body {
@@ -3130,7 +3156,7 @@ html[data-theme="primer"] .workspace-reader-body .markdown-body h1 {
 }
 
 html[data-theme="manuscript"] .workspace-reader-body {
-  padding: 24px var(--workspace-preview-inline-margin);
+  padding: 24px clamp(12px, var(--workspace-preview-inline-margin), 72px);
 }
 
 html[data-theme="manuscript"] .workspace-reader-body .markdown-body {
@@ -3747,8 +3773,12 @@ html[data-theme="night"] .workspace-editor-surface--stackedit .token.md-token--l
 }
 
 .workspace-grid[data-mode="preview"] .workspace-reader-body .markdown-body {
-  max-width: max(520px, calc(100% - (var(--workspace-preview-inline-margin) * 2)));
+  max-width: 100%;
   margin-inline: auto;
+}
+
+.workspace-grid[data-mode="preview"] .workspace-reader-body {
+  padding-inline: var(--workspace-preview-inline-margin);
 }
 
 .workspace-reader-body .markdown-body h1,

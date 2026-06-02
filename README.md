@@ -56,7 +56,7 @@ It is designed to be more than another plain utility page: Markdownviewer gives 
 
 | Version | Date | Product update |
 | --- | --- | --- |
-| **26.602** | 2026-06-02 | Added six long-tail SEO landing pages, homepage/sitemap/llms discovery links, FAQ structured data, workspace preview margin controls, workspace language switching, and a build-stable local monospace font stack. |
+| **26.602** | 2026-06-02 | Added six long-tail SEO landing pages, homepage quick links plus sitemap/llms discovery, FAQ structured data, default wide preview margins, workspace language switching, share-link fallback copying, and a build-stable local monospace font stack. |
 | **26.531** | 2026-05-31 | Fixed mobile landing layout, added full-width top navigation, shipped the live changelog page, enlarged mobile workspace import controls, auto-collapsed the mobile tab rail after tab selection/import or backdrop taps, exposed real generated share links, and refined the mobile preview bottom bar. |
 | **26.530** | 2026-05-30 | Added Local Folder Workspace, folder browsing, relative Markdown link navigation, save-to-disk, folder reconnect states, mobile workspace layout fixes, and PWA tab handling improvements. |
 | **26.529** | 2026-05-29 | Added Chinese localization, installable PWA metadata, service worker support, Markdown file handlers, and operating-system file launch handling. |

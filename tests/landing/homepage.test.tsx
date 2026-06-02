@@ -19,6 +19,11 @@ describe("homepage", () => {
     expect(container.querySelector(".topbar-actions > .ghost-link:last-child")).toHaveClass("ghost-link--primary");
     expect(screen.getByRole("heading", { level: 2, name: /recent features/i })).toBeInTheDocument();
     expect(screen.getByText("26.531")).toBeInTheDocument();
+    expect(screen.getByRole("navigation", { name: /markdown workflow pages/i })).toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: /readme viewer online/i })[0]).toHaveAttribute(
+      "href",
+      "/use-cases/readme-viewer"
+    );
     const preview = container.querySelector(".hero-preview .markdown-body--compact");
 
     expect(preview).toBeInTheDocument();

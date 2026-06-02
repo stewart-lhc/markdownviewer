@@ -112,11 +112,13 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain(".workspace-reader-body {");
     expect(css).toContain("--workspace-preview-font-family: var(--body);");
     expect(css).toContain("--workspace-preview-font-size: 15px;");
-    expect(css).toContain("--workspace-preview-inline-margin: 40px;");
+    expect(css).toContain("--workspace-preview-inline-margin: 25%;");
     expect(css).toContain("font-family: var(--workspace-preview-font-family);");
     expect(css).toContain("font-size: var(--workspace-preview-font-size);");
     expect(css).toContain('.workspace-grid[data-mode="preview"] .workspace-reader-body .markdown-body {');
-    expect(css).toContain("max-width: max(520px, calc(100% - (var(--workspace-preview-inline-margin) * 2)));");
+    expect(css).toContain("max-width: 100%;");
+    expect(css).toContain('.workspace-grid[data-mode="preview"] .workspace-reader-body {');
+    expect(css).toContain("padding-inline: var(--workspace-preview-inline-margin);");
     expect(css).toContain("html[data-theme] .workspace-reader-body .markdown-body h1,");
   });
 

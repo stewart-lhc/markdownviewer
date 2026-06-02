@@ -221,19 +221,19 @@ export function WorkspacePreviewTypographyControls({
             aria-label={messages.decreaseMargin}
             className="toolbar-button workspace-preview-margin-button"
             disabled={margin <= minMargin}
-            onClick={() => onMarginChange(margin - 8)}
+            onClick={() => onMarginChange(margin - 1)}
             type="button"
           >
             M-
           </button>
           <output aria-label={messages.margin} className="workspace-preview-margin-value sr-only">
-            {margin}px
+            {margin + 1}
           </output>
           <button
             aria-label={messages.increaseMargin}
             className="toolbar-button workspace-preview-margin-button"
             disabled={margin >= maxMargin}
-            onClick={() => onMarginChange(margin + 8)}
+            onClick={() => onMarginChange(margin + 1)}
             type="button"
           >
             M+

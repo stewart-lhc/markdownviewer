@@ -22,9 +22,10 @@ export const productUpdates: ProductUpdate[] = [
       summary: "Markdownviewer now has focused public pages for key Markdown workflows, plus a more reliable production build path.",
       highlights: [
         "Added six crawlable pages for README preview, GitHub Flavored Markdown, Mermaid diagrams, Markdown math, AI-generated Markdown, and online Markdown file viewing.",
-        "Linked the new pages from the homepage, sitemap, and llms.txt so search crawlers and AI assistants can discover them.",
+        "Linked the new pages from a homepage quick-link bar, the sitemap, and llms.txt so visitors, search crawlers, and AI assistants can discover them.",
         "Added FAQ and breadcrumb structured data to the new workflow pages.",
-        "Added preview margin controls and a workspace language switcher.",
+        "Made preview mode default to the widest reading margin, with eight margin levels and a 1:2:1 desktop reading ratio at the maximum setting.",
+        "Added preview margin controls, a workspace language switcher, and share-link fallback copying when the Clipboard API stalls.",
         "Removed the remote Google Fonts build dependency and switched to a local system monospace stack."
       ]
     },
@@ -33,9 +34,10 @@ export const productUpdates: ProductUpdate[] = [
       summary: "Markdownviewer 增加一组面向具体 Markdown 工作流的公开页面，并让生产构建更稳定。",
       highlights: [
         "新增 6 个可抓取页面，覆盖 README 预览、GitHub Flavored Markdown、Mermaid 图表、Markdown 数学公式、AI 生成 Markdown 和在线 Markdown 文件查看。",
-        "从首页、sitemap 和 llms.txt 暴露这些新页面，方便搜索爬虫和 AI 助手发现。",
+        "从首页 quick-link bar、sitemap 和 llms.txt 暴露这些新页面，方便用户、搜索爬虫和 AI 助手发现。",
         "为新的工作流页面增加 FAQ 和 breadcrumb structured data。",
-        "增加预览留白控制和 workspace 语言切换入口。",
+        "preview 模式默认使用最大阅读留白，最大档位在桌面端接近 1:2:1 的左右留白和正文比例，并保留 8 个留白档位。",
+        "增加预览留白控制、workspace 语言切换入口，以及 Clipboard API 卡住时的分享链接 fallback 复制。",
         "移除远程 Google Fonts 构建依赖，改用本地系统 monospace 字体栈。"
       ]
     }

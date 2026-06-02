@@ -662,7 +662,7 @@ describe("WorkspaceShell interactions", () => {
   it("lets the reader adjust preview font and size from the preview header", async () => {
     window.localStorage.removeItem("markdownviewer.workspace.preview.font");
     window.localStorage.removeItem("markdownviewer.workspace.preview.fontSize");
-    window.localStorage.removeItem("markdownviewer.workspace.preview.margin.v2");
+    window.localStorage.removeItem("markdownviewer.workspace.preview.margin.v3");
     const user = userEvent.setup();
 
     render(<WorkspaceShell markdown="# Typography\n\nReadable preview text." sourceInput="" />);
@@ -675,16 +675,20 @@ describe("WorkspaceShell interactions", () => {
     await user.click(screen.getByRole("menuitemradio", { name: /^serif/i }));
     await user.click(within(previewPanel).getByRole("button", { name: /increase preview font size/i }));
     await user.click(within(previewPanel).getByRole("button", { name: /increase preview font size/i }));
-    await user.click(within(previewPanel).getByRole("button", { name: /increase preview margin/i }));
+    expect(previewRegion).toHaveStyle({
+      "--workspace-preview-inline-margin": "25%"
+    });
+
+    await user.click(within(previewPanel).getByRole("button", { name: /decrease preview margin/i }));
 
     expect(previewRegion).toHaveStyle({
       "--workspace-preview-font-family": "Georgia, 'Times New Roman', serif",
       "--workspace-preview-font-size": "17px",
-      "--workspace-preview-inline-margin": "48px"
+      "--workspace-preview-inline-margin": "clamp(84px, 21%, 228px)"
     });
     expect(window.localStorage.getItem("markdownviewer.workspace.preview.font")).toBe("serif");
     expect(window.localStorage.getItem("markdownviewer.workspace.preview.fontSize")).toBe("17");
-    expect(window.localStorage.getItem("markdownviewer.workspace.preview.margin.v2")).toBe("48");
+    expect(window.localStorage.getItem("markdownviewer.workspace.preview.margin.v3")).toBe("6");
   });
 
   it("moves editor formatting tools into an overflow menu when the pane is narrow", async () => {
@@ -1240,6 +1244,34 @@ describe("WorkspaceShell interactions", () => {
     await user.click(screen.getByRole("button", { name: /editor/i }));
     expect(screen.getByTestId("source-panel")).toBeInTheDocument();
     expect(screen.queryByTestId("preview-panel")).not.toBeInTheDocument();
+  });
+
+  it("shows the generated share link when clipboard writing stalls", async () => {
+    const user = userEvent.setup();
+    const writeText = vi.fn(() => new Promise<void>(() => undefined));
+    const execCommand = vi.fn(() => true);
+
+    Object.defineProperty(window.navigator, "clipboard", {
+      configurable: true,
+      value: { writeText }
+    });
+    Object.defineProperty(document, "execCommand", {
+      configurable: true,
+      value: execCommand
+    });
+
+    render(<WorkspaceShell markdown="# Share fallback\n\nReadable document." sourceInput="" />);
+
+    await user.click(screen.getByRole("button", { name: /share link/i }));
+
+    const generatedShareLink = await screen.findByRole("link", { name: /open generated share link/i });
+
+    expect(writeText).toHaveBeenCalledWith(expect.stringMatching(/\/share\/md-/));
+    await waitFor(() => {
+      expect(execCommand).toHaveBeenCalledWith("copy");
+    });
+    expect(generatedShareLink).toHaveAttribute("href", expect.stringMatching(/\/share\/md-/));
+    expect(screen.getByText(/share link ready/i)).toBeInTheDocument();
   });
 
   it("opens a dragged Markdown file as a new workspace tab", async () => {

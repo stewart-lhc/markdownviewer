@@ -18,7 +18,7 @@ describe("seo discovery surfaces", () => {
     render(<HomePage />);
 
     for (const page of seoLandingPages) {
-      expect(screen.getByRole("link", { name: page.h1 })).toHaveAttribute("href", page.path);
+      expect(screen.getAllByRole("link", { name: page.h1 })[0]).toHaveAttribute("href", page.path);
     }
   });
 });
