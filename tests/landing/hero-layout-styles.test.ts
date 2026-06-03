@@ -18,7 +18,7 @@ describe("landing hero layout styles", () => {
     expect(css).toContain("--hero-panel-height: 600px;");
     expect(heroRule).toContain("height: var(--hero-panel-height);");
     expect(heroRule).toContain("min-height: 0;");
-    expect(heroCopyRule).toContain("grid-template-rows: minmax(0, 1fr) auto;");
+    expect(heroCopyRule).toContain("grid-template-rows: auto auto;");
     expect(heroCopyRule).toContain("justify-items: start;");
     expect(heroCopyRule).toContain("align-content: space-between;");
     expect(heroCopyRule).toContain("height: 100%;");
@@ -51,8 +51,8 @@ describe("landing hero layout styles", () => {
     const supportStripRule = getRule(".support-strip");
     const supportPillRule = getRule(".support-pill");
 
-    expect(supportStripRule).toContain("flex-wrap: nowrap;");
-    expect(supportStripRule).toContain("justify-content: space-between;");
+    expect(supportStripRule).toContain("flex-wrap: wrap;");
+    expect(supportStripRule).toContain("justify-content: flex-start;");
     expect(supportStripRule).toContain("width: min(100%, 580px);");
     expect(supportStripRule).toContain("overflow: visible;");
     expect(supportPillRule).toContain("white-space: nowrap;");

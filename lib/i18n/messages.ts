@@ -262,7 +262,7 @@ export const messages: Record<Locale, Messages> = {
       },
       hero: {
         body:
-          "Open Markdown like it deserves. `markdownviewer.run` turns project notes, READMEs, AI output, and technical writing into a polished live preview. Paste Markdown, convert DOCX, PPTX, XLSX, CSV, HTML, JSON, XML, or text-heavy PDF files to Markdown, open local files or folders, send GitHub, Gist, and raw URLs into the workspace, install it as a PWA, and keep multi-tab docs ready for export or sharing.",
+          "Open Markdown like it deserves. Paste Markdown, convert common documents to Markdown, open local files or folders, import GitHub, Gist, and raw URLs, install it as a PWA, and keep multi-tab docs ready for export or sharing.",
         dropFile: "Drop a file",
         eyebrow: "Markdown without the utility-site look",
         loadedFile: (fileName) => `Loaded ${fileName}.`,
@@ -277,7 +277,7 @@ export const messages: Record<Locale, Messages> = {
       },
       sources: {
         ariaLabel: "Supported sources",
-        items: ["Files & folders", "Convert docs", "Paste", "GitHub/Gist", "Raw URLs", "PWA open with", "Share/export"]
+        items: ["Files", "Folders", "Convert", "Paste", "GitHub/Gist", "Raw URLs", "PWA", "Export"]
       },
       features: {
         copy:
@@ -667,7 +667,7 @@ export const messages: Record<Locale, Messages> = {
       },
       hero: {
         body:
-          "用更体面的方式打开 Markdown。`markdownviewer.run` 能把项目笔记、README、AI 输出和技术写作转换成精致的实时预览。你可以粘贴 Markdown，把 DOCX、PPTX、XLSX、CSV、HTML、JSON、XML 或文本型 PDF 转成 Markdown，打开本地文件或文件夹，把 GitHub、Gist、原始 URL 送进工作区，也可以安装为 PWA，让多标签文档随时可导出或分享。",
+          "用更体面的方式打开 Markdown。你可以粘贴 Markdown、把常见文档转成 Markdown、打开本地文件或文件夹，把 GitHub、Gist、原始 URL 送进工作区，也可以安装为 PWA，让多标签文档随时可导出或分享。",
         dropFile: "选择文件",
         eyebrow: "不止是工具站的 Markdown 体验",
         loadedFile: (fileName) => `已加载 ${fileName}。`,
@@ -682,7 +682,7 @@ export const messages: Record<Locale, Messages> = {
       },
       sources: {
         ariaLabel: "支持的来源",
-        items: ["文件/文件夹", "转换文档", "粘贴", "GitHub/Gist", "原始 URL", "PWA 打开", "分享/导出"]
+        items: ["文件", "文件夹", "转换", "粘贴", "GitHub/Gist", "原始 URL", "PWA", "导出"]
       },
       features: {
         copy: "首次使用路径足够清楚，渲染界面也认真对待代码、图表、数学公式、README 文件和阅读节奏。",
