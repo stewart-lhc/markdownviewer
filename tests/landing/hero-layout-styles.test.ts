@@ -72,8 +72,10 @@ describe("landing hero layout styles", () => {
   it("adds a formal landing footer with legal sections", () => {
     expect(css).toContain(".site-footer {");
     expect(css).toContain(".site-footer__nav {");
+    expect(css).toContain(".site-footer__workflows {");
     expect(css).toContain(".site-footer__legal {");
     expect(css).toContain(".site-footer__bottom {");
+    expect(css).not.toContain(".workflow-link-bar {");
   });
 
   it("keeps the landing navigation sticky and styles the changelog sections", () => {
@@ -83,6 +85,7 @@ describe("landing hero layout styles", () => {
     expect(topbarRule).toContain("top: 0;");
     expect(topbarRule).toContain("width: 100%;");
     expect(topbarRule).toContain("margin: 0 0 18px;");
+    expect(topbarRule).toContain("padding: 10px max(16px, calc((100% - 1200px) / 2));");
     expect(css).toContain(".update-grid {");
     expect(css).toContain(".changelog-hero {");
     expect(css).toContain(".release-card {");

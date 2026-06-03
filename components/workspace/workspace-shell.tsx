@@ -2076,6 +2076,18 @@ export function WorkspaceShell({
     );
   }
 
+  function renderWorkspaceHomeLink() {
+    return (
+      <BrandLink
+        ariaLabel={messages.header.home}
+        className="workspace-home"
+        compact
+        href={localizePath("/", locale)}
+        title="Markdownviewer"
+      />
+    );
+  }
+
   function renderNewTabButton(className = "") {
     return (
       <button
@@ -2087,23 +2099,6 @@ export function WorkspaceShell({
       >
         +
       </button>
-    );
-  }
-
-  function renderRailTopControls({ showHome = true, showToggle = false }: { showHome?: boolean; showToggle?: boolean } = {}) {
-    return (
-      <div className="workspace-rail-topbar">
-        {showToggle ? renderTabsToggleButton() : null}
-        {showHome ? (
-          <BrandLink
-            ariaLabel={messages.header.home}
-            className="workspace-home"
-            compact
-            href={localizePath("/", locale)}
-            title="Markdownviewer"
-          />
-        ) : null}
-      </div>
     );
   }
 
@@ -2130,12 +2125,10 @@ export function WorkspaceShell({
       <div className="workspace-header">
         <div className="workspace-header-tabs-control">
           {renderTabsToggleButton()}
+          {renderWorkspaceHomeLink()}
         </div>
         <div className="workspace-header-meta">
           {sourceLabel ? <div className="workspace-source-chip">{sourceLabel}</div> : null}
-        </div>
-        <div className="workspace-header-title" title={documentTitle}>
-          {documentTitle}
         </div>
         <div className="workspace-header-language">
           <LanguageSwitcher currentLocale={locale} path="/workspace" />
@@ -2181,44 +2174,40 @@ export function WorkspaceShell({
             searchQuery={folderSearchQuery}
             selectedDirectory={selectedFolderDirectory}
             skippedCount={folderSkippedCount}
-            topControls={renderRailTopControls()}
           />
         ) : (
-        <aside className="workspace-tabs-rail" aria-label={messages.tabs.railLabel}>
-          <div className="workspace-tabs-rail-header">
-            {renderRailTopControls()}
-          </div>
-          <div className="workspace-tabs-list-actions">
-            {renderNewTabButton("workspace-new-tab-button--list")}
-          </div>
-          <div aria-label={messages.tabs.railLabel} className="workspace-tabs-list" role="tablist">
-            {tabItems.map((tab) => (
-              <div className="workspace-tab-row" data-active={tab.id === activeTabId} key={tab.id}>
-                <button
-                  aria-controls="workspace-active-tab-panel"
-                  aria-selected={tab.id === activeTabId}
-                  className="workspace-tab-button"
-                  onClick={() => handleSelectTab(tab.id)}
-                  role="tab"
-                  title={tab.title}
-                  type="button"
-                >
-                  <span className="workspace-tab-title">{tab.title}</span>
-                  <span className="workspace-tab-meta">{tab.sourceLabel}</span>
-                </button>
-                <button
-                  aria-label={messages.tabs.close(tab.title)}
-                  className="workspace-tab-close"
-                  onClick={() => handleCloseTab(tab.id)}
-                  title={messages.tabs.close(tab.title)}
-                  type="button"
-                >
-                  x
-                </button>
-              </div>
-            ))}
-          </div>
-        </aside>
+          <aside className="workspace-tabs-rail" aria-label={messages.tabs.railLabel}>
+            <div className="workspace-tabs-list-actions">
+              {renderNewTabButton("workspace-new-tab-button--list")}
+            </div>
+            <div aria-label={messages.tabs.railLabel} className="workspace-tabs-list" role="tablist">
+              {tabItems.map((tab) => (
+                <div className="workspace-tab-row" data-active={tab.id === activeTabId} key={tab.id}>
+                  <button
+                    aria-controls="workspace-active-tab-panel"
+                    aria-selected={tab.id === activeTabId}
+                    className="workspace-tab-button"
+                    onClick={() => handleSelectTab(tab.id)}
+                    role="tab"
+                    title={tab.title}
+                    type="button"
+                  >
+                    <span className="workspace-tab-title">{tab.title}</span>
+                    <span className="workspace-tab-meta">{tab.sourceLabel}</span>
+                  </button>
+                  <button
+                    aria-label={messages.tabs.close(tab.title)}
+                    className="workspace-tab-close"
+                    onClick={() => handleCloseTab(tab.id)}
+                    title={messages.tabs.close(tab.title)}
+                    type="button"
+                  >
+                    x
+                  </button>
+                </div>
+              ))}
+            </div>
+          </aside>
         )
       ) : null}
       <section

@@ -114,16 +114,6 @@ export function HomePageContent({ locale = defaultLocale }: HomePageContentProps
           <LiveSample ribbon={t.landing.hero.sampleRibbon} />
         </div>
 
-        {locale === defaultLocale ? (
-          <nav className="workflow-link-bar" aria-label="Markdown workflow pages">
-            {seoLandingPages.map((page) => (
-              <a href={page.path} key={page.slug}>
-                {page.h1}
-              </a>
-            ))}
-          </nav>
-        ) : null}
-
         <section className="section section--updates">
           <div className="section-head">
             <div>
@@ -239,6 +229,18 @@ export function HomePageContent({ locale = defaultLocale }: HomePageContentProps
               </div>
             ))}
           </nav>
+          {locale === defaultLocale ? (
+            <nav className="site-footer__workflows" aria-label="Markdown workflow pages">
+              <h2>Workflow pages</h2>
+              <div>
+                {seoLandingPages.map((page) => (
+                  <a href={page.path} key={page.slug}>
+                    {page.h1}
+                  </a>
+                ))}
+              </div>
+            </nav>
+          ) : null}
           <div className="site-footer__legal">
             <p id="terms">
               <strong>{t.landing.footer.termsTitle}</strong> {t.landing.footer.termsBody}

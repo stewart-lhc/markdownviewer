@@ -19,8 +19,9 @@ describe("homepage", () => {
     expect(container.querySelector(".topbar-actions > .ghost-link:last-child")).toHaveClass("ghost-link--primary");
     expect(screen.getByRole("heading", { level: 2, name: /recent features/i })).toBeInTheDocument();
     expect(screen.getByText("26.531")).toBeInTheDocument();
-    expect(screen.getByRole("navigation", { name: /markdown workflow pages/i })).toBeInTheDocument();
-    expect(screen.getAllByRole("link", { name: /readme viewer online/i })[0]).toHaveAttribute(
+    expect(container.querySelector(".workflow-link-bar")).not.toBeInTheDocument();
+    expect(container.querySelector(".site-footer__workflows")).toBeInTheDocument();
+    expect(within(container.querySelector(".site-footer__workflows") as HTMLElement).getByRole("link", { name: /readme viewer online/i })).toHaveAttribute(
       "href",
       "/use-cases/readme-viewer"
     );

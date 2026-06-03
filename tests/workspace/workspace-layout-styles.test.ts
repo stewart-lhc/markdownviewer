@@ -25,7 +25,7 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain("height: 100%;");
     expect(css).toContain(".workspace-tabs-list {");
     expect(css).toContain(".workspace-tab-row[data-active=\"true\"] {");
-    expect(css).toContain(".workspace-rail-topbar {");
+    expect(css).not.toContain(".workspace-rail-topbar {");
     expect(css).toContain(".workspace-tabs-rail--collapsed {");
     expect(css).toContain(".workspace-tabs-toggle-button {");
     expect(css).toContain("position: static;");
@@ -44,8 +44,9 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain(".workspace-pane-header--preview {");
     expect(css).toContain("justify-content: space-between;");
     expect(css).toContain("align-items: center;");
-    expect(css).toContain(".workspace-header-title {");
-    expect(css).toContain("justify-self: start;");
+    expect(css).toContain(".workspace-header-tabs-control {");
+    expect(css).toContain("gap: 8px;");
+    expect(css).not.toContain(".workspace-header-title {");
     expect(css).toContain(".workspace-header-language {");
     expect(css).toContain(".workspace-preview-template .theme-menu {");
     expect(css).toContain("left: 0;");
@@ -67,7 +68,12 @@ describe("workspace core canvas styles", () => {
 
   it("keeps the compact workspace header aligned and fixed on mobile", () => {
     expect(css).toContain("@media (max-width: 720px)");
-    expect(css).toContain("grid-template-columns: 76px minmax(0, 1fr) 112px;");
+    expect(css).toContain('"tabs spacer modes"');
+    expect(css).toContain('"tabs spacer modes overflow"');
+    expect(css).toContain("grid-template-columns: auto minmax(0, 1fr) 112px;");
+    expect(css).toContain("grid-template-columns: auto minmax(0, 1fr) 96px 44px !important;");
+    expect(css).not.toContain('"tabs title modes"');
+    expect(css).not.toContain('"title"');
     expect(css).toContain("grid-template-rows: 48px 44px;");
     expect(css).toContain("position: fixed;");
     expect(css).toContain("top: 0 !important;");
@@ -78,7 +84,7 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain("backdrop-filter: blur(8px) saturate(0.9);");
     expect(css).toContain(".workspace-menu-backdrop {");
     expect(css).toContain("backdrop-filter: none;");
-    expect(css).toContain(".workspace-rail-topbar .workspace-home {");
+    expect(css).toContain(".workspace-header-tabs-control {");
     expect(css).toContain("width: 40px;");
     expect(css).toContain(".workspace-share-link {");
     expect(css).toContain("transform: translate(-50%, -50%);");
@@ -137,10 +143,14 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain("color-scheme: var(--workspace-scrollbar-color-scheme);");
     expect(css).toContain("forced-color-adjust: none;");
     expect(css).toContain("scrollbar-color: var(--workspace-scrollbar-thumb) var(--workspace-scrollbar-track);");
+    expect(css).toContain("contain: layout style;");
+    expect(css).not.toContain("contain: layout paint style;");
     expect(css).toContain(".workspace-page .workspace-editor-surface::-webkit-scrollbar-thumb,");
     expect(css).toContain(".workspace-page .workspace-editor-input::-webkit-scrollbar-thumb,");
     expect(css).toContain(".workspace-page .workspace-reader-body::-webkit-scrollbar-thumb {");
     expect(css).toContain("border: 2px solid var(--workspace-scrollbar-thumb-border);");
+    expect(css).toContain(".workspace-page .workspace-editor-surface::-webkit-scrollbar-thumb:hover,");
+    expect(css).toContain("background: var(--workspace-scrollbar-thumb);");
   });
 
   it("styles rich-mode blocks closer to StackEdit while still showing markdown syntax", () => {

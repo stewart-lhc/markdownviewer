@@ -12,7 +12,7 @@ describe("workspace page", () => {
 
     expect(screen.getByRole("tablist", { name: /open tabs/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /new tab/i })).toBeInTheDocument();
-    expect(screen.getByText("Markdown Feature Atlas", { selector: ".workspace-header-title" })).toBeInTheDocument();
+    expect(document.querySelector(".workspace-header-title")).not.toBeInTheDocument();
     expect(screen.getByTestId("workspace-grid")).toHaveAttribute("data-mode", "split");
     expect(screen.getByTestId("source-panel")).toBeInTheDocument();
     expect(screen.getByTestId("preview-panel")).toBeInTheDocument();
@@ -23,7 +23,7 @@ describe("workspace page", () => {
     expect(screen.getByRole("button", { name: /increase preview font size/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /increase preview margin/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /more/i })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /markdownviewer home/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /markdownviewer home/i }).closest(".workspace-header-tabs-control")).not.toBeNull();
     expect(screen.getByRole("link", { name: "中" })).toHaveAttribute("href", "/zh-CN/workspace");
     expect(screen.queryByRole("button", { name: /^url$/i })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /contents/i }).closest(".workspace-toc")).not.toBeNull();

@@ -215,7 +215,7 @@ describe("WorkspaceShell interactions", () => {
     expect(screen.getByRole("tab", { name: /first draft/i })).toHaveAttribute("aria-selected", "true");
     expect(screen.getByRole("button", { name: /new tab/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /new tab/i }).closest(".workspace-tabs-list-actions")).not.toBeNull();
-    expect(screen.getByLabelText(/markdownviewer home/i).closest(".workspace-tabs-rail")).not.toBeNull();
+    expect(screen.getByLabelText(/markdownviewer home/i).closest(".workspace-header-tabs-control")).not.toBeNull();
     expect(screen.queryByText(/^tabs$/i)).not.toBeInTheDocument();
     const sourcePanel = screen.getByTestId("source-panel");
     const richEditor = screen.getByTestId("editor-rich-surface");
@@ -457,16 +457,17 @@ describe("WorkspaceShell interactions", () => {
 
     const { container } = render(<WorkspaceShell markdown="# First draft" sourceInput="" />);
 
-    expect(screen.getByText("First draft", { selector: ".workspace-header-title" })).toBeInTheDocument();
+    expect(container.querySelector(".workspace-header-title")).not.toBeInTheDocument();
+    expect(screen.getByLabelText(/markdownviewer home/i).closest(".workspace-header-tabs-control")).not.toBeNull();
 
     await user.click(screen.getByRole("button", { name: /collapse tabs sidebar/i }));
 
-    expect(screen.getByText("First draft", { selector: ".workspace-header-title" })).toBeInTheDocument();
+    expect(container.querySelector(".workspace-header-title")).not.toBeInTheDocument();
     expect(container.querySelector(".workspace-page")).toHaveAttribute("data-tabs-collapsed", "true");
     expect(container.querySelector(".workspace-tabs-rail")).not.toBeInTheDocument();
     const header = container.querySelector(".workspace-header") as HTMLElement;
     expect(within(header).getByRole("button", { name: /expand tabs sidebar/i })).toBeInTheDocument();
-    expect(within(header).queryByLabelText(/markdownviewer home/i)).not.toBeInTheDocument();
+    expect(within(header).getByLabelText(/markdownviewer home/i)).toBeInTheDocument();
     expect(screen.queryByRole("tablist", { name: /open tabs/i })).not.toBeInTheDocument();
 
     await waitFor(() => {
@@ -523,7 +524,7 @@ describe("WorkspaceShell interactions", () => {
     await user.click(screen.getByRole("button", { name: /^paste$/i }));
 
     await waitFor(() => {
-      expect(screen.getByText("Mobile pasted tab", { selector: ".workspace-header-title" })).toBeInTheDocument();
+      expect(screen.queryByText("Mobile pasted tab", { selector: ".workspace-header-title" })).not.toBeInTheDocument();
       expect(page).toHaveAttribute("data-tabs-collapsed", "true");
     });
 
@@ -532,7 +533,7 @@ describe("WorkspaceShell interactions", () => {
     await user.click(screen.getByRole("tab", { name: /first tab/i }));
 
     await waitFor(() => {
-      expect(screen.getByText("First tab", { selector: ".workspace-header-title" })).toBeInTheDocument();
+      expect(screen.queryByText("First tab", { selector: ".workspace-header-title" })).not.toBeInTheDocument();
       expect(page).toHaveAttribute("data-tabs-collapsed", "true");
     });
   });
