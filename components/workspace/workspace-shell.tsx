@@ -2416,6 +2416,7 @@ export function WorkspaceShell({
               ) : null}
               <div
                 className="workspace-reader-body"
+                data-locale={locale}
                 data-testid="preview-scroll-region"
                 onScroll={(event) => {
                   if (suppressPreviewScrollSyncRef.current) {

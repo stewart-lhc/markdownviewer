@@ -2315,6 +2315,8 @@ button {
 
 .workspace-menu-backdrop {
   display: none;
+  background: transparent;
+  backdrop-filter: none;
 }
 
 .toolbar {
@@ -2350,6 +2352,18 @@ button {
 
 .toolbar-button:hover {
   background: var(--toolbar-button-hover);
+}
+
+.workspace-page .toolbar-button {
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease;
+}
+
+.workspace-page .toolbar-button:hover,
+.workspace-page .toolbar-button:focus-visible {
+  transform: none;
 }
 
 .toolbar-button--overflow {
@@ -3772,6 +3786,10 @@ html[data-theme="night"] .workspace-editor-surface--stackedit .token.md-token--l
   font-size: var(--workspace-preview-font-size);
 }
 
+.workspace-reader-body[data-locale="zh-CN"] .markdown-body {
+  line-height: 1.68;
+}
+
 .workspace-grid[data-mode="preview"] .workspace-reader-body .markdown-body {
   max-width: 100%;
   margin-inline: auto;
@@ -4538,8 +4556,8 @@ html[data-theme] .workspace-reader-body .markdown-body h4,
   .workspace-menu-backdrop {
     display: block;
     z-index: 66;
-    background: rgba(11, 13, 18, 0.24);
-    backdrop-filter: blur(8px) saturate(0.9);
+    background: transparent;
+    backdrop-filter: none;
   }
 
   .workspace-rail-topbar {

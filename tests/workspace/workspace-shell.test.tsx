@@ -709,6 +709,12 @@ describe("WorkspaceShell interactions", () => {
     expect(window.localStorage.getItem("markdownviewer.workspace.preview.margin.v3")).toBe("6");
   });
 
+  it("marks the preview reader with the current locale for locale-specific typography", () => {
+    render(<WorkspaceShell locale="zh-CN" markdown="# 中文预览\n\n这是一段稍长的中文正文。" sourceInput="" />);
+
+    expect(screen.getByTestId("preview-scroll-region")).toHaveAttribute("data-locale", "zh-CN");
+  });
+
   it("moves editor formatting tools into an overflow menu when the pane is narrow", async () => {
     const previousResizeObserver = globalThis.ResizeObserver;
 
