@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented in this file.
 
+## 26.603 - 2026-06-03
+
+### Added
+
+- Added document-to-Markdown conversion for DOCX, PPTX, XLSX, XLS, CSV, HTML, JSON, XML, and text-heavy PDF files.
+- Added a focused `/use-cases/document-to-markdown-converter` SEO page with FAQ coverage for supported formats, temporary server files, local tab persistence, and the no-OCR PDF boundary.
+- Added homepage, README, `llms.txt`, sitemap, and structured-data discovery copy for the new conversion workflow.
+
+### Changed
+
+- Changed workspace preview margin controls to use evenly spaced percent levels so the final increase step no longer jumps abruptly to the widest layout.
+- Converted files now appear in release copy as a workspace import path that opens directly in a new persistent local tab.
+
 ## 26.602 - 2026-06-02
 
 ### Added

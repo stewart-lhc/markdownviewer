@@ -4,7 +4,7 @@ import { seoLandingPages } from "@/lib/seo/landing-pages";
 const siteUrl = "https://markdownviewer.run";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const lastModified = new Date("2026-05-31");
+  const lastModified = new Date("2026-06-03");
   const homeAlternates = {
     languages: {
       en: siteUrl,

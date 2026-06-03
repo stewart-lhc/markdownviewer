@@ -131,13 +131,13 @@ const defaultPreviewFontSize = 15;
 const minPreviewFontSize = 13;
 const maxPreviewFontSize = 21;
 const previewMarginLevels = [
-  "12px",
-  "clamp(24px, 5%, 48px)",
-  "clamp(36px, 8%, 84px)",
-  "clamp(48px, 11%, 120px)",
-  "clamp(60px, 14%, 156px)",
-  "clamp(72px, 17%, 192px)",
-  "clamp(84px, 21%, 228px)",
+  "4%",
+  "7%",
+  "10%",
+  "13%",
+  "16%",
+  "19%",
+  "22%",
   "25%"
 ] as const;
 const defaultPreviewMargin = previewMarginLevels.length - 1;

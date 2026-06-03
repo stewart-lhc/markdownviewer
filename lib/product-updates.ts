@@ -15,6 +15,33 @@ export type ProductUpdate = {
 
 export const productUpdates: ProductUpdate[] = [
   {
+    version: "26.603",
+    date: "2026-06-03",
+    en: {
+      title: "Document conversion and smoother preview margins",
+      summary:
+        "Markdownviewer can now convert common document formats into Markdown and opens converted results directly in workspace tabs.",
+      highlights: [
+        "Added document-to-Markdown conversion for DOCX, PPTX, XLSX, XLS, CSV, HTML, JSON, XML, and text-heavy PDF files.",
+        "Converted documents open automatically in a new workspace tab, using the same local browser tab persistence as other imports.",
+        "Added a focused document-to-Markdown converter SEO page with FAQ boundaries for temporary server files, local tab persistence, and no OCR.",
+        "Updated homepage, README, llms.txt, sitemap, and structured data so users, search crawlers, and AI assistants can discover the new workflow.",
+        "Changed preview margin controls to evenly spaced percent levels so the final margin step no longer jumps abruptly."
+      ]
+    },
+    "zh-CN": {
+      title: "文档转换和更平滑的预览留白",
+      summary: "Markdownviewer 现在可以把常见文档格式转成 Markdown，并把转换结果直接打开到 workspace tab。",
+      highlights: [
+        "新增文档转 Markdown，支持 DOCX、PPTX、XLSX、XLS、CSV、HTML、JSON、XML 和文本型 PDF。",
+        "转换后的文档会自动进入新的 workspace tab，并沿用现有浏览器本地 tab 持久化。",
+        "新增面向 document-to-Markdown converter 的 SEO 页面，并在 FAQ 中明确临时服务器文件、本地 tab 持久化和不支持 OCR 的边界。",
+        "更新首页、README、llms.txt、sitemap 和 structured data，让用户、搜索爬虫和 AI 助手都能发现新工作流。",
+        "把预览留白控制改成等距百分比档位，最后一级不再突然跳到最大。"
+      ]
+    }
+  },
+  {
     version: "26.602",
     date: "2026-06-02",
     en: {

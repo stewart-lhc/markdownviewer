@@ -2,7 +2,7 @@ import { seoLandingPages } from "@/lib/seo/landing-pages";
 
 describe("seo landing page data", () => {
   it("defines the first long-tail page pool with unique slugs and paths", () => {
-    expect(seoLandingPages).toHaveLength(6);
+    expect(seoLandingPages).toHaveLength(7);
 
     const slugs = seoLandingPages.map((page) => page.slug);
     const paths = seoLandingPages.map((page) => page.path);

@@ -360,6 +360,72 @@ export const seoLandingPages = [
       }
     ],
     relatedSlugs: ["readme-viewer", "ai-markdown-viewer", "github-flavored-markdown-viewer"]
+  },
+  {
+    slug: "document-to-markdown-converter",
+    path: "/use-cases/document-to-markdown-converter",
+    title: "Document to Markdown Converter - Word, PDF, HTML, and Data Files",
+    description:
+      "Convert DOCX, PPTX, XLSX, CSV, HTML, JSON, XML, and text-heavy PDF files to Markdown, then review the result in a live Markdown workspace.",
+    h1: "Document to Markdown Converter",
+    eyebrow: "Convert files into Markdown",
+    summary:
+      "Convert common Office, HTML, data, and text-heavy PDF files into Markdown and open the result in a persistent browser workspace tab.",
+    intro:
+      "Markdownviewer now includes a document-to-Markdown conversion path for files that start outside Markdown. Upload a supported DOCX, PPTX, XLSX, XLS, CSV, HTML, JSON, XML, or text-heavy PDF file, convert it to Markdown, and review the converted result in the same live preview workspace used for README files and technical docs.",
+    ctaLabel: "Open the converter",
+    primaryKeywords: [
+      "document to Markdown converter",
+      "Word to Markdown converter",
+      "PDF to Markdown converter",
+      "DOCX to Markdown",
+      "HTML to Markdown converter"
+    ],
+    benefits: [
+      "Turn Office and data files into Markdown before editing or sharing.",
+      "Review converted headings, lists, tables, and links in a live Markdown preview.",
+      "Keep converted results in normal workspace tabs with local browser persistence."
+    ],
+    workflow: [
+      "Open the workspace and choose Convert from the import controls.",
+      "Select a supported DOCX, PPTX, spreadsheet, HTML, JSON, XML, CSV, or text-heavy PDF file.",
+      "Review the converted Markdown in a new tab, then edit, export, share, or keep it locally."
+    ],
+    sections: [
+      {
+        title: "Convert first, review immediately",
+        body:
+          "Most document converters stop at a download. Markdownviewer keeps the next step inside the product: the converted Markdown opens as a workspace tab so you can inspect structure, headings, tables, and links before using it in docs, AI workflows, or publishing pipelines."
+      },
+      {
+        title: "Built for text-heavy files, not high-fidelity layout",
+        body:
+          "The converter is aimed at extracting readable Markdown from text-first documents. It is a good fit for notes, specs, reports, spreadsheets, and text-heavy PDFs, but it does not promise pixel-perfect page layout or OCR for scanned documents."
+      }
+    ],
+    faq: [
+      {
+        question: "Which file types can be converted to Markdown?",
+        answer:
+          "Markdownviewer supports DOCX, PPTX, XLSX, XLS, CSV, HTML, HTM, JSON, XML, and text-heavy PDF files for the document conversion workflow."
+      },
+      {
+        question: "Where does the converted Markdown open?",
+        answer:
+          "After conversion, the Markdown opens automatically in a new workspace tab. The tab can be restored from browser workspace storage like other imported tabs."
+      },
+      {
+        question: "Are original files stored on the server?",
+        answer:
+          "No. The conversion endpoint uses a temporary server file during the request and deletes it after the conversion finishes. Converted tabs persist locally in the browser workspace, not as server-side history."
+      },
+      {
+        question: "Does PDF conversion include OCR?",
+        answer:
+          "No. The MVP is for text-heavy PDFs. Scanned PDFs and image-only documents need OCR, which is outside the current scope."
+      }
+    ],
+    relatedSlugs: ["markdown-file-viewer-online", "ai-markdown-viewer", "readme-viewer"]
   }
 ] as const satisfies readonly SeoLandingPage[];
 

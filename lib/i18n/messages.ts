@@ -224,7 +224,7 @@ export const messages: Record<Locale, Messages> = {
     },
     meta: {
       homeDescription:
-        "Free online Markdown viewer with live preview for README.md, GitHub Flavored Markdown, Mermaid diagrams, KaTeX math, code blocks, and raw URLs.",
+        "Free online Markdown viewer with live preview for README.md, GitHub Flavored Markdown, Mermaid diagrams, KaTeX math, code blocks, raw URLs, and document-to-Markdown conversion.",
       homeTitle: "Markdown Viewer Online - Live Preview | markdownviewer.run",
       homeTitleShort: "Markdown Viewer Online - Live Preview",
       keywords: [
@@ -237,10 +237,13 @@ export const messages: Record<Locale, Messages> = {
         "README viewer",
         "Mermaid markdown viewer",
         "Markdown viewer with math",
-        "AI markdown viewer"
+        "AI markdown viewer",
+        "document to Markdown converter",
+        "Word to Markdown converter",
+        "PDF to Markdown converter"
       ],
       workspaceDescription:
-        "Paste, edit, or load Markdown from files, local folders, GitHub, Gists, and raw URLs in a live online Markdown preview workspace.",
+        "Paste, edit, convert documents, or load Markdown from files, local folders, GitHub, Gists, and raw URLs in a live online Markdown preview workspace.",
       workspaceTitle: "Online Markdown Viewer Workspace - Live Preview"
     },
     landing: {
@@ -252,14 +255,14 @@ export const messages: Record<Locale, Messages> = {
       },
       updates: {
         copy:
-          "The product now includes local folder editing, installable PWA file handling, persistent tabs, share/export tools, Chinese localization, and mobile layout fixes.",
+          "The product now includes document-to-Markdown conversion, local folder editing, installable PWA file handling, persistent tabs, share/export tools, Chinese localization, and mobile layout fixes.",
         eyebrow: "Latest deploys",
         link: "Read the changelog",
         title: "Recent features are already live in the workspace."
       },
       hero: {
         body:
-          "Open Markdown like it deserves. `markdownviewer.run` turns project notes, READMEs, AI output, and technical writing into a polished live preview. Paste Markdown, open local files or folders, send GitHub, Gist, and raw URLs into the workspace, install it as a PWA, and keep multi-tab docs ready for export or sharing.",
+          "Open Markdown like it deserves. `markdownviewer.run` turns project notes, READMEs, AI output, and technical writing into a polished live preview. Paste Markdown, convert DOCX, PPTX, XLSX, CSV, HTML, JSON, XML, or text-heavy PDF files to Markdown, open local files or folders, send GitHub, Gist, and raw URLs into the workspace, install it as a PWA, and keep multi-tab docs ready for export or sharing.",
         dropFile: "Drop a file",
         eyebrow: "Markdown without the utility-site look",
         loadedFile: (fileName) => `Loaded ${fileName}.`,
@@ -274,7 +277,7 @@ export const messages: Record<Locale, Messages> = {
       },
       sources: {
         ariaLabel: "Supported sources",
-        items: ["Files & folders", "Paste", "GitHub/Gist", "Raw URLs", "PWA open with", "Share/export"]
+        items: ["Files & folders", "Convert docs", "Paste", "GitHub/Gist", "Raw URLs", "PWA open with", "Share/export"]
       },
       features: {
         copy:
@@ -300,6 +303,11 @@ export const messages: Record<Locale, Messages> = {
             title: "Persistent workspace tabs",
             description:
               "Keep multiple Markdown documents open with independent source labels, restored tabs, and import choices."
+          },
+          {
+            title: "Document to Markdown conversion",
+            description:
+              "Convert DOCX, PPTX, XLSX, CSV, HTML, JSON, XML, and text-heavy PDF files into Markdown and open the result in a new workspace tab."
           },
           {
             title: "Technical-ready rendering",
@@ -343,6 +351,11 @@ export const messages: Record<Locale, Messages> = {
             title: "AI Markdown output reader",
             description:
               "Turn Markdown from ChatGPT, Claude, Cursor, or coding agents into a clean reading view for review and sharing."
+          },
+          {
+            title: "Document to Markdown converter",
+            description:
+              "Convert Word, PowerPoint, spreadsheet, HTML, JSON, XML, CSV, and text-heavy PDF files into Markdown, then review the converted tab."
           }
         ]
       },
@@ -353,7 +366,7 @@ export const messages: Record<Locale, Messages> = {
           {
             question: "What can I open in this Markdown viewer?",
             answer:
-              "Use a local .md file, pasted Markdown, GitHub content, Gists, raw URLs, or the built-in sample document."
+              "Use a local .md file, pasted Markdown, GitHub content, Gists, raw URLs, the built-in sample document, or convert supported DOCX, PPTX, spreadsheet, HTML, data, and text-heavy PDF files into Markdown."
           },
           {
             question: "Is it only a viewer, or can I edit Markdown too?",
@@ -363,7 +376,7 @@ export const messages: Record<Locale, Messages> = {
           {
             question: "Which long documents benefit most?",
             answer:
-              "README files, API docs, changelogs, specs, AI-generated reports, lecture notes, and documents with code, tables, diagrams, or math."
+              "README files, API docs, changelogs, specs, AI-generated reports, lecture notes, converted Office documents, and documents with code, tables, diagrams, or math."
           }
         ]
       },
@@ -571,11 +584,12 @@ export const messages: Record<Locale, Messages> = {
     },
     schema: {
       softwareDescription:
-        "A free online Markdown viewer and live preview workspace for README files, GitHub Flavored Markdown, Mermaid diagrams, KaTeX math, code blocks, local files, local folders, pasted Markdown, and raw URLs.",
+        "A free online Markdown viewer and live preview workspace for README files, GitHub Flavored Markdown, Mermaid diagrams, KaTeX math, code blocks, local files, local folders, pasted Markdown, raw URLs, and document-to-Markdown conversion.",
       softwareKeywords:
-        "markdown viewer, online markdown viewer, markdown preview, GitHub Flavored Markdown viewer, README viewer, Mermaid markdown viewer, markdown viewer with math",
+        "markdown viewer, online markdown viewer, markdown preview, GitHub Flavored Markdown viewer, README viewer, Mermaid markdown viewer, markdown viewer with math, document to Markdown converter, Word to Markdown converter, PDF to Markdown converter",
       featureList: [
         "Live Markdown preview",
+        "Document to Markdown conversion",
         "GitHub Flavored Markdown",
         "Mermaid diagram rendering",
         "KaTeX math rendering",
@@ -600,6 +614,11 @@ export const messages: Record<Locale, Messages> = {
           question: "Can I preview Mermaid diagrams and math in Markdown?",
           answer:
             "Yes. markdownviewer.run renders Mermaid diagrams, syntax-highlighted code blocks, and KaTeX math so technical documents stay readable."
+        },
+        {
+          question: "Can I convert Word or PDF files to Markdown?",
+          answer:
+            "Yes. The workspace can convert supported DOCX, PPTX, spreadsheet, HTML, JSON, XML, CSV, and text-heavy PDF files into Markdown and open the converted result as a new tab."
         }
       ]
     }
@@ -611,7 +630,7 @@ export const messages: Record<Locale, Messages> = {
     },
     meta: {
       homeDescription:
-        "免费的在线 Markdown 查看器，支持 README.md、GitHub Flavored Markdown、Mermaid 图表、KaTeX 数学公式、代码块和原始 URL 的实时预览。",
+        "免费的在线 Markdown 查看器，支持 README.md、GitHub Flavored Markdown、Mermaid 图表、KaTeX 数学公式、代码块、原始 URL 和文档转 Markdown。",
       homeTitle: "在线 Markdown 查看器 - 实时预览 | markdownviewer.run",
       homeTitleShort: "在线 Markdown 查看器 - 实时预览",
       keywords: [
@@ -623,10 +642,13 @@ export const messages: Record<Locale, Messages> = {
         "README 查看器",
         "Mermaid Markdown 查看器",
         "支持数学公式的 Markdown 查看器",
-        "AI Markdown 查看器"
+        "AI Markdown 查看器",
+        "文档转 Markdown",
+        "Word 转 Markdown",
+        "PDF 转 Markdown"
       ],
       workspaceDescription:
-        "在实时在线 Markdown 预览工作区中粘贴、编辑，或从文件、本地文件夹、GitHub、Gist 和原始 URL 加载 Markdown。",
+        "在实时在线 Markdown 预览工作区中粘贴、编辑、转换文档，或从文件、本地文件夹、GitHub、Gist 和原始 URL 加载 Markdown。",
       workspaceTitle: "在线 Markdown 查看器工作区 - 实时预览"
     },
     landing: {
@@ -638,14 +660,14 @@ export const messages: Record<Locale, Messages> = {
       },
       updates: {
         copy:
-          "产品现在已经包含本地文件夹编辑、可安装 PWA 文件打开、持久 tabs、分享/导出、中文界面和移动端布局修复。",
+          "产品现在已经包含文档转 Markdown、本地文件夹编辑、可安装 PWA 文件打开、持久 tabs、分享/导出、中文界面和移动端布局修复。",
         eyebrow: "最新部署",
         link: "查看更新日志",
         title: "最近上线的功能已经进入工作区。"
       },
       hero: {
         body:
-          "用更体面的方式打开 Markdown。`markdownviewer.run` 能把项目笔记、README、AI 输出和技术写作转换成精致的实时预览。你可以粘贴 Markdown、打开本地文件或文件夹，把 GitHub、Gist、原始 URL 送进工作区，也可以安装为 PWA，让多标签文档随时可导出或分享。",
+          "用更体面的方式打开 Markdown。`markdownviewer.run` 能把项目笔记、README、AI 输出和技术写作转换成精致的实时预览。你可以粘贴 Markdown，把 DOCX、PPTX、XLSX、CSV、HTML、JSON、XML 或文本型 PDF 转成 Markdown，打开本地文件或文件夹，把 GitHub、Gist、原始 URL 送进工作区，也可以安装为 PWA，让多标签文档随时可导出或分享。",
         dropFile: "选择文件",
         eyebrow: "不止是工具站的 Markdown 体验",
         loadedFile: (fileName) => `已加载 ${fileName}。`,
@@ -660,7 +682,7 @@ export const messages: Record<Locale, Messages> = {
       },
       sources: {
         ariaLabel: "支持的来源",
-        items: ["文件/文件夹", "粘贴", "GitHub/Gist", "原始 URL", "PWA 打开", "分享/导出"]
+        items: ["文件/文件夹", "转换文档", "粘贴", "GitHub/Gist", "原始 URL", "PWA 打开", "分享/导出"]
       },
       features: {
         copy: "首次使用路径足够清楚，渲染界面也认真对待代码、图表、数学公式、README 文件和阅读节奏。",
@@ -679,6 +701,10 @@ export const messages: Record<Locale, Messages> = {
           {
             title: "持久 workspace tabs",
             description: "同时保留多个 Markdown 文档，每个 tab 都有独立来源、恢复状态和导入方式。"
+          },
+          {
+            title: "文档转 Markdown",
+            description: "把 DOCX、PPTX、XLSX、CSV、HTML、JSON、XML 和文本型 PDF 转成 Markdown，并在新的 workspace tab 中打开。"
           },
           {
             title: "面向技术文档",
@@ -706,6 +732,10 @@ export const messages: Record<Locale, Messages> = {
           {
             title: "AI Markdown 输出阅读器",
             description: "把 ChatGPT、Claude、Cursor 或编码助手生成的 Markdown 变成干净的阅读视图，便于审阅和分享。"
+          },
+          {
+            title: "文档转 Markdown",
+            description: "把 Word、PowerPoint、电子表格、HTML、JSON、XML、CSV 和文本型 PDF 转成 Markdown，再检查转换后的标签页。"
           }
         ]
       },
@@ -715,7 +745,7 @@ export const messages: Record<Locale, Messages> = {
         items: [
           {
             question: "这个 Markdown 查看器能打开什么？",
-            answer: "你可以使用本地 .md 文件、粘贴的 Markdown、GitHub 内容、Gist、原始 URL 或内置示例文档。"
+            answer: "你可以使用本地 .md 文件、粘贴的 Markdown、GitHub 内容、Gist、原始 URL、内置示例文档，或把支持的 DOCX、PPTX、电子表格、HTML、数据文件和文本型 PDF 转成 Markdown。"
           },
           {
             question: "它只是查看器，还是也能编辑 Markdown？",
@@ -723,7 +753,7 @@ export const messages: Record<Locale, Messages> = {
           },
           {
             question: "哪些长文档最适合使用？",
-            answer: "README 文件、API 文档、更新日志、规格说明、AI 生成报告、课堂笔记，以及包含代码、表格、图表或数学公式的文档。"
+            answer: "README 文件、API 文档、更新日志、规格说明、AI 生成报告、课堂笔记、转换后的 Office 文档，以及包含代码、表格、图表或数学公式的文档。"
           }
         ]
       },
@@ -930,11 +960,12 @@ export const messages: Record<Locale, Messages> = {
     },
     schema: {
       softwareDescription:
-        "免费的在线 Markdown 查看器和实时预览工作区，适合 README 文件、GitHub Flavored Markdown、Mermaid 图表、KaTeX 数学公式、代码块、本地文件、本地文件夹、粘贴的 Markdown 和原始 URL。",
+        "免费的在线 Markdown 查看器和实时预览工作区，适合 README 文件、GitHub Flavored Markdown、Mermaid 图表、KaTeX 数学公式、代码块、本地文件、本地文件夹、粘贴的 Markdown、原始 URL 和文档转 Markdown。",
       softwareKeywords:
-        "Markdown 查看器,在线 Markdown 查看器,Markdown 预览,GitHub Flavored Markdown 查看器,README 查看器,Mermaid Markdown 查看器,支持数学公式的 Markdown 查看器",
+        "Markdown 查看器,在线 Markdown 查看器,Markdown 预览,GitHub Flavored Markdown 查看器,README 查看器,Mermaid Markdown 查看器,支持数学公式的 Markdown 查看器,文档转 Markdown,Word 转 Markdown,PDF 转 Markdown",
       featureList: [
         "实时 Markdown 预览",
+        "文档转 Markdown",
         "GitHub Flavored Markdown",
         "Mermaid 图表渲染",
         "KaTeX 数学公式渲染",
@@ -956,6 +987,11 @@ export const messages: Record<Locale, Messages> = {
         {
           question: "可以预览 Markdown 里的 Mermaid 图表和数学公式吗？",
           answer: "可以。markdownviewer.run 会渲染 Mermaid 图表、语法高亮代码块和 KaTeX 数学公式，让技术文档保持易读。"
+        },
+        {
+          question: "可以把 Word 或 PDF 转成 Markdown 吗？",
+          answer:
+            "可以。工作区可把支持的 DOCX、PPTX、电子表格、HTML、JSON、XML、CSV 和文本型 PDF 转成 Markdown，并把转换结果打开为新的标签页。"
         }
       ]
     }

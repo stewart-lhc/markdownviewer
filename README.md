@@ -2,7 +2,7 @@
 
 # Markdown Viewer Online
 
-**A polished online Markdown viewer for README files, GitHub Flavored Markdown, Mermaid diagrams, KaTeX math, code blocks, AI output, local files, GitHub URLs, Gists, and raw Markdown links.**
+**A polished online Markdown viewer for README files, GitHub Flavored Markdown, Mermaid diagrams, KaTeX math, code blocks, AI output, local files, GitHub URLs, Gists, raw Markdown links, and document-to-Markdown conversion.**
 
 [![Live Website](https://img.shields.io/badge/Live-markdownviewer.run-111827?style=for-the-badge)](https://markdownviewer.run/)
 [![Workspace](https://img.shields.io/badge/Open-Workspace-2563eb?style=for-the-badge)](https://markdownviewer.run/workspace)
@@ -11,15 +11,15 @@
 
 [Live Markdown Viewer](https://markdownviewer.run/) - [Open the Workspace](https://markdownviewer.run/workspace) - [Changelog](https://markdownviewer.run/changelog) - [Star the Project](https://github.com/stewart-lhc/markdownviewer)
 
-Current product update: **26.602**. Current package release: **v0.2.0**. See [CHANGELOG.md](CHANGELOG.md) and the live [Changelog](https://markdownviewer.run/changelog) for release notes and update history.
+Current product update: **26.603**. Current package release: **v0.2.0**. See [CHANGELOG.md](CHANGELOG.md) and the live [Changelog](https://markdownviewer.run/changelog) for release notes and update history.
 
 </div>
 
 ## The Short Pitch
 
-[markdownviewer.run](https://markdownviewer.run/) is a free, open-source Markdown viewer built for people who care how technical Markdown looks before it ships. Paste Markdown, drop a file, open a local docs folder, load a GitHub README, load a Gist, or preview a raw URL and get a clean live preview in the browser.
+[markdownviewer.run](https://markdownviewer.run/) is a free, open-source Markdown viewer built for people who care how technical Markdown looks before it ships. Paste Markdown, drop a file, convert a document to Markdown, open a local docs folder, load a GitHub README, load a Gist, or preview a raw URL and get a clean live preview in the browser.
 
-It is designed to be more than another plain utility page: Markdownviewer gives README files, AI-generated Markdown, specs, changelogs, Mermaid diagrams, math notes, and code-heavy documents a focused reading surface with persistent tabs, share links, HTML/PDF export, PWA file opening, and a local folder workspace.
+It is designed to be more than another plain utility page: Markdownviewer gives README files, AI-generated Markdown, converted DOCX/PPTX/XLSX/CSV/HTML/JSON/XML/text-heavy PDF files, specs, changelogs, Mermaid diagrams, math notes, and code-heavy documents a focused reading surface with persistent tabs, share links, HTML/PDF export, PWA file opening, and a local folder workspace.
 
 ## Why Developers Use It
 
@@ -30,6 +30,7 @@ It is designed to be more than another plain utility page: Markdownviewer gives 
 | **Check GitHub Flavored Markdown** | Review tables, task lists, links, code fences, and README-style formatting. |
 | **Render technical Markdown** | Preview Mermaid diagrams, KaTeX math, and syntax-highlighted code blocks. |
 | **Open Markdown from anywhere** | Load local files, local folders, pasted Markdown, GitHub content, Gists, and raw URLs. |
+| **Convert documents to Markdown** | Turn DOCX, PPTX, spreadsheets, HTML, JSON, XML, CSV, and text-heavy PDF files into Markdown tabs. |
 | **Keep docs organized** | Use persistent workspace tabs, folder browsing, relative Markdown links, and save-to-disk on supported browsers. |
 | **Skip editor setup** | Use a browser-based Markdown preview workspace without installing a desktop app. |
 
@@ -42,6 +43,7 @@ It is designed to be more than another plain utility page: Markdownviewer gives 
 - **KaTeX math rendering** - read inline and display formulas in technical notes.
 - **Syntax-highlighted code blocks** - keep code-heavy documents readable.
 - **Multiple import paths** - local files, local folders, pasted Markdown, GitHub URLs, Gists, raw Markdown URLs, and sample documents.
+- **Document-to-Markdown conversion** - convert DOCX, PPTX, XLSX, XLS, CSV, HTML, JSON, XML, and text-heavy PDF files, then open the converted Markdown in a new workspace tab.
 - **Local Folder Workspace** - open a local docs folder in supported desktop browsers, browse Markdown files, follow relative links, and save changes back to disk.
 - **Persistent workspace tabs** - keep multiple Markdown documents open with independent source labels and restored tab state.
 - **Installable PWA** - install Markdownviewer from a supported desktop browser and open `.md` files with it through the operating system file picker.
@@ -49,6 +51,7 @@ It is designed to be more than another plain utility page: Markdownviewer gives 
 - **Chinese localization** - use localized landing and workspace routes at `/zh-CN`.
 - **Mobile app-style workspace** - refined mobile navigation, larger import controls, focused tab selection, and a full-width preview bottom bar.
 - **Focused Markdown workflow pages** - dedicated pages for README preview, GFM, Mermaid, Markdown math, AI Markdown, and online Markdown file viewing.
+- **Document converter workflow page** - a focused page for Word, PDF, HTML, and data-file to Markdown conversion, including storage and OCR boundaries.
 - **AI Markdown reader** - clean up Markdown from ChatGPT, Claude, Cursor, Copilot, and other AI tools.
 - **Open-source and self-hostable** - MIT licensed, built with Next.js, React, and TypeScript.
 
@@ -56,6 +59,7 @@ It is designed to be more than another plain utility page: Markdownviewer gives 
 
 | Version | Date | Product update |
 | --- | --- | --- |
+| **26.603** | 2026-06-03 | Added document-to-Markdown conversion for Office, data, HTML, and text-heavy PDF files, a focused converter SEO page, updated homepage/README/llms discovery copy, and evenly spaced preview margin levels. |
 | **26.602** | 2026-06-02 | Added six long-tail SEO landing pages, homepage quick links plus sitemap/llms discovery, FAQ structured data, default wide preview margins, workspace language switching, share-link fallback copying, and a build-stable local monospace font stack. |
 | **26.531** | 2026-05-31 | Fixed mobile landing layout, added full-width top navigation, shipped the live changelog page, enlarged mobile workspace import controls, auto-collapsed the mobile tab rail after tab selection/import or backdrop taps, exposed real generated share links, and refined the mobile preview bottom bar. |
 | **26.530** | 2026-05-30 | Added Local Folder Workspace, folder browsing, relative Markdown link navigation, save-to-disk, folder reconnect states, mobile workspace layout fixes, and PWA tab handling improvements. |
@@ -69,13 +73,14 @@ It is designed to be more than another plain utility page: Markdownviewer gives 
 - Technical writers reviewing docs without a full docs-site build.
 - Students reading notes with code, diagrams, and formulas.
 - AI power users turning model output into readable documents.
+- Teams converting Word docs, slide decks, spreadsheets, HTML, JSON, XML, CSV, and text-heavy PDFs into Markdown drafts.
 - Teams that need a fast browser-based Markdown preview for shared links and raw files.
 
 ## Backlink-Friendly Description
 
 Use this paragraph when listing the project in directories, roundups, resource pages, or comparison posts:
 
-> [Markdown Viewer Online](https://markdownviewer.run/) is a free online Markdown viewer and live preview workspace for README files, GitHub Flavored Markdown, Mermaid diagrams, KaTeX math, syntax-highlighted code blocks, AI-generated Markdown, local files, GitHub URLs, Gists, and raw Markdown links.
+> [Markdown Viewer Online](https://markdownviewer.run/) is a free online Markdown viewer and live preview workspace for README files, GitHub Flavored Markdown, Mermaid diagrams, KaTeX math, syntax-highlighted code blocks, AI-generated Markdown, document-to-Markdown conversion, local files, GitHub URLs, Gists, and raw Markdown links.
 
 Suggested anchor text:
 
@@ -86,6 +91,9 @@ Suggested anchor text:
 - GitHub Flavored Markdown viewer
 - Mermaid Markdown viewer
 - AI Markdown viewer
+- document to Markdown converter
+- Word to Markdown converter
+- PDF to Markdown converter
 
 ## What Makes It Different
 
@@ -93,7 +101,7 @@ Suggested anchor text:
 | --- | --- |
 | Plain textarea and preview | Editorial reading surface with a focused workspace |
 | Basic Markdown only | README, GFM, code, Mermaid, and KaTeX-oriented rendering |
-| Paste-only workflow | File, paste, GitHub, Gist, raw URL, and sample imports |
+| Paste-only workflow | File, folder, document conversion, paste, GitHub, Gist, raw URL, and sample imports |
 | Disposable one-off page | Open-source project with a canonical GitHub repository |
 | Generic preview experience | Built around developer docs, AI output, and technical writing |
 
@@ -107,6 +115,7 @@ Suggested anchor text:
 - Markdown math preview: [https://markdownviewer.run/features/markdown-math-preview](https://markdownviewer.run/features/markdown-math-preview)
 - AI Markdown viewer: [https://markdownviewer.run/use-cases/ai-markdown-viewer](https://markdownviewer.run/use-cases/ai-markdown-viewer)
 - Markdown file viewer online: [https://markdownviewer.run/use-cases/markdown-file-viewer-online](https://markdownviewer.run/use-cases/markdown-file-viewer-online)
+- Document to Markdown converter: [https://markdownviewer.run/use-cases/document-to-markdown-converter](https://markdownviewer.run/use-cases/document-to-markdown-converter)
 - Source code: [https://github.com/stewart-lhc/markdownviewer](https://github.com/stewart-lhc/markdownviewer)
 - Issues: [https://github.com/stewart-lhc/markdownviewer/issues](https://github.com/stewart-lhc/markdownviewer/issues)
 
@@ -181,7 +190,7 @@ types/               Local type declarations
 
 This repository is the canonical open-source home for [markdownviewer.run](https://markdownviewer.run/), an online Markdown viewer and Markdown preview workspace. If you mention the project in a directory, article, comparison, or resource list, please link to the live tool with a descriptive anchor such as "Markdown Viewer Online", "online Markdown viewer", or "Markdown preview online".
 
-The site is positioned around these use cases: markdown viewer, markdown viewer online, online markdown viewer, markdown preview, markdown preview online, GitHub Flavored Markdown viewer, README viewer online, Mermaid Markdown viewer, Markdown viewer with math, AI Markdown viewer, ChatGPT Markdown viewer, Claude Markdown viewer, raw Markdown viewer, and markdown file viewer online.
+The site is positioned around these use cases: markdown viewer, markdown viewer online, online markdown viewer, markdown preview, markdown preview online, GitHub Flavored Markdown viewer, README viewer online, Mermaid Markdown viewer, Markdown viewer with math, AI Markdown viewer, ChatGPT Markdown viewer, Claude Markdown viewer, raw Markdown viewer, markdown file viewer online, document to Markdown converter, Word to Markdown converter, PDF to Markdown converter, and DOCX to Markdown.
 
 ## Contributing
 

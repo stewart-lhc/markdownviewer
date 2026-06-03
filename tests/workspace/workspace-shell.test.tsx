@@ -702,7 +702,7 @@ describe("WorkspaceShell interactions", () => {
     expect(previewRegion).toHaveStyle({
       "--workspace-preview-font-family": "Georgia, 'Times New Roman', serif",
       "--workspace-preview-font-size": "17px",
-      "--workspace-preview-inline-margin": "clamp(84px, 21%, 228px)"
+      "--workspace-preview-inline-margin": "22%"
     });
     expect(window.localStorage.getItem("markdownviewer.workspace.preview.font")).toBe("serif");
     expect(window.localStorage.getItem("markdownviewer.workspace.preview.fontSize")).toBe("17");
