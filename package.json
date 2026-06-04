@@ -2,6 +2,7 @@
   "name": "markdownviewer",
   "version": "0.2.0",
   "description": "Open-source online Markdown viewer with live preview for README files, GitHub Flavored Markdown, Mermaid diagrams, KaTeX math, code blocks, and raw URLs.",
+  "author": "Markdownviewer contributors",
   "license": "MIT",
   "homepage": "https://markdownviewer.run/",
   "repository": {
@@ -28,15 +29,17 @@
     "start": "next start",
     "test": "vitest run",
     "test:watch": "vitest",
+    "desktop:clean": "node -e \"const fs=require('node:fs'); for (const path of ['desktop-runtime','dist-electron','release']) fs.rmSync(path,{recursive:true,force:true});\"",
     "desktop:dev": "node scripts/desktop-dev.mjs",
     "desktop:build:main": "tsc -p electron/tsconfig.json",
     "desktop:stage-next": "node scripts/desktop-stage-next.mjs",
-    "desktop:dist": "npm run build && npm run desktop:build:main && npm run desktop:stage-next && electron-builder --win nsis --x64",
-    "desktop:dist:dir": "npm run build && npm run desktop:build:main && npm run desktop:stage-next && electron-builder --dir"
+    "desktop:dist": "npm run desktop:clean && npm run build && npm run desktop:build:main && npm run desktop:stage-next && electron-builder --win nsis --x64",
+    "desktop:dist:dir": "npm run desktop:clean && npm run build && npm run desktop:build:main && npm run desktop:stage-next && electron-builder --dir"
   },
   "build": {
     "appId": "run.markdownviewer.desktop",
     "productName": "Markdownviewer",
+    "executableName": "Markdownviewer",
     "files": [
       "dist-electron/**/*",
       "package.json"
@@ -51,6 +54,7 @@
       "output": "release"
     },
     "win": {
+      "signAndEditExecutable": false,
       "target": [
         "nsis"
       ]
