@@ -8,12 +8,15 @@ import { convertedDocumentAccept } from "@/lib/workspace/convert-document";
 
 type WorkspaceToolbarProps = {
   activeImportMode: SourcePanelMode;
+  canSaveDesktopFile: boolean;
   compact?: boolean;
+  isDesktop: boolean;
   mode: "preview" | "split" | "editor";
   messages: WorkspaceMessages["toolbar"];
   showImportActions?: boolean;
   sourceValue: string;
   onActiveImportModeChange: (mode: SourcePanelMode) => void;
+  onOpenDesktopFiles: () => void;
   onModeChange: (mode: "preview" | "split" | "editor") => void;
   onPasteIntoEditor: () => void;
   onConvertFile: (file: File) => void;
@@ -23,6 +26,8 @@ type WorkspaceToolbarProps = {
   onExportHtml: () => void;
   onExportPdf: () => void;
   onOpenFolder: () => void;
+  onSaveDesktopFile: () => void;
+  onSaveDesktopFileAs: () => void;
   onSaveToDisk: () => void;
 };
 
@@ -42,12 +47,15 @@ function getModeIcon(mode: WorkspaceToolbarProps["mode"]) {
 
 export function WorkspaceToolbar({
   activeImportMode,
+  canSaveDesktopFile,
   compact = false,
+  isDesktop,
   mode,
   messages,
   showImportActions = true,
   sourceValue,
   onActiveImportModeChange,
+  onOpenDesktopFiles,
   onPasteIntoEditor,
   onConvertFile,
   onFileImport,
@@ -57,6 +65,8 @@ export function WorkspaceToolbar({
   onExportHtml,
   onExportPdf,
   onOpenFolder,
+  onSaveDesktopFile,
+  onSaveDesktopFileAs,
   onSaveToDisk
 }: WorkspaceToolbarProps) {
   const [importMenuOpen, setImportMenuOpen] = useState(false);
@@ -329,6 +339,38 @@ export function WorkspaceToolbar({
           />
           <button className="toolbar-button" onClick={onParseSource} type="button">
             {messages.open}
+          </button>
+        </div>
+      ) : null}
+      {isDesktop ? (
+        <div className="toolbar-cluster toolbar-cluster--desktop" role="group" aria-label={messages.desktopFileActions}>
+          <button
+            aria-label={messages.openDesktopFile}
+            className="toolbar-button"
+            onClick={onOpenDesktopFiles}
+            type="button"
+          >
+            <FileUp aria-hidden="true" size={16} strokeWidth={2} />
+            <span>{messages.openDesktopFile}</span>
+          </button>
+          <button
+            aria-label={messages.saveDesktopFile}
+            className="toolbar-button"
+            disabled={!canSaveDesktopFile}
+            onClick={onSaveDesktopFile}
+            type="button"
+          >
+            <Save aria-hidden="true" size={16} strokeWidth={2} />
+            <span>{messages.saveDesktopFile}</span>
+          </button>
+          <button
+            aria-label={messages.saveDesktopFileAs}
+            className="toolbar-button"
+            onClick={onSaveDesktopFileAs}
+            type="button"
+          >
+            <Save aria-hidden="true" size={16} strokeWidth={2} />
+            <span>{messages.saveDesktopFileAs}</span>
           </button>
         </div>
       ) : null}

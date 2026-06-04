@@ -7,7 +7,15 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     globals: true,
-    exclude: [".codex-temp/**", ".codex/**", "node_modules/**"],
+    exclude: [
+      ".codex-temp/**",
+      ".codex/**",
+      ".next/**",
+      "desktop-runtime/**",
+      "dist-electron/**",
+      "node_modules/**",
+      "release/**"
+    ],
     setupFiles: ["./tests/setup.ts"],
     testTimeout: 15000,
     hookTimeout: 15000

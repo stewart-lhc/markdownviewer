@@ -163,6 +163,30 @@ Create a production build:
 npm run build
 ```
 
+## Desktop Edition
+
+Markdownviewer keeps the hosted Web/PWA app as the main public entry point. The Electron desktop edition adds native file open/save, OS file association, and packaged Windows/macOS/Linux distribution around the same `/workspace` experience.
+
+Start the desktop app in development:
+
+```bash
+npm run desktop:dev
+```
+
+Create a Windows directory build:
+
+```bash
+npm run desktop:dist:dir
+```
+
+Create a Windows installer:
+
+```bash
+npm run desktop:dist
+```
+
+The desktop app starts a local Next standalone runtime and loads `/workspace?desktop=1` inside Electron. The renderer does not get Node access directly; all native file access goes through the preload bridge.
+
 ## 本地文件夹工作区 Local Folder Workspace
 
 Markdownviewer 的 `/workspace` 支持本地文件夹模式：在浏览器里选择一个 docs/project 文件夹后，可以直接浏览 `.md`、`.markdown`、`.mdx`、`.txt` 文件树，打开文件预览和编辑，使用 `Ctrl+S`/`Cmd+S` 保存回磁盘，新建 `Untitled.md`，并跳转相对 Markdown links，例如 `docs/a.md`、`../guide.md`、`./intro.md#heading`。
