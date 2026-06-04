@@ -49,8 +49,8 @@ function isVercelRuntime() {
   return Boolean(process.env.VERCEL);
 }
 
-function hasBlobStorageToken() {
-  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+function hasBlobStorageCredentials() {
+  return Boolean(process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID);
 }
 
 function getShareBlobPath(id: string) {
@@ -163,20 +163,20 @@ async function readWithLocalFile(id: string) {
 }
 
 async function saveStoredDocument(document: SharedDocument) {
-  if (hasBlobStorageToken()) {
+  if (hasBlobStorageCredentials()) {
     await saveWithBlob(document);
     return;
   }
 
   if (isVercelRuntime()) {
-    throw new Error("Share storage is not configured. Connect Vercel Blob and expose BLOB_READ_WRITE_TOKEN.");
+    throw new Error("Share storage is not configured. Connect Vercel Blob with BLOB_STORE_ID/OIDC or expose BLOB_READ_WRITE_TOKEN.");
   }
 
   await saveWithLocalFile(document);
 }
 
 async function readStoredDocument(id: string) {
-  if (hasBlobStorageToken()) {
+  if (hasBlobStorageCredentials()) {
     try {
       return await readWithBlob(id);
     } catch {
