@@ -89,12 +89,12 @@ async function startNextRuntime() {
   const serverPath = app.isPackaged
     ? join(runtimeRoot, "server.js")
     : join(process.cwd(), ".next", "standalone", "server.js");
+  const nodeRuntimePath = app.isPackaged && process.platform === "win32" ? join(runtimeRoot, "node.exe") : process.execPath;
 
-  nextProcess = spawn(process.execPath, [serverPath], {
+  nextProcess = spawn(nodeRuntimePath, [serverPath], {
     cwd: runtimeRoot,
     env: {
       ...process.env,
-      ELECTRON_RUN_AS_NODE: "1",
       HOSTNAME: "127.0.0.1",
       PORT: String(nextPort)
     },

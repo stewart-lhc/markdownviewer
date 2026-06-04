@@ -24,3 +24,7 @@ await cp(join(root, ".next", "static"), join(runtime, ".next", "static"), {
 await cp(join(root, "public"), join(runtime, "public"), {
   recursive: true
 });
+
+if (process.platform === "win32") {
+  await cp(process.execPath, join(runtime, "node.exe"));
+}
