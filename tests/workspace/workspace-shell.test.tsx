@@ -1160,6 +1160,10 @@ describe("WorkspaceShell interactions", () => {
     const revokeObjectURL = vi.fn();
     const writeText = vi.fn().mockResolvedValue(undefined);
     const print = vi.fn();
+    const createShare = vi.fn().mockResolvedValue({
+      id: "imported-from-url-ab12cd34",
+      title: "Imported from URL"
+    });
 
     Object.defineProperty(URL, "createObjectURL", {
       configurable: true,
@@ -1180,6 +1184,7 @@ describe("WorkspaceShell interactions", () => {
 
     render(
       <WorkspaceShell
+        createShare={createShare}
         loadSource={loadSource}
         markdown=""
         sourceInput=""
@@ -1232,11 +1237,11 @@ describe("WorkspaceShell interactions", () => {
     await user.click(screen.getByRole("button", { name: /share link/i }));
 
     await waitFor(() => {
-      expect(writeText).toHaveBeenCalledWith(expect.stringMatching(/\/share\/md-/));
+      expect(writeText).toHaveBeenCalledWith(expect.stringMatching(/\/share\/imported-from-url-ab12cd34$/));
     });
 
     const generatedShareLink = screen.getByRole("link", { name: /open generated share link/i });
-    expect(generatedShareLink).toHaveAttribute("href", expect.stringMatching(/\/share\/md-/));
+    expect(generatedShareLink).toHaveAttribute("href", expect.stringMatching(/\/share\/imported-from-url-ab12cd34$/));
     expect(screen.getByText(/share link ready/i)).toBeInTheDocument();
     expect(screen.getByRole("dialog", { name: /share link/i })).toBeInTheDocument();
     fireEvent.click(document.querySelector(".workspace-share-backdrop") as Element);
@@ -1275,6 +1280,10 @@ describe("WorkspaceShell interactions", () => {
     const user = userEvent.setup();
     const writeText = vi.fn(() => new Promise<void>(() => undefined));
     const execCommand = vi.fn(() => true);
+    const createShare = vi.fn().mockResolvedValue({
+      id: "share-fallback-a1b2c3d4",
+      title: "Share fallback"
+    });
 
     Object.defineProperty(window.navigator, "clipboard", {
       configurable: true,
@@ -1285,17 +1294,23 @@ describe("WorkspaceShell interactions", () => {
       value: execCommand
     });
 
-    render(<WorkspaceShell markdown="# Share fallback\n\nReadable document." sourceInput="" />);
+    render(
+      <WorkspaceShell
+        createShare={createShare}
+        markdown="# Share fallback\n\nReadable document."
+        sourceInput=""
+      />
+    );
 
     await user.click(screen.getByRole("button", { name: /share link/i }));
 
     const generatedShareLink = await screen.findByRole("link", { name: /open generated share link/i });
 
-    expect(writeText).toHaveBeenCalledWith(expect.stringMatching(/\/share\/md-/));
+    expect(writeText).toHaveBeenCalledWith(expect.stringMatching(/\/share\/share-fallback-a1b2c3d4$/));
     await waitFor(() => {
       expect(execCommand).toHaveBeenCalledWith("copy");
     });
-    expect(generatedShareLink).toHaveAttribute("href", expect.stringMatching(/\/share\/md-/));
+    expect(generatedShareLink).toHaveAttribute("href", expect.stringMatching(/\/share\/share-fallback-a1b2c3d4$/));
     expect(screen.getByText(/share link ready/i)).toBeInTheDocument();
   });
 

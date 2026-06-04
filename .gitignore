@@ -8,3 +8,5 @@ node_modules
 .playwright-mcp/
 .codex-*.png
 test-results/
+.data/
+.next-dev-*.log

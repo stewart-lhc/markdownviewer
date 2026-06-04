@@ -18,7 +18,7 @@ import { Clipboard, FileUp, FolderOpen, Link, PanelLeftClose, PanelLeftOpen, Sha
 import { BrandLink } from "@/components/brand/brand-link";
 import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 import { FolderRail } from "@/components/workspace/folder-rail";
-import { createMarkdownShare } from "@/lib/share/share-codec";
+import { createShareViaApi, type CreateShareResult } from "@/lib/share/share-client";
 import { exportMarkdownHtml } from "@/lib/workspace/export-html";
 import { getFolderCapability, queryFolderPermission, requestFolderPermission, type FolderPermissionState } from "@/lib/workspace/folder-capabilities";
 import {
@@ -62,6 +62,7 @@ type WorkspaceShellProps = {
   mode?: WorkspaceMode;
   initialStatusMessage?: string;
   locale?: Locale;
+  createShare?: (markdown: string, title?: string) => Promise<CreateShareResult>;
   loadSource?: (input: string) => Promise<LoadedMarkdownSource>;
   tabRestoreStrategy?: WorkspaceTabRestoreStrategy;
 };
@@ -602,6 +603,7 @@ export function WorkspaceShell({
   mode = "split",
   initialStatusMessage,
   locale = defaultLocale,
+  createShare = createShareViaApi,
   loadSource = loadMarkdownSourceViaApi,
   tabRestoreStrategy = "restore"
 }: WorkspaceShellProps) {
@@ -1783,19 +1785,18 @@ export function WorkspaceShell({
   }
 
   async function handleShare() {
-    const share = createMarkdownShare(currentMarkdown);
+    setStatusMessage(messages.status.creatingShare);
 
-    if (!share.ok) {
-      setStatusMessage(share.error);
-      return;
+    try {
+      const share = await createShare(currentMarkdown, headings[0]?.text);
+      const shareUrl = `${window.location.origin}${localizePath(`/share/${share.id}`, locale)}`;
+      setShareUrl(shareUrl);
+
+      const copied = await copyShareUrlToClipboard(shareUrl);
+      setStatusMessage(copied ? `${messages.status.linkCopied} ${shareUrl}` : shareUrl);
+    } catch (error) {
+      setStatusMessage(error instanceof Error ? error.message : messages.status.shareFailed);
     }
-
-    const shareId = share.id;
-    const shareUrl = `${window.location.origin}${localizePath(`/share/${shareId}`, locale)}`;
-    setShareUrl(shareUrl);
-
-    const copied = await copyShareUrlToClipboard(shareUrl);
-    setStatusMessage(copied ? `${messages.status.linkCopied} ${shareUrl}` : shareUrl);
   }
 
   async function handleCopyShareUrl() {

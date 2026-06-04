@@ -1,5 +1,5 @@
 import { starterDocument } from "@/lib/workspace/default-document";
-import { getSharedDocument } from "@/lib/share/mock-share-store";
+import { getSharedDocument } from "@/lib/share/share-store";
 import { defaultLocale, type Locale } from "@/lib/i18n/locales";
 import { getMessages } from "@/lib/i18n/messages";
 import { loadMarkdownSource } from "@/lib/workspace/load-markdown-source";
@@ -26,7 +26,7 @@ export async function resolveInitialWorkspaceDocument(
   const sourceValue = takeFirst(searchParams.source);
 
   if (shareValue) {
-    const sharedDocument = getSharedDocument(shareValue);
+    const sharedDocument = await getSharedDocument(shareValue);
 
     if (!sharedDocument) {
       return {

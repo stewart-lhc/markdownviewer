@@ -166,6 +166,7 @@ export type Messages = {
       closedTab: string;
       convertedFile: (fileName: string) => string;
       convertingFile: (fileName: string) => string;
+      creatingShare: string;
       exportedHtml: string;
       linkCopied: string;
       loadFailed: string;
@@ -177,6 +178,7 @@ export type Messages = {
       pastePermission: string;
       pasted: string;
       readFileFailed: string;
+      shareFailed: string;
       sharedMissing: string;
       switchedTo: (title: string) => string;
       urlRequired: string;
@@ -431,6 +433,7 @@ export const messages: Record<Locale, Messages> = {
         closedTab: "Closed tab.",
         convertedFile: (fileName) => `Converted ${fileName} to Markdown.`,
         convertingFile: (fileName) => `Converting ${fileName} to Markdown...`,
+        creatingShare: "Creating share link...",
         exportedHtml: "Exported HTML.",
         linkCopied: "Link copied.",
         loadFailed: "Failed to load Markdown.",
@@ -442,6 +445,7 @@ export const messages: Record<Locale, Messages> = {
         pastePermission: "Clipboard paste requires browser permission.",
         pasted: "Pasted Markdown.",
         readFileFailed: "Failed to read the selected file.",
+        shareFailed: "Failed to create share link.",
         sharedMissing: "Shared document not found.",
         switchedTo: (title) => `Switched to ${title}.`,
         urlRequired: "Enter a Markdown URL first."
@@ -807,6 +811,7 @@ export const messages: Record<Locale, Messages> = {
         closedTab: "已关闭标签。",
         convertedFile: (fileName) => `已将 ${fileName} 转换为 Markdown。`,
         convertingFile: (fileName) => `正在将 ${fileName} 转换为 Markdown...`,
+        creatingShare: "正在生成分享链接...",
         exportedHtml: "已导出 HTML。",
         linkCopied: "链接已复制。",
         loadFailed: "加载 Markdown 失败。",
@@ -818,6 +823,7 @@ export const messages: Record<Locale, Messages> = {
         pastePermission: "从剪贴板粘贴需要浏览器权限。",
         pasted: "已粘贴 Markdown。",
         readFileFailed: "读取所选文件失败。",
+        shareFailed: "生成分享链接失败。",
         sharedMissing: "未找到分享文档。",
         switchedTo: (title) => `已切换到 ${title}。`,
         urlRequired: "请先输入 Markdown URL。"

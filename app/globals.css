@@ -121,6 +121,10 @@ body:has(.workspace-page) {
   overflow: hidden;
 }
 
+body:has(.share-shell) {
+  overflow: hidden;
+}
+
 html[data-theme="night"] {
   --bg: #131416;
   --bg-strong: #191c1f;
@@ -4102,7 +4106,17 @@ html[data-theme] .workspace-reader-body .markdown-body h4,
 }
 
 .share-shell {
-  padding: 28px 0 72px;
+  min-height: 100vh;
+  padding: 6px;
+  overflow: hidden;
+}
+
+.share-shell .page-shell {
+  width: min(1680px, calc(100vw - 12px));
+  height: calc(100vh - 12px);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 6px;
 }
 
 .share-header {
@@ -4110,7 +4124,91 @@ html[data-theme] .workspace-reader-body .markdown-body h4,
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 18px;
+  min-height: 42px;
+  padding: 2px 6px;
+  margin: 0;
+}
+
+.share-reader-shell {
+  height: 100%;
+  min-height: 0;
+}
+
+.share-reader-bottom-bar {
+  display: none;
+}
+
+.share-shell .share-reader-shell .workspace-reader-body {
+  padding-inline: var(--workspace-preview-inline-margin);
+}
+
+.share-shell .workspace-reader-body::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+  background: var(--workspace-scrollbar-track);
+}
+
+.share-shell .workspace-reader-body::-webkit-scrollbar-track {
+  border-radius: 999px;
+  border: 1px solid var(--workspace-scrollbar-track-border);
+  background: var(--workspace-scrollbar-track);
+}
+
+.share-shell .workspace-reader-body::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  border: 2px solid var(--workspace-scrollbar-thumb-border);
+  background: var(--workspace-scrollbar-thumb);
+}
+
+.share-shell .workspace-reader-body::-webkit-scrollbar-thumb:hover {
+  background: var(--workspace-scrollbar-thumb);
+}
+
+.share-shell .workspace-reader-body::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.share-shell .workspace-reader-body::-webkit-scrollbar-corner {
+  background: var(--workspace-scrollbar-corner);
+}
+
+@media (max-width: 720px) {
+  .share-shell {
+    padding: 0;
+  }
+
+  .share-shell .page-shell {
+    width: 100%;
+    height: 100svh;
+    gap: 0;
+  }
+
+  .share-header {
+    min-height: 50px;
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--workspace-shell-border);
+    background: color-mix(in srgb, var(--workspace-shell-bg) 88%, transparent);
+    backdrop-filter: blur(18px);
+  }
+
+  .share-reader-shell {
+    padding: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  .share-reader-toolbar {
+    display: none !important;
+  }
+
+  .share-shell .workspace-reader-body {
+    padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .share-shell .share-reader-bottom-bar {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
 }
 
 @media print {

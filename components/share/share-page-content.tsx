@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { MarkdownRenderer } from "@/components/markdown/markdown-renderer";
+import { BrandLink } from "@/components/brand/brand-link";
+import { ShareReader } from "@/components/share/share-reader";
 import { localizePath, type Locale } from "@/lib/i18n/locales";
 import { getMessages } from "@/lib/i18n/messages";
-import { getSharedDocument } from "@/lib/share/mock-share-store";
+import { getSharedDocument } from "@/lib/share/share-store";
 
 export type SharePageContentProps = {
   locale: Locale;
@@ -12,7 +13,7 @@ export type SharePageContentProps = {
 
 export async function buildShareMetadata({ locale, params }: SharePageContentProps): Promise<Metadata> {
   const { id } = await params;
-  const document = getSharedDocument(id);
+  const document = await getSharedDocument(id);
   const t = getMessages(locale);
   const path = localizePath(`/share/${id}`, locale);
 
@@ -22,16 +23,22 @@ export async function buildShareMetadata({ locale, params }: SharePageContentPro
     alternates: {
       canonical: path
     },
-    robots: {
-      index: false,
-      follow: false
-    }
+    robots:
+      document?.source === "stored"
+        ? {
+            index: true,
+            follow: true
+          }
+        : {
+            index: false,
+            follow: false
+          }
   };
 }
 
 export async function SharePageContent({ locale, params }: SharePageContentProps) {
   const { id } = await params;
-  const document = getSharedDocument(id);
+  const document = await getSharedDocument(id);
   const t = getMessages(locale);
 
   if (!document) {
@@ -42,16 +49,18 @@ export async function SharePageContent({ locale, params }: SharePageContentProps
     <main className="share-shell" lang={locale}>
       <div className="page-shell">
         <div className="share-header">
-          <div className="brand">
-            markdownviewer<span className="brand-dot">.run</span>
-          </div>
+          <BrandLink
+            ariaLabel={locale === "zh-CN" ? "Markdownviewer 首页" : "Markdownviewer home"}
+            className="workspace-home share-home"
+            compact
+            href={localizePath("/", locale)}
+            title="Markdownviewer"
+          />
           <a className="ghost-link" href={`${localizePath("/workspace", locale)}?share=${encodeURIComponent(id)}`}>
             {t.share.openInWorkspace}
           </a>
         </div>
-        <section className="workspace-card">
-          <MarkdownRenderer markdown={document.markdown} />
-        </section>
+        <ShareReader documentTitle={document.title} locale={locale} markdown={document.markdown} />
       </div>
     </main>
   );

@@ -1,10 +1,12 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import SharePage from "@/app/share/[id]/page";
 import ChineseSharePage from "@/app/zh-CN/share/[id]/page";
 import { encodeMarkdownShare } from "@/lib/share/share-codec";
 
 describe("share page", () => {
-  it("renders a seeded public document", async () => {
+  it("renders a seeded public document with the full preview reader controls", async () => {
+    const user = userEvent.setup();
     const page = await SharePage({
       params: Promise.resolve({ id: "starter-doc" })
     });
@@ -12,6 +14,26 @@ describe("share page", () => {
     render(page);
 
     expect(screen.getByRole("heading", { level: 1, name: /markdown feature atlas/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /markdownviewer home/i })).toHaveAttribute("href", "/");
+    expect(screen.getByTestId("preview-panel")).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /template: paper/i }).length).toBeGreaterThan(0);
+    expect(screen.getAllByLabelText(/preview font/i).length).toBeGreaterThan(0);
+    expect(screen.getByRole("button", { name: /contents/i })).toBeInTheDocument();
+    expect(screen.getByTestId("preview-scroll-region")).toHaveStyle({
+      "--workspace-preview-inline-margin": "25%"
+    });
+
+    await user.click(screen.getAllByRole("button", { name: /decrease preview margin/i })[0]);
+
+    expect(screen.getByTestId("preview-scroll-region")).toHaveStyle({
+      "--workspace-preview-inline-margin": "22%"
+    });
+
+    await user.click(screen.getAllByRole("button", { name: /increase preview font size/i })[0]);
+
+    expect(screen.getByTestId("preview-scroll-region")).toHaveStyle({
+      "--workspace-preview-font-size": "16px"
+    });
     expect(screen.getByRole("link", { name: /open in workspace/i })).toHaveAttribute(
       "href",
       "/workspace?share=starter-doc"

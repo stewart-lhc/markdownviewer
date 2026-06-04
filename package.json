@@ -29,6 +29,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@vercel/blob": "^2.4.0",
     "cledit": "^1.2.0",
     "katex": "^0.16.25",
     "lucide-react": "^1.17.0",
