@@ -1,10 +1,13 @@
-const cacheName = "markdownviewer-pwa-v1";
+const cacheName = "markdownviewer-pwa-v2";
 const appShellUrls = [
   "/",
   "/workspace",
   "/zh-CN/workspace",
   "/manifest.webmanifest",
-  "/markdownviewer-icon.svg"
+  "/favicon.ico",
+  "/markdownviewer-icon.svg",
+  "/markdownviewer-icon-192.png",
+  "/markdownviewer-icon-512.png"
 ];
 
 self.addEventListener("install", (event) => {

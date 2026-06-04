@@ -13,7 +13,26 @@ describe("PWA manifest", () => {
     expect(manifest.launch_handler).toEqual({
       client_mode: ["focus-existing", "navigate-existing"]
     });
-    expect(manifest.icons[0]).toEqual(
+    expect(manifest.icons).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          src: "/markdownviewer-icon-192.png",
+          sizes: "192x192",
+          type: "image/png"
+        }),
+        expect.objectContaining({
+          src: "/markdownviewer-icon-512.png",
+          sizes: "512x512",
+          type: "image/png",
+          purpose: "any maskable"
+        }),
+        expect.objectContaining({
+          src: "/markdownviewer-icon.svg",
+          type: "image/svg+xml"
+        })
+      ])
+    );
+    expect(manifest.icons[2]).toEqual(
       expect.objectContaining({
         src: "/markdownviewer-icon.svg",
         type: "image/svg+xml"

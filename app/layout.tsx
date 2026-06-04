@@ -15,6 +15,13 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   applicationName: "markdownviewer.run",
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.svg", type: "image/svg+xml" }
+    ],
+    apple: [{ url: "/markdownviewer-icon-192.png", sizes: "192x192", type: "image/png" }]
+  },
   title: {
     default: "Markdown Viewer Online - Live Preview | markdownviewer.run",
     template: "%s | markdownviewer.run"

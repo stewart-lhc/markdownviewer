@@ -14,6 +14,18 @@
   "categories": ["productivity", "utilities", "developer"],
   "icons": [
     {
+      "src": "/markdownviewer-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/markdownviewer-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
       "src": "/markdownviewer-icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
