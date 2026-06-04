@@ -166,6 +166,9 @@ export type Messages = {
       closedTab: string;
       convertedFile: (fileName: string) => string;
       convertingFile: (fileName: string) => string;
+      desktopSaveFailed: string;
+      desktopSaved: (fileName: string) => string;
+      desktopUnavailable: string;
       exportedHtml: string;
       linkCopied: string;
       loadFailed: string;
@@ -194,6 +197,7 @@ export type Messages = {
     toolbar: {
       convertFile: string;
       convertUploadLabel: string;
+      desktopFileActions: string;
       exportHtml: string;
       exportPdf: string;
       file: string;
@@ -203,8 +207,11 @@ export type Messages = {
       modes: Record<"preview" | "split" | "editor", string>;
       more: string;
       open: string;
+      openDesktopFile: string;
       openFolder: string;
       paste: string;
+      saveDesktopFile: string;
+      saveDesktopFileAs: string;
       saveToDisk: string;
       shareLink: string;
       sourceUrlLabel: string;
@@ -431,6 +438,9 @@ export const messages: Record<Locale, Messages> = {
         closedTab: "Closed tab.",
         convertedFile: (fileName) => `Converted ${fileName} to Markdown.`,
         convertingFile: (fileName) => `Converting ${fileName} to Markdown...`,
+        desktopSaveFailed: "Could not save this desktop file.",
+        desktopSaved: (fileName) => `Saved ${fileName}.`,
+        desktopUnavailable: "Desktop features are only available in the installed app.",
         exportedHtml: "Exported HTML.",
         linkCopied: "Link copied.",
         loadFailed: "Failed to load Markdown.",
@@ -462,6 +472,7 @@ export const messages: Record<Locale, Messages> = {
       toolbar: {
         convertFile: "Convert",
         convertUploadLabel: "Convert document to Markdown",
+        desktopFileActions: "Desktop file actions",
         exportHtml: "Export HTML",
         exportPdf: "Export PDF",
         file: "File",
@@ -475,8 +486,11 @@ export const messages: Record<Locale, Messages> = {
         },
         more: "More",
         open: "Open",
+        openDesktopFile: "Open desktop file",
         openFolder: "Folder",
         paste: "Paste",
+        saveDesktopFile: "Save desktop file",
+        saveDesktopFileAs: "Save desktop file as",
         saveToDisk: "Save to disk",
         shareLink: "Share Link",
         sourceUrlLabel: "Markdown source URL",
@@ -807,6 +821,9 @@ export const messages: Record<Locale, Messages> = {
         closedTab: "已关闭标签。",
         convertedFile: (fileName) => `已将 ${fileName} 转换为 Markdown。`,
         convertingFile: (fileName) => `正在将 ${fileName} 转换为 Markdown...`,
+        desktopSaveFailed: "无法保存这个桌面文件。",
+        desktopSaved: (fileName) => `已保存 ${fileName}。`,
+        desktopUnavailable: "桌面能力仅在已安装的应用中可用。",
         exportedHtml: "已导出 HTML。",
         linkCopied: "链接已复制。",
         loadFailed: "加载 Markdown 失败。",
@@ -838,6 +855,7 @@ export const messages: Record<Locale, Messages> = {
       toolbar: {
         convertFile: "转换",
         convertUploadLabel: "转换文档为 Markdown",
+        desktopFileActions: "桌面文件操作",
         exportHtml: "导出 HTML",
         exportPdf: "导出 PDF",
         file: "文件",
@@ -851,8 +869,11 @@ export const messages: Record<Locale, Messages> = {
         },
         more: "更多",
         open: "打开",
+        openDesktopFile: "打开桌面文件",
         openFolder: "打开文件夹",
         paste: "粘贴",
+        saveDesktopFile: "保存桌面文件",
+        saveDesktopFileAs: "桌面文件另存为",
         saveToDisk: "保存到磁盘",
         shareLink: "分享链接",
         sourceUrlLabel: "Markdown 来源 URL",

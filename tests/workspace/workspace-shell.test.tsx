@@ -1589,6 +1589,82 @@ describe("WorkspaceShell interactions", () => {
     expect(screen.getByRole("tab", { name: /existing/i })).toBeInTheDocument();
   });
 
+  it("opens Markdown files from the desktop toolbar", async () => {
+    const user = userEvent.setup();
+    const openMarkdownFiles = vi.fn().mockResolvedValue([
+      {
+        lastModified: 4000,
+        markdown: "# Toolbar Open",
+        name: "Toolbar.md",
+        path: "D:\\Docs\\Toolbar.md"
+      }
+    ]);
+
+    Object.defineProperty(window, "markdownviewerDesktop", {
+      configurable: true,
+      value: {
+        getLaunchFiles: vi.fn().mockResolvedValue([]),
+        isDesktop: true,
+        onOpenFiles: vi.fn().mockReturnValue(() => undefined),
+        openMarkdownFiles,
+        saveMarkdownFile: vi.fn(),
+        saveMarkdownFileAs: vi.fn()
+      }
+    });
+
+    render(<WorkspaceShell markdown="" sourceInput="" />);
+
+    await user.click(screen.getByRole("button", { name: /open desktop file/i }));
+
+    expect(openMarkdownFiles).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(screen.getByRole("tab", { name: /toolbar open/i })).toHaveAttribute("aria-selected", "true");
+    });
+  });
+
+  it("saves an active desktop-backed tab through Electron IPC", async () => {
+    const user = userEvent.setup();
+    const saveMarkdownFile = vi.fn().mockResolvedValue({
+      lastModified: 3000,
+      markdown: "# README",
+      name: "README.md",
+      path: "D:\\Docs\\README.md"
+    });
+
+    Object.defineProperty(window, "markdownviewerDesktop", {
+      configurable: true,
+      value: {
+        getLaunchFiles: vi.fn().mockResolvedValue([
+          {
+            lastModified: 1000,
+            markdown: "# README",
+            name: "README.md",
+            path: "D:\\Docs\\README.md"
+          }
+        ]),
+        isDesktop: true,
+        onOpenFiles: vi.fn().mockReturnValue(() => undefined),
+        openMarkdownFiles: vi.fn(),
+        saveMarkdownFile,
+        saveMarkdownFileAs: vi.fn()
+      }
+    });
+
+    render(<WorkspaceShell markdown="" sourceInput="" />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("tab", { name: /readme/i })).toHaveAttribute("aria-selected", "true");
+    });
+
+    await user.click(screen.getByRole("button", { name: /^save desktop file$/i }));
+
+    expect(saveMarkdownFile).toHaveBeenCalledWith({
+      markdown: "# README",
+      path: "D:\\Docs\\README.md"
+    });
+    expect(await screen.findByText("Saved README.md.")).toBeInTheDocument();
+  });
+
   it("handles rich-mode backspace and delete as single-character markdown edits", async () => {
     render(<WorkspaceShell markdown={"ab\ncd"} sourceInput="" />);
 

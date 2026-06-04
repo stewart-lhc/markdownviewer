@@ -699,6 +699,9 @@ export function WorkspaceShell({
   const isActiveFolderDocument = Boolean(activeFolderPath && activeFolderEntry);
   const activeFolderDirty =
     isActiveFolderDocument && activeTab?.savedMarkdownHash !== hashMarkdown(currentMarkdown);
+  const desktopBridge = getDesktopBridge();
+  const isDesktop = Boolean(desktopBridge);
+  const canSaveDesktopFile = activeTab?.sourceKind === "desktop-file" && Boolean(activeTab.desktopFilePath);
   const activeTabImportLocked = activeTab?.hasExplicitImportChoice === true;
   const showToolbarImportActions = !activeTabImportLocked && !hasCurrentDocument;
   const tabItems = useMemo(
@@ -1570,6 +1573,71 @@ export function WorkspaceShell({
     collapseTabsForReading();
   }
 
+  async function openDesktopFilesFromToolbar() {
+    const bridge = getDesktopBridge();
+
+    if (!bridge) {
+      setStatusMessage(messages.status.desktopUnavailable);
+      return;
+    }
+
+    try {
+      openDesktopFiles(await bridge.openMarkdownFiles());
+    } catch {
+      setStatusMessage(messages.status.loadFailed);
+    }
+  }
+
+  async function saveDesktopFile() {
+    const bridge = getDesktopBridge();
+
+    if (!bridge || activeTab?.sourceKind !== "desktop-file" || !activeTab.desktopFilePath) {
+      setStatusMessage(messages.status.desktopUnavailable);
+      return;
+    }
+
+    try {
+      const saved = await bridge.saveMarkdownFile({
+        markdown: currentMarkdown,
+        path: activeTab.desktopFilePath
+      });
+
+      setCurrentMarkdown(saved.markdown);
+      setCurrentSource(normalizeDesktopFileSourceInput(saved.path));
+      updateActiveTabMetadata({
+        desktopFilePath: saved.path,
+        desktopLastModified: saved.lastModified,
+        markdown: saved.markdown,
+        savedMarkdownHash: hashMarkdown(saved.markdown),
+        sourceInput: normalizeDesktopFileSourceInput(saved.path),
+        sourceKind: "desktop-file"
+      });
+      setStatusMessage(messages.status.desktopSaved(saved.name));
+    } catch {
+      setStatusMessage(messages.status.desktopSaveFailed);
+    }
+  }
+
+  async function saveDesktopFileAs() {
+    const bridge = getDesktopBridge();
+
+    if (!bridge) {
+      setStatusMessage(messages.status.desktopUnavailable);
+      return;
+    }
+
+    try {
+      const saved = await bridge.saveMarkdownFileAs(currentMarkdown, activeTab ? getWorkspaceTabTitle(activeTab, messages) : "Untitled.md");
+
+      if (saved) {
+        openDesktopFiles([saved]);
+        setStatusMessage(messages.status.desktopSaved(saved.name));
+      }
+    } catch {
+      setStatusMessage(messages.status.desktopSaveFailed);
+    }
+  }
+
   function handleNewTab() {
     setNewTabDialogOpen(true);
     setNewTabUrlInput("");
@@ -2222,7 +2290,9 @@ export function WorkspaceShell({
         </div>
         <WorkspaceToolbar
           activeImportMode={activeImportMode}
+          canSaveDesktopFile={canSaveDesktopFile}
           compact={compactWorkspace}
+          isDesktop={isDesktop}
           messages={messages.toolbar}
           mode={currentMode}
           showImportActions={showToolbarImportActions}
@@ -2232,9 +2302,18 @@ export function WorkspaceShell({
           onActiveImportModeChange={setActiveImportMode}
           onFileImport={handleFileImport}
           onModeChange={setCurrentMode}
+          onOpenDesktopFiles={() => {
+            void openDesktopFilesFromToolbar();
+          }}
           onOpenFolder={handleOpenFolder}
           onParseSource={handleParseSource}
           onPasteIntoEditor={handlePasteIntoEditor}
+          onSaveDesktopFile={() => {
+            void saveDesktopFile();
+          }}
+          onSaveDesktopFileAs={() => {
+            void saveDesktopFileAs();
+          }}
           onSaveToDisk={() => {
             void saveCurrentFolderFile();
           }}
