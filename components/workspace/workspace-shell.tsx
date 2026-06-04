@@ -41,6 +41,11 @@ import { OutlinePanel } from "@/components/workspace/outline-panel";
 import { EditorPresentationMode, SourcePanel, SourcePanelMode } from "@/components/workspace/source-panel";
 import { convertDocumentToMarkdown } from "@/lib/workspace/convert-document";
 import {
+  getDesktopBridge,
+  getDesktopFileTabTitle,
+  normalizeDesktopFileSourceInput
+} from "@/lib/workspace/desktop-bridge";
+import {
   getWorkspacePreviewFontStack,
   isWorkspacePreviewFont,
   WorkspacePreviewTypographyControls,
@@ -53,6 +58,7 @@ import { getMessages, type WorkspaceMessages } from "@/lib/i18n/messages";
 import { extractHeadings } from "@/lib/markdown/extract-headings";
 import { parsePendingWorkspaceImport, pendingWorkspaceImportKey } from "@/lib/workspace/pending-import";
 import { defaultWorkspaceTheme, isWorkspaceTheme, type WorkspaceTheme } from "@/lib/workspace/themes";
+import type { DesktopFileSnapshot } from "@/types/desktop-api";
 
 type WorkspaceMode = "preview" | "split" | "editor";
 
@@ -67,11 +73,13 @@ type WorkspaceShellProps = {
 };
 
 type WorkspaceTabRestoreStrategy = "restore" | "merge";
-type WorkspaceSourceKind = "draft" | "file-import" | "remote-url" | "folder-file" | "converted-file";
+type WorkspaceSourceKind = "draft" | "file-import" | "remote-url" | "folder-file" | "converted-file" | "desktop-file";
 type FolderSaveState = "idle" | "dirty" | "saving" | "saved" | "failed" | "conflict";
 
 type WorkspaceTab = {
   createdAt: number;
+  desktopFilePath?: string;
+  desktopLastModified?: number;
   folderFilePath?: string;
   folderLastModified?: number;
   hasExplicitImportChoice?: boolean;
@@ -297,6 +305,11 @@ function normalizeStoredWorkspaceTab(value: unknown, index: number): WorkspaceTa
   }
 
   const id = typeof record.id === "string" && record.id ? record.id : `stored-workspace-tab-${index + 1}`;
+  const desktopFilePath = typeof record.desktopFilePath === "string" ? record.desktopFilePath : undefined;
+  const desktopLastModified =
+    typeof record.desktopLastModified === "number" && Number.isFinite(record.desktopLastModified)
+      ? record.desktopLastModified
+      : undefined;
   const folderFilePath = typeof record.folderFilePath === "string" ? record.folderFilePath : undefined;
   const folderLastModified =
     typeof record.folderLastModified === "number" && Number.isFinite(record.folderLastModified)
@@ -311,7 +324,8 @@ function normalizeStoredWorkspaceTab(value: unknown, index: number): WorkspaceTa
     record.sourceKind === "file-import" ||
     record.sourceKind === "remote-url" ||
     record.sourceKind === "folder-file" ||
-    record.sourceKind === "converted-file"
+    record.sourceKind === "converted-file" ||
+    record.sourceKind === "desktop-file"
       ? record.sourceKind
       : undefined;
   const sourceInput = typeof record.sourceInput === "string" ? record.sourceInput : "";
@@ -324,6 +338,8 @@ function normalizeStoredWorkspaceTab(value: unknown, index: number): WorkspaceTa
 
   return {
     createdAt,
+    desktopFilePath,
+    desktopLastModified,
     folderFilePath,
     folderLastModified,
     hasExplicitImportChoice,
@@ -451,6 +467,10 @@ function describeSource(sourceInput: string) {
     return sourceInput.replace(/^converted:/, "");
   }
 
+  if (sourceInput.startsWith("desktop:")) {
+    return sourceInput.replace(/^desktop:/, "");
+  }
+
   try {
     const url = new URL(sourceInput);
 
@@ -469,7 +489,7 @@ function describeSource(sourceInput: string) {
 }
 
 function deriveImportMode(sourceInput: string): SourcePanelMode {
-  if (sourceInput.startsWith("file:") || sourceInput.startsWith("folder:")) {
+  if (sourceInput.startsWith("file:") || sourceInput.startsWith("folder:") || sourceInput.startsWith("desktop:")) {
     return "file";
   }
 
@@ -1029,6 +1049,38 @@ export function WorkspaceShell({
   }, []);
 
   useEffect(() => {
+    const bridge = getDesktopBridge();
+
+    if (!bridge) {
+      return undefined;
+    }
+
+    let disposed = false;
+
+    bridge
+      .getLaunchFiles()
+      .then((files) => {
+        if (!disposed) {
+          openDesktopFiles(files);
+        }
+      })
+      .catch(() => {
+        if (!disposed) {
+          setStatusMessage(messages.status.loadFailed);
+        }
+      });
+
+    const unsubscribe = bridge.onOpenFiles((files) => {
+      openDesktopFiles(files);
+    });
+
+    return () => {
+      disposed = true;
+      unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
     return () => {
       if (suppressPreviewScrollSyncTimerRef.current !== null) {
         window.clearTimeout(suppressPreviewScrollSyncTimerRef.current);
@@ -1481,6 +1533,41 @@ export function WorkspaceShell({
     });
 
     activateWorkspaceTab(nextTab, "file", messages.status.convertedFile(result.sourceName));
+  }
+
+  function openDesktopFiles(files: DesktopFileSnapshot[]) {
+    if (files.length === 0) {
+      return;
+    }
+
+    const desktopTabs = files.map((file) =>
+      createExplicitImportTab(file.markdown, normalizeDesktopFileSourceInput(file.path), {
+        desktopFilePath: file.path,
+        desktopLastModified: file.lastModified,
+        savedMarkdownHash: hashMarkdown(file.markdown),
+        sourceKind: "desktop-file"
+      })
+    );
+    const activeDesktopTab = desktopTabs[desktopTabs.length - 1];
+
+    setTabs((currentTabs) =>
+      [
+        ...getActiveWorkspaceTabsSnapshot(
+          currentTabs,
+          activeTabIdRef.current,
+          latestMarkdownRef.current,
+          latestSourceRef.current
+        ),
+        ...desktopTabs
+      ].slice(-maxStoredWorkspaceTabs)
+    );
+    setActiveTabId(activeDesktopTab.id);
+    setCurrentMarkdown(activeDesktopTab.markdown);
+    setCurrentSource(activeDesktopTab.sourceInput);
+    setActiveImportMode("file");
+    setStatusMessage(messages.status.loadedFile(getDesktopFileTabTitle(files[files.length - 1])));
+    setTocOpen(false);
+    collapseTabsForReading();
   }
 
   function handleNewTab() {

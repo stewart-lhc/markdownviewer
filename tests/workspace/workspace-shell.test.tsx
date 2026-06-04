@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { StrictMode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -195,6 +195,7 @@ function mockCompactWorkspace() {
 }
 
 afterEach(() => {
+  Reflect.deleteProperty(window, "markdownviewerDesktop");
   Reflect.deleteProperty(window, "showDirectoryPicker");
   Reflect.deleteProperty(window, "matchMedia");
   mockedConvertDocumentToMarkdown.mockReset();
@@ -1496,6 +1497,96 @@ describe("WorkspaceShell interactions", () => {
         value: undefined
       });
     }
+  });
+
+  it("opens Electron launch files as desktop-backed workspace tabs", async () => {
+    Object.defineProperty(window, "markdownviewerDesktop", {
+      configurable: true,
+      value: {
+        getLaunchFiles: vi.fn().mockResolvedValue([
+          {
+            lastModified: 1000,
+            markdown: "# Desktop README",
+            name: "README.md",
+            path: "D:\\Docs\\README.md"
+          }
+        ]),
+        isDesktop: true,
+        onOpenFiles: vi.fn().mockReturnValue(() => undefined),
+        openMarkdownFiles: vi.fn(),
+        saveMarkdownFile: vi.fn(),
+        saveMarkdownFileAs: vi.fn()
+      }
+    });
+
+    render(<WorkspaceShell markdown="" sourceInput="" />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("tab", { name: /desktop readme/i })).toHaveAttribute("aria-selected", "true");
+    });
+    await waitFor(() => {
+      expect(
+        within(screen.getByTestId("preview-panel")).getByRole("heading", { name: "Desktop README" })
+      ).toBeInTheDocument();
+    });
+    expect(screen.getAllByText("D:/Docs/README.md").length).toBeGreaterThan(0);
+
+    window.dispatchEvent(new Event("pagehide"));
+
+    const stored = JSON.parse(window.localStorage.getItem(workspaceTabsStorageKey) ?? "{}");
+    expect(stored.tabs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          desktopFilePath: "D:\\Docs\\README.md",
+          markdown: "# Desktop README",
+          sourceInput: "desktop:D:/Docs/README.md",
+          sourceKind: "desktop-file"
+        })
+      ])
+    );
+  });
+
+  it("opens Electron file events into new tabs without replacing existing Markdown", async () => {
+    let openFilesCallback:
+      | ((files: Array<{ lastModified: number; markdown: string; name: string; path: string }>) => void)
+      | null = null;
+
+    Object.defineProperty(window, "markdownviewerDesktop", {
+      configurable: true,
+      value: {
+        getLaunchFiles: vi.fn().mockResolvedValue([]),
+        isDesktop: true,
+        onOpenFiles: vi.fn((callback) => {
+          openFilesCallback = callback;
+          return () => undefined;
+        }),
+        openMarkdownFiles: vi.fn(),
+        saveMarkdownFile: vi.fn(),
+        saveMarkdownFileAs: vi.fn()
+      }
+    });
+
+    render(<WorkspaceShell markdown="# Existing" sourceInput="" />);
+
+    await waitFor(() => {
+      expect(openFilesCallback).toBeTypeOf("function");
+    });
+
+    await act(async () => {
+      openFilesCallback?.([
+        {
+          lastModified: 2000,
+          markdown: "# Desktop Guide",
+          name: "Guide.md",
+          path: "D:\\Docs\\Guide.md"
+        }
+      ]);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole("tab", { name: /desktop guide/i })).toHaveAttribute("aria-selected", "true");
+    });
+    expect(screen.getByRole("tab", { name: /existing/i })).toBeInTheDocument();
   });
 
   it("handles rich-mode backspace and delete as single-character markdown edits", async () => {
