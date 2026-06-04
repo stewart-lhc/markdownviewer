@@ -1370,6 +1370,7 @@ export function WorkspaceShell({
       });
       setSaveState("saved");
       setStatusMessage(messages.status.loadedFile(entry.name));
+      setCurrentMode("preview");
       setTocOpen(false);
 
       if (hash) {
@@ -1417,6 +1418,7 @@ export function WorkspaceShell({
       });
       setSaveState("saved");
       setStatusMessage(messages.status.loadedFile(created.name));
+      setCurrentMode("preview");
       setTocOpen(false);
     } catch {
       setSaveState("failed");
@@ -1449,6 +1451,9 @@ export function WorkspaceShell({
     setCurrentSource(nextTab.sourceInput);
     setActiveImportMode(importMode);
     setStatusMessage(statusMessage ?? messages.status.newTab);
+    if (importMode === "file") {
+      setCurrentMode("preview");
+    }
     setTocOpen(false);
     collapseTabsForReading();
   }
@@ -1729,6 +1734,7 @@ export function WorkspaceShell({
       sourceKind: "file-import"
     });
     setStatusMessage(messages.status.loadedFile(file.name));
+    setCurrentMode("preview");
   }
 
   async function handleConvertFile(file: File) {

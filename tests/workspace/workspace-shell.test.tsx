@@ -331,6 +331,7 @@ describe("WorkspaceShell interactions", () => {
         name: "Home"
       })
     ).toBeInTheDocument();
+    expect(screen.queryByTestId("source-panel")).not.toBeInTheDocument();
     await waitFor(() => {
       expect(screen.getByRole("treeitem", { name: "README.md" })).toHaveAttribute("aria-selected", "true");
     });
@@ -354,11 +355,13 @@ describe("WorkspaceShell interactions", () => {
 
     await user.click(screen.getByRole("button", { name: /^folder$/i }));
     await user.click(await screen.findByRole("treeitem", { name: "README.md" }));
+    await user.click(screen.getByRole("button", { name: /editor/i }));
     await user.click(screen.getByRole("button", { name: /raw/i }));
 
     fireEvent.change(screen.getByLabelText(/markdown editor/i), {
       target: { value: "# Saved locally" }
     });
+    await user.click(screen.getByRole("button", { name: /split/i }));
 
     expect(
       await within(screen.getByTestId("preview-panel")).findByRole("heading", {
@@ -388,11 +391,13 @@ describe("WorkspaceShell interactions", () => {
 
     await user.click(screen.getByRole("button", { name: /^folder$/i }));
     await user.click(await screen.findByRole("treeitem", { name: "README.md" }));
+    await user.click(screen.getByRole("button", { name: /editor/i }));
     await user.click(screen.getByRole("button", { name: /raw/i }));
 
     fireEvent.change(screen.getByLabelText(/markdown editor/i), {
       target: { value: "# Keep me" }
     });
+    await user.click(screen.getByRole("button", { name: /split/i }));
     expect(await within(screen.getByTestId("preview-panel")).findByRole("heading", { name: "Keep me" })).toBeInTheDocument();
 
     await user.click(screen.getByRole("treeitem", { name: "guide.md" }));
@@ -1266,6 +1271,7 @@ describe("WorkspaceShell interactions", () => {
         })
       ).toBeInTheDocument();
     });
+    expect(screen.queryByTestId("source-panel")).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /^preview$/i }));
     expect(screen.getByTestId("preview-panel")).toBeInTheDocument();
@@ -1375,6 +1381,7 @@ describe("WorkspaceShell interactions", () => {
         within(screen.getByTestId("preview-panel")).getByRole("heading", { name: "Converted Brief" })
       ).toBeInTheDocument();
     });
+    expect(screen.queryByTestId("source-panel")).not.toBeInTheDocument();
     expect(screen.getAllByText("brief.docx").length).toBeGreaterThan(0);
     expect(screen.getByText("Converted brief.docx to Markdown.")).toBeInTheDocument();
   });
@@ -1456,6 +1463,7 @@ describe("WorkspaceShell interactions", () => {
       });
 
       expect(screen.getByRole("tab", { name: /homepage file/i })).toHaveAttribute("aria-selected", "true");
+      expect(screen.queryByTestId("source-panel")).not.toBeInTheDocument();
       expect(window.localStorage.getItem(pendingWorkspaceImportKey)).toBeNull();
     } finally {
       window.history.pushState(null, "", "/");
@@ -1504,6 +1512,7 @@ describe("WorkspaceShell interactions", () => {
           })
         ).toBeInTheDocument();
         expect(screen.getByRole("tab", { name: /follow-up file/i })).toHaveAttribute("aria-selected", "true");
+        expect(screen.queryByTestId("source-panel")).not.toBeInTheDocument();
       });
     } finally {
       Object.defineProperty(window, "launchQueue", {

@@ -27,13 +27,13 @@ export function BrandLink({
       title={title}
     >
       <svg aria-hidden="true" className="brand-mark" focusable="false" viewBox="0 0 64 64">
-        <path className="brand-mark__page" d="M14 8h31l9 9v39H14z" />
-        <path className="brand-mark__fold" d="M45 8v11h11z" />
+        <path className="brand-mark__page" d="M2 2h43l17 17v43H2z" />
+        <path className="brand-mark__fold" d="M45 2v20h19z" />
         <path
           className="brand-mark__monogram"
-          d="M22 45V27h5.2l4.8 7.3 4.8-7.3H42v18h-5.2v-8.6l-3.9 5.8h-1.8l-3.9-5.8V45z"
+          d="M13 54V24h9l10 15 10-15h9v30h-9V39l-7 10h-6l-7-10v15z"
         />
-        <path className="brand-mark__preview" d="M22 19h15M22 23h10" />
+        <path className="brand-mark__preview" d="M13 15h25M13 21h17" />
       </svg>
       {label ? <span className="brand-link__label">{label}</span> : null}
     </a>
