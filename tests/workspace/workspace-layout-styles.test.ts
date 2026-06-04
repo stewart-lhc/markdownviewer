@@ -125,8 +125,14 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain("--workspace-preview-inline-margin: 25%;");
     expect(css).toContain("font-family: var(--workspace-preview-font-family);");
     expect(css).toContain("font-size: var(--workspace-preview-font-size);");
-    expect(css).toContain('.workspace-reader-body[data-locale="zh-CN"] .markdown-body {');
-    expect(css).toContain("line-height: 1.68;");
+    expect(css).toContain('.workspace-reader-body[data-locale="zh-CN"] .markdown-body,');
+    expect(css).toContain(".workspace-reader-body .markdown-body.markdown-body--cjk {");
+    expect(css).toContain("line-height: 1.88;");
+    expect(css).toContain(".workspace-reader-body .markdown-body.markdown-body--cjk h1,");
+    expect(css).toContain('.workspace-reader-body[data-locale="zh-CN"] .markdown-body li,');
+    expect(css).toContain(".workspace-reader-body .markdown-body.markdown-body--cjk li,");
+    expect(css).toContain('.workspace-reader-body[data-locale="zh-CN"] .markdown-body ul,');
+    expect(css).toContain("gap: 0.42rem;");
     expect(css).toContain('.workspace-grid[data-mode="preview"] .workspace-reader-body .markdown-body {');
     expect(css).toContain("max-width: 100%;");
     expect(css).toContain('.workspace-grid[data-mode="preview"] .workspace-reader-body {');

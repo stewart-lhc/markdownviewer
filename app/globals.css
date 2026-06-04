@@ -3703,8 +3703,42 @@ html[data-theme="night"] .workspace-editor-surface--stackedit .token.md-token--l
   font-size: var(--workspace-preview-font-size);
 }
 
-.workspace-reader-body[data-locale="zh-CN"] .markdown-body {
-  line-height: 1.68;
+.workspace-reader-body[data-locale="zh-CN"] .markdown-body,
+.workspace-reader-body .markdown-body.markdown-body--cjk {
+  gap: 1.05rem;
+  line-height: 1.88;
+  overflow-wrap: anywhere;
+}
+
+.workspace-reader-body .markdown-body.markdown-body--cjk h1,
+.workspace-reader-body .markdown-body.markdown-body--cjk h2,
+.workspace-reader-body .markdown-body.markdown-body--cjk h3,
+.workspace-reader-body .markdown-body.markdown-body--cjk h4,
+.workspace-reader-body[data-locale="zh-CN"] .markdown-body h1,
+.workspace-reader-body[data-locale="zh-CN"] .markdown-body h2,
+.workspace-reader-body[data-locale="zh-CN"] .markdown-body h3,
+.workspace-reader-body[data-locale="zh-CN"] .markdown-body h4 {
+  line-height: 1.18;
+  letter-spacing: 0;
+  margin: 1.15rem 0 0.42rem;
+}
+
+.workspace-reader-body .markdown-body.markdown-body--cjk p,
+.workspace-reader-body .markdown-body.markdown-body--cjk li,
+.workspace-reader-body .markdown-body.markdown-body--cjk blockquote,
+.workspace-reader-body[data-locale="zh-CN"] .markdown-body p,
+.workspace-reader-body[data-locale="zh-CN"] .markdown-body li,
+.workspace-reader-body[data-locale="zh-CN"] .markdown-body blockquote {
+  line-height: 1.88;
+}
+
+.workspace-reader-body .markdown-body.markdown-body--cjk ul,
+.workspace-reader-body .markdown-body.markdown-body--cjk ol,
+.workspace-reader-body[data-locale="zh-CN"] .markdown-body ul,
+.workspace-reader-body[data-locale="zh-CN"] .markdown-body ol {
+  display: grid;
+  gap: 0.42rem;
+  padding-left: 1.35rem;
 }
 
 .workspace-grid[data-mode="preview"] .workspace-reader-body .markdown-body {

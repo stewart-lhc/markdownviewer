@@ -37,6 +37,12 @@ describe("MarkdownRenderer", () => {
     expect(container.querySelector(".markdown-body--compact")).toBeInTheDocument();
   });
 
+  it("marks CJK documents for roomier reading typography", () => {
+    const { container } = render(<MarkdownRenderer markdown="# 中文报告\n\n这是一段中文正文。" />);
+
+    expect(container.querySelector(".markdown-body--cjk")).toBeInTheDocument();
+  });
+
   it("exposes source positions on rendered blocks for split-view syncing", () => {
     const { container } = render(<MarkdownRenderer markdown={"# Demo\n\nA paragraph"} />);
     const heading = container.querySelector("h1[data-sourcepos]");

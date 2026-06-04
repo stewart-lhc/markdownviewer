@@ -79,6 +79,8 @@ const rehypePlugins: ComponentProps<typeof ReactMarkdown>["rehypePlugins"] = [
   [rehypeKatex, { strict: "ignore" }]
 ];
 
+const cjkPattern = /[\u3400-\u9fff\uf900-\ufaff]/;
+
 function serializeSourcePosition(position?: NodePosition) {
   const startLine = position?.start?.line;
   const startColumn = position?.start?.column;
@@ -143,8 +145,13 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
   onLinkClick,
   variant = "default"
 }: MarkdownRendererProps) {
-  const className =
-    variant === "compact" ? "markdown-body markdown-body--compact" : "markdown-body";
+  const className = [
+    "markdown-body",
+    variant === "compact" && "markdown-body--compact",
+    cjkPattern.test(markdown) && "markdown-body--cjk"
+  ]
+    .filter(Boolean)
+    .join(" ");
   const components = useMemo<ComponentProps<typeof ReactMarkdown>["components"]>(
     () => ({
       pre({ children, node }) {
