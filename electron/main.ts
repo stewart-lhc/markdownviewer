@@ -94,6 +94,7 @@ async function startNextRuntime() {
     cwd: runtimeRoot,
     env: {
       ...process.env,
+      ELECTRON_RUN_AS_NODE: "1",
       HOSTNAME: "127.0.0.1",
       PORT: String(nextPort)
     },
@@ -102,6 +103,26 @@ async function startNextRuntime() {
   });
 
   return `http://127.0.0.1:${nextPort}`;
+}
+
+async function waitForNextRuntime(baseUrl: string) {
+  const deadline = Date.now() + 20_000;
+
+  while (Date.now() < deadline) {
+    try {
+      const response = await fetch(`${baseUrl}/workspace`);
+
+      if (response.ok) {
+        return;
+      }
+    } catch {
+      // The standalone Next server may need a short warmup before accepting HTTP traffic.
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 400));
+  }
+
+  throw new Error("Next runtime did not become ready.");
 }
 
 async function createMainWindow(baseUrl: string) {
@@ -213,6 +234,7 @@ if (!hasLock) {
     registerIpcHandlers();
 
     const baseUrl = await startNextRuntime();
+    await waitForNextRuntime(baseUrl);
     await createMainWindow(baseUrl);
   });
 
