@@ -2,6 +2,22 @@
 
 All notable changes to this project are documented in this file.
 
+## 26.604 - 2026-06-04
+
+### Added
+
+- Added server-stored share links through `/api/share`, with Vercel Blob support in production and a local file-store fallback for development.
+- Added canonical `/share/{id}` pages for saved Markdown shares so shared documents have independent URLs instead of oversized client-only payloads.
+- Added the full workspace preview reader controls to shared pages, including contents, typography, theme, font size, preview margin, and open-in-workspace behavior.
+
+### Changed
+
+- Changed sharing from compressed URL-state links to stored share records, improving link size, reliability, and public page crawlability.
+- Kept legacy `md-...` share URLs readable while making new share links use the formal stored-share flow.
+- Restored the top-left Markdownviewer logo on share pages.
+- Fixed preview margin decrease/increase controls so M- and M+ update the actual reader margin instead of leaving the share page unchanged.
+- Updated homepage, README, and product update copy for the production sharing workflow.
+
 ## 26.603 - 2026-06-03
 
 ### Added

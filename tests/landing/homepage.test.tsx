@@ -18,7 +18,8 @@ describe("homepage", () => {
     expect(container.querySelector(".topbar-actions .github-mark")).not.toBeNull();
     expect(container.querySelector(".topbar-actions > .ghost-link:last-child")).toHaveClass("ghost-link--primary");
     expect(screen.getByRole("heading", { level: 2, name: /recent features/i })).toBeInTheDocument();
-    expect(screen.getByText("26.531")).toBeInTheDocument();
+    expect(screen.getByText("26.604")).toBeInTheDocument();
+    expect(screen.getAllByText(/stored share links/i).length).toBeGreaterThan(0);
     expect(container.querySelector(".workflow-link-bar")).not.toBeInTheDocument();
     expect(container.querySelector(".site-footer__workflows")).toBeInTheDocument();
     expect(within(container.querySelector(".site-footer__workflows") as HTMLElement).getByRole("link", { name: /readme viewer online/i })).toHaveAttribute(

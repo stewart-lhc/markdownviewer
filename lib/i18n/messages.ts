@@ -257,14 +257,14 @@ export const messages: Record<Locale, Messages> = {
       },
       updates: {
         copy:
-          "The product now includes document-to-Markdown conversion, local folder editing, installable PWA file handling, persistent tabs, share/export tools, Chinese localization, and mobile layout fixes.",
+          "The product now includes stored share links, full share-page reader controls, document-to-Markdown conversion, local folder editing, installable PWA file handling, persistent tabs, Chinese localization, and mobile layout fixes.",
         eyebrow: "Latest deploys",
         link: "Read the changelog",
         title: "Recent features are already live in the workspace."
       },
       hero: {
         body:
-          "Open Markdown like it deserves. Paste Markdown, convert common documents to Markdown, open local files or folders, import GitHub, Gist, and raw URLs, install it as a PWA, and keep multi-tab docs ready for export or sharing.",
+          "Open Markdown like it deserves. Paste Markdown, convert common documents, open local files or folders, import GitHub, Gist, and raw URLs, install it as a PWA, and publish stored share links with the same polished reader controls.",
         dropFile: "Drop a file",
         eyebrow: "Markdown without the utility-site look",
         loadedFile: (fileName) => `Loaded ${fileName}.`,
@@ -279,7 +279,7 @@ export const messages: Record<Locale, Messages> = {
       },
       sources: {
         ariaLabel: "Supported sources",
-        items: ["Files", "Folders", "Convert", "Paste", "GitHub/Gist", "Raw URLs", "PWA", "Export"]
+        items: ["Files", "Folders", "Convert", "Paste", "GitHub/Gist", "Raw URLs", "Share", "Export"]
       },
       features: {
         copy:
@@ -317,9 +317,9 @@ export const messages: Record<Locale, Messages> = {
               "Code fences, tables, KaTeX math, and Mermaid diagrams stay readable instead of collapsing into plain text."
           },
           {
-            title: "Fast import and export",
+            title: "Stored sharing and export",
             description:
-              "Load pasted Markdown, GitHub content, Gists, raw URLs, and sample docs, then share links or export HTML/PDF."
+              "Create short /share links backed by stored Markdown records, open them in a full reader page, or export HTML/PDF."
           },
           {
             title: "README and AI-output friendly",
@@ -416,7 +416,7 @@ export const messages: Record<Locale, Messages> = {
         contactTitle: "Contact.",
         copyright: "© 2026 markdownviewer.run",
         privacyBody:
-          "Local files and pasted Markdown are handled in your browser unless you choose to load a remote URL or create a share link.",
+          "Local files and pasted Markdown stay in your browser unless you load a remote URL, convert a document, or create a public share link. Creating a share link stores the Markdown so the shared page can open from its own URL.",
         privacyTitle: "Privacy policy.",
         tagline: "Online Markdown viewer for polished technical documents.",
         termsBody: "Use the viewer responsibly and only open Markdown you have the right to access or process.",
@@ -601,7 +601,7 @@ export const messages: Record<Locale, Messages> = {
         "Local file, local folder, paste, GitHub, Gist, and raw URL import",
         "Persistent workspace tabs",
         "Installable PWA file handling",
-        "Share links plus HTML and PDF export"
+        "Stored share links plus HTML and PDF export"
       ],
       faq: [
         {
@@ -664,14 +664,14 @@ export const messages: Record<Locale, Messages> = {
       },
       updates: {
         copy:
-          "产品现在已经包含文档转 Markdown、本地文件夹编辑、可安装 PWA 文件打开、持久 tabs、分享/导出、中文界面和移动端布局修复。",
+          "产品现在已经包含服务端存储分享链接、完整分享页阅读控制、文档转 Markdown、本地文件夹编辑、可安装 PWA 文件打开、持久 tabs、中文界面和移动端布局修复。",
         eyebrow: "最新部署",
         link: "查看更新日志",
         title: "最近上线的功能已经进入工作区。"
       },
       hero: {
         body:
-          "用更体面的方式打开 Markdown。你可以粘贴 Markdown、把常见文档转成 Markdown、打开本地文件或文件夹，把 GitHub、Gist、原始 URL 送进工作区，也可以安装为 PWA，让多标签文档随时可导出或分享。",
+          "用更体面的方式打开 Markdown。你可以粘贴 Markdown、把常见文档转成 Markdown、打开本地文件或文件夹，把 GitHub、Gist、原始 URL 送进工作区，也可以安装为 PWA，并生成带完整阅读控制的正式分享链接。",
         dropFile: "选择文件",
         eyebrow: "不止是工具站的 Markdown 体验",
         loadedFile: (fileName) => `已加载 ${fileName}。`,
@@ -686,7 +686,7 @@ export const messages: Record<Locale, Messages> = {
       },
       sources: {
         ariaLabel: "支持的来源",
-        items: ["文件", "文件夹", "转换", "粘贴", "GitHub/Gist", "原始 URL", "PWA", "导出"]
+        items: ["文件", "文件夹", "转换", "粘贴", "GitHub/Gist", "原始 URL", "分享", "导出"]
       },
       features: {
         copy: "首次使用路径足够清楚，渲染界面也认真对待代码、图表、数学公式、README 文件和阅读节奏。",
@@ -714,7 +714,10 @@ export const messages: Record<Locale, Messages> = {
             title: "面向技术文档",
             description: "代码围栏、表格、KaTeX 公式和 Mermaid 图表都能保持清晰，而不是退化成纯文本。"
           },
-          { title: "快速导入和导出", description: "在同一个界面打开粘贴内容、GitHub、Gist、原始 URL 和示例文档，并分享链接或导出 HTML/PDF。" },
+          {
+            title: "正式分享和导出",
+            description: "生成基于存储记录的短 /share 链接，在完整阅读页中打开，也可以继续导出 HTML/PDF。"
+          },
           {
             title: "适合 README 和 AI 输出",
             description: "无需搭建文档站，也能预览 README.md、更新日志、API 文档、规格说明和 AI 生成的 Markdown。"
@@ -794,7 +797,8 @@ export const messages: Record<Locale, Messages> = {
         contactBody: "产品反馈、支持或法律请求，请发送邮件至",
         contactTitle: "联系。",
         copyright: "© 2026 markdownviewer.run",
-        privacyBody: "除非你选择加载远程 URL 或创建分享链接，本地文件和粘贴的 Markdown 都会在浏览器中处理。",
+        privacyBody:
+          "除非你选择加载远程 URL、转换文档或创建公开分享链接，本地文件和粘贴的 Markdown 都会留在浏览器中处理。创建分享链接会存储 Markdown，以便分享页可以通过独立 URL 打开。",
         privacyTitle: "隐私政策。",
         tagline: "为精致技术文档打造的在线 Markdown 查看器。",
         termsBody: "请负责任地使用查看器，并只打开你有权访问或处理的 Markdown。",
@@ -979,7 +983,7 @@ export const messages: Record<Locale, Messages> = {
         "本地文件、本地文件夹、粘贴、GitHub、Gist 和原始 URL 导入",
         "持久 workspace tabs",
         "可安装 PWA 文件处理",
-        "分享链接以及 HTML/PDF 导出"
+        "服务端存储分享链接以及 HTML/PDF 导出"
       ],
       faq: [
         {

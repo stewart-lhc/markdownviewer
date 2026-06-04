@@ -15,6 +15,33 @@ export type ProductUpdate = {
 
 export const productUpdates: ProductUpdate[] = [
   {
+    version: "26.604",
+    date: "2026-06-04",
+    en: {
+      title: "Stored share links and full share-page reader",
+      summary:
+        "Markdownviewer now creates formal stored share links with independent share pages that keep the full preview reader experience.",
+      highlights: [
+        "Added server-stored share links through /api/share, backed by Vercel Blob in production and a local file-store fallback in development.",
+        "New share links now point to canonical /share/{id} pages instead of carrying oversized Markdown payloads in the URL.",
+        "Share pages now reuse the full preview reader controls for contents, typography, themes, font size, and preview margins.",
+        "Restored the Markdownviewer logo on share pages and kept the open-in-workspace path visible.",
+        "Fixed M- and M+ preview margin controls so shared documents respond exactly like workspace preview."
+      ]
+    },
+    "zh-CN": {
+      title: "正式分享链接和完整分享页阅读器",
+      summary: "Markdownviewer 现在会生成正式存储的分享链接，独立分享页也保留完整预览阅读体验。",
+      highlights: [
+        "新增通过 /api/share 生成的服务端存储分享链接，生产环境使用 Vercel Blob，本地开发使用文件存储 fallback。",
+        "新的分享链接指向规范的 /share/{id} 页面，不再把大型 Markdown 内容塞进 URL。",
+        "分享页复用完整预览阅读器控制，包括目录、排版、主题、字号和预览留白。",
+        "恢复分享页左上角 Markdownviewer LOGO，并保留在工作区打开的路径。",
+        "修复 M- 和 M+ 预览留白控制，让分享文档和 workspace preview 的行为一致。"
+      ]
+    }
+  },
+  {
     version: "26.603",
     date: "2026-06-03",
     en: {
