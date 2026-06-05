@@ -18,6 +18,7 @@ vi.mock("@/lib/workspace/convert-document", async (importOriginal) => {
 });
 
 const workspaceTabsStorageKey = "markdownviewer.workspace.tabs.v1";
+const workspaceModeStorageKey = "markdownviewer.workspace.mode";
 const mockedConvertDocumentToMarkdown = vi.mocked(convertDocumentToMarkdown);
 
 function getStackeditEditor(richEditor: HTMLElement) {
@@ -197,6 +198,7 @@ function mockCompactWorkspace() {
 afterEach(() => {
   Reflect.deleteProperty(window, "showDirectoryPicker");
   Reflect.deleteProperty(window, "matchMedia");
+  window.localStorage.removeItem(workspaceModeStorageKey);
   mockedConvertDocumentToMarkdown.mockReset();
   vi.restoreAllMocks();
 });
@@ -259,6 +261,25 @@ describe("WorkspaceShell interactions", () => {
         })
       ).toBeInTheDocument();
     }, { timeout: 10000 });
+  });
+
+  it("restores the selected preview split editor mode across refreshes", async () => {
+    const user = userEvent.setup();
+    window.localStorage.setItem(workspaceModeStorageKey, "editor");
+
+    render(<WorkspaceShell markdown="# Stored mode" sourceInput="" />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("workspace-grid")).toHaveAttribute("data-mode", "editor");
+    });
+    expect(screen.getByTestId("source-panel")).toBeInTheDocument();
+    expect(screen.queryByTestId("preview-panel")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /preview/i }));
+
+    await waitFor(() => {
+      expect(window.localStorage.getItem(workspaceModeStorageKey)).toBe("preview");
+    });
   });
 
   it("lets the user create and switch workspace tabs without losing each tab's document", async () => {

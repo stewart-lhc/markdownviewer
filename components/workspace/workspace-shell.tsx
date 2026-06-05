@@ -122,6 +122,7 @@ type PwaLaunchWindow = Window & typeof globalThis & {
 };
 
 const workspaceDraftStorageKey = "markdownviewer.workspace.current";
+const workspaceModeStorageKey = "markdownviewer.workspace.mode";
 const workspacePreviewFontStorageKey = "markdownviewer.workspace.preview.font";
 const workspacePreviewFontSizeStorageKey = "markdownviewer.workspace.preview.fontSize";
 const workspacePreviewMarginStorageKey = "markdownviewer.workspace.preview.margin.v3";
@@ -154,6 +155,10 @@ const clipboardWriteTimeoutMs = 700;
 
 function clampSplitPercent(value: number) {
   return Math.min(Math.max(value, splitMinPercent), splitMaxPercent);
+}
+
+function isWorkspaceMode(value: string | null): value is WorkspaceMode {
+  return value === "preview" || value === "split" || value === "editor";
 }
 
 function clampPreviewFontSize(value: number) {
@@ -660,6 +665,7 @@ export function WorkspaceShell({
   const previewRef = useRef<HTMLDivElement | null>(null);
   const newTabFileInputRef = useRef<HTMLInputElement | null>(null);
   const shareCopyResetTimeoutRef = useRef<number | undefined>(undefined);
+  const skipNextModePersistRef = useRef(false);
   const lastEditorSelectionStartRef = useRef(0);
   const suppressPreviewScrollSyncRef = useRef(false);
 
@@ -918,6 +924,7 @@ export function WorkspaceShell({
     const storedTheme =
       window.localStorage.getItem("markdownviewer.workspace.template") ??
       window.localStorage.getItem("markdownviewer.workspace.theme");
+    const storedMode = window.localStorage.getItem(workspaceModeStorageKey);
     const storedSplitPercent = Number.parseFloat(window.localStorage.getItem(workspaceSplitStorageKey) ?? "");
     const storedTabsCollapsed = window.localStorage.getItem(workspaceTabsCollapsedStorageKey);
     const storedPreviewFont = window.localStorage.getItem(workspacePreviewFontStorageKey);
@@ -934,10 +941,22 @@ export function WorkspaceShell({
 
     const compactViewport =
       typeof window.matchMedia === "function" && window.matchMedia("(max-width: 720px)").matches;
+    const restoredMode = isWorkspaceMode(storedMode)
+      ? compactViewport && storedMode === "split"
+        ? "preview"
+        : storedMode
+      : null;
+
+    if (restoredMode) {
+      skipNextModePersistRef.current = true;
+      setCurrentMode(restoredMode);
+    }
 
     if (compactViewport) {
       setTabsCollapsed(true);
-      setCurrentMode((current) => (current === "split" ? "preview" : current));
+      if (!restoredMode) {
+        setCurrentMode((current) => (current === "split" ? "preview" : current));
+      }
     } else if (storedTabsCollapsed === "true" || storedTabsCollapsed === "false") {
       setTabsCollapsed(storedTabsCollapsed === "true");
     }
@@ -967,6 +986,15 @@ export function WorkspaceShell({
   useEffect(() => {
     window.localStorage.setItem(workspaceSplitStorageKey, String(Math.round(splitEditorPercent)));
   }, [splitEditorPercent]);
+
+  useEffect(() => {
+    if (skipNextModePersistRef.current) {
+      skipNextModePersistRef.current = false;
+      return;
+    }
+
+    window.localStorage.setItem(workspaceModeStorageKey, currentMode);
+  }, [currentMode]);
 
   useEffect(() => {
     window.localStorage.setItem(workspaceTabsCollapsedStorageKey, String(tabsCollapsed));
