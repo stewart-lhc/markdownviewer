@@ -619,6 +619,7 @@ export function WorkspaceShell({
   const [currentMode, setCurrentMode] = useState<WorkspaceMode>(mode);
   const [theme, setTheme] = useState<WorkspaceTheme>(defaultWorkspaceTheme);
   const [statusMessage, setStatusMessage] = useState<string | undefined>(initialStatusMessage);
+  const [documentConversionPending, setDocumentConversionPending] = useState(false);
   const [shareUrl, setShareUrl] = useState("");
   const [activeImportMode, setActiveImportMode] = useState<SourcePanelMode>(deriveImportMode(sourceInput));
   const [editorPresentationMode, setEditorPresentationMode] = useState<EditorPresentationMode>("rich");
@@ -1493,14 +1494,19 @@ export function WorkspaceShell({
   }
 
   async function openConvertedFileInNewTab(file: File) {
+    setDocumentConversionPending(true);
     setStatusMessage(messages.status.convertingFile(file.name));
 
-    const result = await convertDocumentToMarkdown(file);
-    const nextTab = createExplicitImportTab(result.markdown, `converted:${result.sourceName}`, {
-      sourceKind: "converted-file"
-    });
+    try {
+      const result = await convertDocumentToMarkdown(file);
+      const nextTab = createExplicitImportTab(result.markdown, `converted:${result.sourceName}`, {
+        sourceKind: "converted-file"
+      });
 
-    activateWorkspaceTab(nextTab, "file", messages.status.convertedFile(result.sourceName));
+      activateWorkspaceTab(nextTab, "file", messages.status.convertedFile(result.sourceName));
+    } finally {
+      setDocumentConversionPending(false);
+    }
   }
 
   function handleNewTab() {
@@ -2257,7 +2263,16 @@ export function WorkspaceShell({
         id="workspace-active-tab-panel"
         role="tabpanel"
       >
-        {statusMessage ? <p aria-live="polite" className="sr-only" role="status">{statusMessage}</p> : null}
+        {statusMessage ? (
+          <p
+            aria-live="polite"
+            className="workspace-status-message"
+            data-state={documentConversionPending ? "loading" : "idle"}
+            role="status"
+          >
+            {statusMessage}
+          </p>
+        ) : null}
         {shareUrl ? (
           <>
             <button

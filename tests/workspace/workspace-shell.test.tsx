@@ -1419,6 +1419,26 @@ describe("WorkspaceShell interactions", () => {
     });
   });
 
+  it("shows a visible loading status while converting a document", async () => {
+    const user = userEvent.setup();
+    mockedConvertDocumentToMarkdown.mockReturnValue(new Promise(() => undefined));
+
+    render(<WorkspaceShell markdown="# Existing draft" sourceInput="" />);
+
+    await user.upload(
+      screen.getByLabelText(/convert document to markdown/i),
+      new File(["demo"], "slow.docx", {
+        type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      })
+    );
+
+    const status = await screen.findByText("Converting slow.docx to Markdown...");
+
+    expect(status).toHaveClass("workspace-status-message");
+    expect(status).toHaveAttribute("data-state", "loading");
+    expect(status).toHaveTextContent("Converting slow.docx to Markdown...");
+  });
+
   it("opens the new tab file picker directly from the import dialog", async () => {
     const user = userEvent.setup();
 

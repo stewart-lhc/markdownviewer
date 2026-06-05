@@ -9,7 +9,12 @@ import { getConvertibleDocumentExtension, maxConvertedMarkdownCharacters } from 
 const execFileAsync = promisify(execFile);
 const conversionTimeoutMs = 45_000;
 const maxBufferBytes = Math.ceil(maxConvertedMarkdownCharacters * 4);
-const officeParserTextFileTypes = new Map<string, "csv" | "html">([
+type OfficeParserFileType = "docx" | "pptx" | "xlsx" | "pdf" | "html" | "csv";
+const officeParserFileTypes = new Map<string, OfficeParserFileType>([
+  [".docx", "docx"],
+  [".pptx", "pptx"],
+  [".xlsx", "xlsx"],
+  [".pdf", "pdf"],
   [".csv", "csv"],
   [".html", "html"],
   [".htm", "html"]
@@ -96,7 +101,7 @@ async function convertWithOfficeParser(file: File, bytes: Buffer) {
       throw new Error("OfficeParser converter is not available.");
     }
 
-    const fileType = officeParserTextFileTypes.get(extension);
+    const fileType = officeParserFileTypes.get(extension);
     const ast = await OfficeParser.parseOffice(bytes, {
       abortSignal: controller.signal,
       ...(fileType ? { fileType } : {})
