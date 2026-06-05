@@ -33,6 +33,18 @@ export function getConvertibleDocumentExtension(fileName: string) {
   return convertedDocumentExtensions.find((extension) => lowerName.endsWith(extension));
 }
 
+export function decodeFileName(fileName: string) {
+  if (!/%[0-9a-f]{2}/i.test(fileName)) {
+    return fileName;
+  }
+
+  try {
+    return decodeURIComponent(fileName);
+  } catch {
+    return fileName;
+  }
+}
+
 export function isConvertibleDocumentFile(file: Pick<File, "name">) {
   return Boolean(getConvertibleDocumentExtension(file.name));
 }

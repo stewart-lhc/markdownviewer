@@ -41,6 +41,7 @@ import { OutlinePanel } from "@/components/workspace/outline-panel";
 import { EditorPresentationMode, SourcePanel, SourcePanelMode } from "@/components/workspace/source-panel";
 import {
   convertDocumentToMarkdown,
+  decodeFileName,
   isConvertibleDocumentFile,
   workspaceFileInputAccept
 } from "@/lib/workspace/convert-document";
@@ -221,12 +222,18 @@ function deriveDocumentTitle(
   }
 
   if (sourceInput.startsWith("file:")) {
-    return sourceInput.replace(/^file:/, "");
+    return decodeFileName(sourceInput.replace(/^file:/, ""));
+  }
+
+  if (sourceInput.startsWith("converted:")) {
+    return decodeFileName(sourceInput.replace(/^converted:/, ""));
   }
 
   if (sourceInput) {
     try {
-      return new URL(sourceInput).pathname.split("/").filter(Boolean).at(-1) ?? messages.document.untitled;
+      const fileName = new URL(sourceInput).pathname.split("/").filter(Boolean).at(-1);
+
+      return fileName ? decodeFileName(fileName) : messages.document.untitled;
     } catch {
       return messages.document.untitled;
     }
@@ -445,15 +452,17 @@ function describeSource(sourceInput: string) {
   }
 
   if (sourceInput.startsWith("folder:")) {
-    return getFolderPathName(sourceInput.replace(/^folder:/, "")) || "Local folder";
+    const folderName = getFolderPathName(sourceInput.replace(/^folder:/, ""));
+
+    return folderName ? decodeFileName(folderName) : "Local folder";
   }
 
   if (sourceInput.startsWith("file:")) {
-    return sourceInput.replace(/^file:/, "");
+    return decodeFileName(sourceInput.replace(/^file:/, ""));
   }
 
   if (sourceInput.startsWith("converted:")) {
-    return sourceInput.replace(/^converted:/, "");
+    return decodeFileName(sourceInput.replace(/^converted:/, ""));
   }
 
   try {
@@ -1485,25 +1494,29 @@ export function WorkspaceShell({
       return;
     }
 
+    const fileName = decodeFileName(file.name);
     const nextMarkdown = await readFileContents(file);
-    const nextTab = createExplicitImportTab(nextMarkdown, `file:${file.name}`, {
+    const nextTab = createExplicitImportTab(nextMarkdown, `file:${fileName}`, {
       sourceKind: "file-import"
     });
 
-    activateWorkspaceTab(nextTab, "file", messages.status.loadedFile(file.name));
+    activateWorkspaceTab(nextTab, "file", messages.status.loadedFile(fileName));
   }
 
   async function openConvertedFileInNewTab(file: File) {
+    const fileName = decodeFileName(file.name);
+
     setDocumentConversionPending(true);
-    setStatusMessage(messages.status.convertingFile(file.name));
+    setStatusMessage(messages.status.convertingFile(fileName));
 
     try {
       const result = await convertDocumentToMarkdown(file);
-      const nextTab = createExplicitImportTab(result.markdown, `converted:${result.sourceName}`, {
+      const sourceName = decodeFileName(result.sourceName);
+      const nextTab = createExplicitImportTab(result.markdown, `converted:${sourceName}`, {
         sourceKind: "converted-file"
       });
 
-      activateWorkspaceTab(nextTab, "file", messages.status.convertedFile(result.sourceName));
+      activateWorkspaceTab(nextTab, "file", messages.status.convertedFile(sourceName));
     } finally {
       setDocumentConversionPending(false);
     }
@@ -1759,18 +1772,19 @@ export function WorkspaceShell({
         return;
       }
 
+      const fileName = decodeFileName(file.name);
       const nextMarkdown = await readFileContents(file);
 
       setActiveImportMode("file");
-      setCurrentSource(`file:${file.name}`);
+      setCurrentSource(`file:${fileName}`);
       setCurrentMarkdown(nextMarkdown);
       updateActiveTabMetadata({
         hasExplicitImportChoice: true,
         markdown: nextMarkdown,
-        sourceInput: `file:${file.name}`,
+        sourceInput: `file:${fileName}`,
         sourceKind: "file-import"
       });
-      setStatusMessage(messages.status.loadedFile(file.name));
+      setStatusMessage(messages.status.loadedFile(fileName));
       setCurrentMode("preview");
     } catch (error) {
       setStatusMessage(error instanceof Error ? error.message : messages.status.loadFailed);
@@ -2264,14 +2278,22 @@ export function WorkspaceShell({
         role="tabpanel"
       >
         {statusMessage ? (
-          <p
+          <div
             aria-live="polite"
             className="workspace-status-message"
             data-state={documentConversionPending ? "loading" : "idle"}
             role="status"
           >
-            {statusMessage}
-          </p>
+            <span className="workspace-status-message__text">{statusMessage}</span>
+            <button
+              aria-label={locale === "zh-CN" ? "关闭通知" : "Dismiss notification"}
+              className="workspace-status-message__dismiss"
+              onClick={() => setStatusMessage(undefined)}
+              type="button"
+            >
+              <X aria-hidden="true" size={14} strokeWidth={2} />
+            </button>
+          </div>
         ) : null}
         {shareUrl ? (
           <>

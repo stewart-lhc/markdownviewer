@@ -1877,6 +1877,33 @@ button {
   line-height: 1.45;
 }
 
+.workspace-status-message__text {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workspace-status-message__dismiss {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--workspace-reader-bg) 72%, transparent);
+  color: inherit;
+  cursor: pointer;
+}
+
+.workspace-status-message__dismiss:hover,
+.workspace-status-message__dismiss:focus-visible {
+  background: color-mix(in srgb, var(--workspace-reader-link) 14%, var(--workspace-reader-bg));
+}
+
 .workspace-status-message::before {
   content: "";
   flex: 0 0 auto;

@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => {
-  const toMarkdown = vi.fn(async () => ({ value: "---\nauthor: \"python-docx\"\n---\n\n# Converted DOCX" }));
+  const toMarkdown = vi.fn(async () => ({
+    value: "---\nauthor: \"python-docx\"\n---\n\n<div style=\"text-align: center\">**公司注销、合作退出及责任承担协议**</div>\n\n正文"
+  }));
   const parseOffice = vi.fn(async () => ({
     to: toMarkdown
   }));
@@ -45,7 +47,7 @@ describe("markitdown runner file type hints", () => {
       testFile("fake docx bytes", "brief.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
     );
 
-    expect(markdown).toBe("# Converted DOCX");
+    expect(markdown).toBe("# 公司注销、合作退出及责任承担协议\n\n正文");
     expect(mocks.parseOffice).toHaveBeenCalledWith(
       expect.any(Buffer),
       expect.objectContaining({

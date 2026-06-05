@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { convertFileWithMarkItDown } from "@/lib/server/markitdown-runner";
 import {
+  decodeFileName,
   isConvertibleDocumentFile,
   maxConvertedDocumentBytes,
   maxConvertedMarkdownCharacters
@@ -65,7 +66,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       label: "Converted document",
       markdown,
-      sourceName: file.name
+      sourceName: decodeFileName(file.name)
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to convert the selected file.";

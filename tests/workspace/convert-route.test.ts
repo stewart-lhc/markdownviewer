@@ -27,7 +27,7 @@ describe("convert api route", () => {
 
     const response = await POST(
       createConvertRequest(
-        new File(["demo"], "brief.docx", {
+        new File(["demo"], "%E5%85%AC%E5%8F%B8.docx", {
           type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         })
       )
@@ -37,7 +37,7 @@ describe("convert api route", () => {
     expect(await response.json()).toEqual({
       label: "Converted document",
       markdown: "# Converted DOCX",
-      sourceName: "brief.docx"
+      sourceName: "公司.docx"
     });
     expect(mockedConvertFileWithMarkItDown).toHaveBeenCalledWith(expect.any(File));
   });

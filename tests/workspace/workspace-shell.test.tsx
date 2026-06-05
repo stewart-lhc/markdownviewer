@@ -1433,10 +1433,22 @@ describe("WorkspaceShell interactions", () => {
     );
 
     const status = await screen.findByText("Converting slow.docx to Markdown...");
+    const statusBar = status.closest(".workspace-status-message");
 
-    expect(status).toHaveClass("workspace-status-message");
-    expect(status).toHaveAttribute("data-state", "loading");
+    expect(statusBar).toHaveAttribute("data-state", "loading");
     expect(status).toHaveTextContent("Converting slow.docx to Markdown...");
+  });
+
+  it("lets the user dismiss workspace status messages", async () => {
+    const user = userEvent.setup();
+
+    render(<WorkspaceShell markdown="# Existing draft" sourceInput="" initialStatusMessage="Converted brief.docx to Markdown." />);
+
+    expect(screen.getByText("Converted brief.docx to Markdown.")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /dismiss notification/i }));
+
+    expect(screen.queryByText("Converted brief.docx to Markdown.")).not.toBeInTheDocument();
   });
 
   it("opens the new tab file picker directly from the import dialog", async () => {
@@ -1453,6 +1465,42 @@ describe("WorkspaceShell interactions", () => {
     await waitFor(() => {
       expect(screen.queryByRole("dialog", { name: /new tab/i })).not.toBeInTheDocument();
     });
+  });
+
+  it("decodes converted document names in tabs and switch messages", async () => {
+    const user = userEvent.setup();
+
+    window.localStorage.setItem(
+      workspaceTabsStorageKey,
+      JSON.stringify({
+        version: 1,
+        activeTabId: "tab-alpha",
+        tabs: [
+          {
+            createdAt: 1,
+            id: "tab-alpha",
+            markdown: "# First",
+            sourceInput: "",
+            updatedAt: 1
+          },
+          {
+            createdAt: 2,
+            id: "tab-contract",
+            markdown: "No heading body",
+            sourceInput: "converted:%E5%85%AC%E5%8F%B8.docx",
+            sourceKind: "converted-file",
+            updatedAt: 2
+          }
+        ]
+      })
+    );
+
+    render(<WorkspaceShell markdown="# Starter" sourceInput="" />);
+
+    await user.click(screen.getByRole("tab", { name: /公司\.docx/i }));
+
+    expect(screen.getByText("Switched to 公司.docx.")).toBeInTheDocument();
+    expect(screen.queryByText(/%E5%85%AC/)).not.toBeInTheDocument();
   });
 
   it("converts a dropped supported document instead of reading it as text", async () => {

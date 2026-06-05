@@ -96,6 +96,15 @@ function stripLeadingYamlFrontmatter(markdown: string) {
   return afterClosingFence.replace(/^\s+/, "");
 }
 
+function normalizeOfficeMarkdown(markdown: string) {
+  return stripLeadingYamlFrontmatter(markdown)
+    .replace(
+      /^<div\s+style=["']text-align:\s*center;?["']>\s*\*\*([^<\n]+)\*\*\s*<\/div>/i,
+      "# $1"
+    )
+    .trimStart();
+}
+
 async function convertWithOfficeParser(file: File, bytes: Buffer) {
   const extension = getConvertibleDocumentExtension(file.name);
 
@@ -128,7 +137,7 @@ async function convertWithOfficeParser(file: File, bytes: Buffer) {
     });
     const markdown = typeof result.value === "string" ? result.value : "";
 
-    return stripLeadingYamlFrontmatter(markdown);
+    return normalizeOfficeMarkdown(markdown);
   } catch (error) {
     const record = error && typeof error === "object" ? (error as Record<string, unknown>) : {};
 
