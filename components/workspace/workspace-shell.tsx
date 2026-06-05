@@ -14,7 +14,7 @@ import {
   useRef,
   useState
 } from "react";
-import { Clipboard, FileUp, FolderOpen, Link, PanelLeftClose, PanelLeftOpen, Share2, X } from "lucide-react";
+import { Check, Clipboard, FileUp, FolderOpen, Link, PanelLeftClose, PanelLeftOpen, Share2, X } from "lucide-react";
 import { BrandLink } from "@/components/brand/brand-link";
 import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 import { FolderRail } from "@/components/workspace/folder-rail";
@@ -75,6 +75,7 @@ type WorkspaceShellProps = {
 type WorkspaceTabRestoreStrategy = "restore" | "merge";
 type WorkspaceSourceKind = "draft" | "file-import" | "remote-url" | "folder-file" | "converted-file";
 type FolderSaveState = "idle" | "dirty" | "saving" | "saved" | "failed" | "conflict";
+type ShareCopyState = "idle" | "copied" | "failed";
 
 type WorkspaceTab = {
   createdAt: number;
@@ -630,6 +631,7 @@ export function WorkspaceShell({
   const [statusMessage, setStatusMessage] = useState<string | undefined>(initialStatusMessage);
   const [documentConversionPending, setDocumentConversionPending] = useState(false);
   const [shareUrl, setShareUrl] = useState("");
+  const [shareCopyState, setShareCopyState] = useState<ShareCopyState>("idle");
   const [activeImportMode, setActiveImportMode] = useState<SourcePanelMode>(deriveImportMode(sourceInput));
   const [editorPresentationMode, setEditorPresentationMode] = useState<EditorPresentationMode>("rich");
   const [compactWorkspace, setCompactWorkspace] = useState(false);
@@ -657,8 +659,20 @@ export function WorkspaceShell({
   const editorRef = useRef<HTMLElement | null>(null);
   const previewRef = useRef<HTMLDivElement | null>(null);
   const newTabFileInputRef = useRef<HTMLInputElement | null>(null);
+  const shareCopyResetTimeoutRef = useRef<number | undefined>(undefined);
   const lastEditorSelectionStartRef = useRef(0);
   const suppressPreviewScrollSyncRef = useRef(false);
+
+  function showShareCopyState(state: ShareCopyState) {
+    window.clearTimeout(shareCopyResetTimeoutRef.current);
+    setShareCopyState(state);
+
+    if (state !== "idle") {
+      shareCopyResetTimeoutRef.current = window.setTimeout(() => {
+        setShareCopyState("idle");
+      }, 1500);
+    }
+  }
   const suppressPreviewScrollSyncTimerRef = useRef<number | null>(null);
   const syncPreviewAfterEditorChangeRef = useRef(false);
   const previewSourcePositionTargetsRef = useRef<PreviewSourcePositionTarget[]>([]);
@@ -774,6 +788,7 @@ export function WorkspaceShell({
 
   useEffect(() => {
     setShareUrl("");
+    showShareCopyState("idle");
   }, [currentMarkdown]);
 
   useEffect(() => {
@@ -1046,6 +1061,8 @@ export function WorkspaceShell({
 
   useEffect(() => {
     return () => {
+      window.clearTimeout(shareCopyResetTimeoutRef.current);
+
       if (suppressPreviewScrollSyncTimerRef.current !== null) {
         window.clearTimeout(suppressPreviewScrollSyncTimerRef.current);
       }
@@ -1846,6 +1863,7 @@ export function WorkspaceShell({
 
   async function handleShare() {
     setStatusMessage(messages.status.creatingShare);
+    showShareCopyState("idle");
 
     try {
       const share = await createShare(currentMarkdown, headings[0]?.text);
@@ -1853,8 +1871,10 @@ export function WorkspaceShell({
       setShareUrl(shareUrl);
 
       const copied = await copyShareUrlToClipboard(shareUrl);
+      showShareCopyState(copied ? "copied" : "failed");
       setStatusMessage(copied ? `${messages.status.linkCopied} ${shareUrl}` : shareUrl);
     } catch (error) {
+      showShareCopyState("failed");
       setStatusMessage(error instanceof Error ? error.message : messages.status.shareFailed);
     }
   }
@@ -1865,6 +1885,7 @@ export function WorkspaceShell({
     }
 
     const copied = await copyShareUrlToClipboard(shareUrl);
+    showShareCopyState(copied ? "copied" : "failed");
     setStatusMessage(copied ? `${messages.status.linkCopied} ${shareUrl}` : shareUrl);
   }
 
@@ -2163,6 +2184,19 @@ export function WorkspaceShell({
     );
   }
 
+  const shareCopyButtonLabel =
+    shareCopyState === "copied"
+      ? locale === "zh-CN"
+        ? "已复制"
+        : "Copied"
+      : shareCopyState === "failed"
+        ? locale === "zh-CN"
+          ? "复制失败"
+          : "Copy failed"
+        : locale === "zh-CN"
+          ? "复制链接"
+          : "Copy link";
+
   return (
     <div
       className="workspace-page page-shell"
@@ -2328,8 +2362,19 @@ export function WorkspaceShell({
               >
                 {shareUrl}
               </a>
-              <button className="toolbar-button" onClick={handleCopyShareUrl} type="button">
-                {locale === "zh-CN" ? "复制链接" : "Copy link"}
+              <button
+                aria-live="polite"
+                className="toolbar-button workspace-share-link__copy"
+                data-copy-state={shareCopyState}
+                onClick={handleCopyShareUrl}
+                type="button"
+              >
+                {shareCopyState === "copied" ? (
+                  <Check aria-hidden="true" size={17} strokeWidth={2.4} />
+                ) : (
+                  <Clipboard aria-hidden="true" size={17} strokeWidth={2} />
+                )}
+                <span>{shareCopyButtonLabel}</span>
               </button>
             </div>
           </>

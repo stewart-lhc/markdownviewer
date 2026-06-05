@@ -1249,6 +1249,14 @@ describe("WorkspaceShell interactions", () => {
     expect(generatedShareLink).toHaveAttribute("href", expect.stringMatching(/\/share\/imported-from-url-ab12cd34$/));
     expect(screen.getByText(/share link ready/i)).toBeInTheDocument();
     expect(screen.getByRole("dialog", { name: /share link/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /copied/i })).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /copy link/i })).toBeInTheDocument();
+    }, { timeout: 2200 });
+
+    await user.click(screen.getByRole("button", { name: /copy link/i }));
+    expect(await screen.findByRole("button", { name: /copied/i })).toBeInTheDocument();
     fireEvent.click(document.querySelector(".workspace-share-backdrop") as Element);
     expect(screen.queryByRole("dialog", { name: /share link/i })).not.toBeInTheDocument();
   });

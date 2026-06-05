@@ -2298,6 +2298,41 @@ button {
   border-radius: 16px;
 }
 
+.workspace-share-link__copy {
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.workspace-share-link__copy[data-copy-state="copied"] {
+  border-color: color-mix(in srgb, #22c55e 58%, var(--toolbar-button-border));
+  background: color-mix(in srgb, #22c55e 18%, var(--control-button-bg));
+  color: color-mix(in srgb, #14532d 76%, var(--control-button-ink));
+  animation: workspace-share-copy-confirm 520ms ease;
+}
+
+.workspace-share-link__copy[data-copy-state="failed"] {
+  border-color: color-mix(in srgb, #ef4444 54%, var(--toolbar-button-border));
+  background: color-mix(in srgb, #ef4444 12%, var(--control-button-bg));
+  color: color-mix(in srgb, #7f1d1d 72%, var(--control-button-ink));
+}
+
+@keyframes workspace-share-copy-confirm {
+  0% {
+    transform: scale(1);
+  }
+
+  42% {
+    transform: scale(1.025);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
 .workspace-menu-backdrop {
   display: none;
   background: transparent;

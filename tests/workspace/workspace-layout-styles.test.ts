@@ -89,6 +89,8 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain(".workspace-share-link {");
     expect(css).toContain("transform: translate(-50%, -50%);");
     expect(css).toContain(".workspace-share-link__header {");
+    expect(css).toContain(".workspace-share-link__copy[data-copy-state=\"copied\"] {");
+    expect(css).toContain("@keyframes workspace-share-copy-confirm");
     expect(css).toContain(".workspace-new-tab-dialog {");
     expect(css).toContain("z-index: 110;");
     expect(css).toContain(".toolbar-mobile-settings-strip .workspace-preview-type-controls {");
