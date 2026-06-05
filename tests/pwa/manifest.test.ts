@@ -24,7 +24,7 @@ describe("PWA manifest", () => {
           src: "/markdownviewer-icon-512.png",
           sizes: "512x512",
           type: "image/png",
-          purpose: "any"
+          purpose: "any maskable"
         }),
         expect.objectContaining({
           src: "/markdownviewer-icon.svg",

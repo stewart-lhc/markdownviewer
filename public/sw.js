@@ -1,4 +1,4 @@
-const cacheName = "markdownviewer-pwa-v2";
+const cacheName = "markdownviewer-pwa-v3";
 const appShellUrls = [
   "/",
   "/workspace",
