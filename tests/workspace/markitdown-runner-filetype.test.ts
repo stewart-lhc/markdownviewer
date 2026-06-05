@@ -1,8 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => {
+  const toMarkdown = vi.fn(async () => ({ value: "---\nauthor: \"python-docx\"\n---\n\n# Converted DOCX" }));
   const parseOffice = vi.fn(async () => ({
-    to: vi.fn(async () => ({ value: "# Converted DOCX" }))
+    to: toMarkdown
   }));
   const execFile = vi.fn((_command, _args, _options, callback) => {
     const error = Object.assign(new Error("not found"), { code: "ENOENT" });
@@ -10,7 +11,7 @@ const mocks = vi.hoisted(() => {
     callback(error);
   });
 
-  return { execFile, parseOffice };
+  return { execFile, parseOffice, toMarkdown };
 });
 
 vi.mock("node:child_process", () => ({
@@ -49,6 +50,13 @@ describe("markitdown runner file type hints", () => {
       expect.any(Buffer),
       expect.objectContaining({
         fileType: "docx"
+      })
+    );
+    expect(mocks.toMarkdown).toHaveBeenCalledWith(
+      "md",
+      expect.objectContaining({
+        includeImages: false,
+        renderMetadata: false
       })
     );
   });

@@ -80,6 +80,22 @@ function formatStructuredTextMarkdown(fileName: string, bytes: Buffer, extension
   return source;
 }
 
+function stripLeadingYamlFrontmatter(markdown: string) {
+  if (!markdown.startsWith("---\n")) {
+    return markdown;
+  }
+
+  const endIndex = markdown.indexOf("\n---", 4);
+
+  if (endIndex === -1) {
+    return markdown;
+  }
+
+  const afterClosingFence = markdown.slice(endIndex + 4);
+
+  return afterClosingFence.replace(/^\s+/, "");
+}
+
 async function convertWithOfficeParser(file: File, bytes: Buffer) {
   const extension = getConvertibleDocumentExtension(file.name);
 
@@ -108,11 +124,11 @@ async function convertWithOfficeParser(file: File, bytes: Buffer) {
     });
     const result = await ast.to("md", {
       includeImages: false,
-      renderMetadata: true
+      renderMetadata: false
     });
     const markdown = typeof result.value === "string" ? result.value : "";
 
-    return markdown;
+    return stripLeadingYamlFrontmatter(markdown);
   } catch (error) {
     const record = error && typeof error === "object" ? (error as Record<string, unknown>) : {};
 
