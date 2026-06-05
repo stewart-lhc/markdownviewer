@@ -1540,13 +1540,21 @@ export function WorkspaceShell({
     }
   }
 
-  async function handleNewTabFile() {
-    if (!(await ensureFolderSwitchAllowed())) {
+  function handleNewTabFile() {
+    if (activeFolderDirty) {
+      void (async () => {
+        if (!(await ensureFolderSwitchAllowed())) {
+          return;
+        }
+
+        newTabFileInputRef.current?.click();
+        setNewTabDialogOpen(false);
+      })();
       return;
     }
 
-    setNewTabDialogOpen(false);
     newTabFileInputRef.current?.click();
+    setNewTabDialogOpen(false);
   }
 
   async function handleNewTabFileSelected(file: File) {
@@ -2347,6 +2355,7 @@ export function WorkspaceShell({
         <input
           aria-hidden="true"
           className="sr-only"
+          data-testid="new-tab-file-input"
           onChange={(event: ChangeEvent<HTMLInputElement>) => {
             const file = event.currentTarget.files?.[0];
 

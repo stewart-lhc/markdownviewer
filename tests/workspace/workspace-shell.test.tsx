@@ -1393,8 +1393,8 @@ describe("WorkspaceShell interactions", () => {
       sourceName: "new-tab.docx"
     });
 
-    const { container } = render(<WorkspaceShell markdown="# Existing draft" sourceInput="" />);
-    const input = container.querySelector('input[aria-hidden="true"][type="file"]') as HTMLInputElement;
+    render(<WorkspaceShell markdown="# Existing draft" sourceInput="" />);
+    const input = screen.getByTestId("new-tab-file-input") as HTMLInputElement;
 
     expect(input).not.toBeNull();
     expect(input.getAttribute("accept")).toContain(".docx");
@@ -1416,6 +1416,22 @@ describe("WorkspaceShell interactions", () => {
       expect(
         within(screen.getByTestId("preview-panel")).getByRole("heading", { name: "Converted New Tab" })
       ).toBeInTheDocument();
+    });
+  });
+
+  it("opens the new tab file picker directly from the import dialog", async () => {
+    const user = userEvent.setup();
+
+    render(<WorkspaceShell markdown="# Existing draft" sourceInput="" />);
+    const input = screen.getByTestId("new-tab-file-input") as HTMLInputElement;
+    const clickSpy = vi.spyOn(input, "click").mockImplementation(() => undefined);
+
+    await user.click(screen.getByRole("button", { name: /new tab/i }));
+    await user.click(within(screen.getByRole("dialog", { name: /new tab/i })).getByRole("button", { name: /^file$/i }));
+
+    expect(clickSpy).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog", { name: /new tab/i })).not.toBeInTheDocument();
     });
   });
 

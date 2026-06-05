@@ -13,4 +13,22 @@ describe("workspace performance guards", () => {
     expect(source).toContain("lastStoredDraftRef");
     expect(source).toContain("persistWorkspaceDraft");
   });
+
+  it("keeps the new tab file picker click in the direct user action", () => {
+    const start = source.indexOf("function handleNewTabFile()");
+    const end = source.indexOf("async function handleNewTabFileSelected");
+    const handler = source.slice(start, end);
+
+    expect(start).toBeGreaterThan(-1);
+    expect(end).toBeGreaterThan(start);
+    expect(handler).not.toContain("async function handleNewTabFile");
+
+    const fastPathStart = handler.indexOf("return;\n    }\n\n    newTabFileInputRef.current?.click();");
+    const fastPath = handler.slice(fastPathStart);
+    const pickerClick = fastPath.indexOf("newTabFileInputRef.current?.click()");
+
+    expect(fastPathStart).toBeGreaterThan(-1);
+    expect(fastPath.slice(0, pickerClick)).not.toContain("await");
+    expect(pickerClick).toBeLessThan(fastPath.indexOf("setNewTabDialogOpen(false)", pickerClick));
+  });
 });
