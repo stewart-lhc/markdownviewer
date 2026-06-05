@@ -3,7 +3,8 @@ import {
   convertDocumentToMarkdown,
   convertedDocumentAccept,
   isConvertibleDocumentFile,
-  maxConvertedDocumentBytes
+  maxConvertedDocumentBytes,
+  workspaceFileInputAccept
 } from "@/lib/workspace/convert-document";
 
 describe("convert-document helper", () => {
@@ -15,6 +16,14 @@ describe("convert-document helper", () => {
     expect(isConvertibleDocumentFile(new File(["demo"], "report.pdf"))).toBe(true);
     expect(isConvertibleDocumentFile(new File(["# Demo"], "readme.md"))).toBe(false);
     expect(isConvertibleDocumentFile(new File(["demo"], "image.png"))).toBe(false);
+  });
+
+  it("builds a shared file picker accept list for Markdown and convertible documents", () => {
+    expect(workspaceFileInputAccept).toContain(".md");
+    expect(workspaceFileInputAccept).toContain("text/markdown");
+    expect(workspaceFileInputAccept).toContain(".docx");
+    expect(workspaceFileInputAccept).toContain(".pdf");
+    expect(workspaceFileInputAccept).toContain(convertedDocumentAccept);
   });
 
   it("posts supported files to the convert api and returns Markdown", async () => {

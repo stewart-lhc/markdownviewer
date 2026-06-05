@@ -19,7 +19,9 @@ export const convertedDocumentExtensions = [
   ".pdf"
 ] as const;
 
+export const markdownDocumentAccept = ".md,.markdown,.mdown,.mkd,.mdx,.txt,text/markdown,text/x-markdown,text/plain";
 export const convertedDocumentAccept = convertedDocumentExtensions.join(",");
+export const workspaceFileInputAccept = `${markdownDocumentAccept},${convertedDocumentAccept}`;
 export const maxConvertedDocumentBytes = 20 * 1024 * 1024;
 export const maxConvertedMarkdownCharacters = 2_000_000;
 

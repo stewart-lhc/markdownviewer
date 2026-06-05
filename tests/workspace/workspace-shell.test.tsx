@@ -1258,7 +1258,7 @@ describe("WorkspaceShell interactions", () => {
 
     render(<WorkspaceShell markdown="# Draft" sourceInput="" />);
 
-    const input = screen.getByLabelText(/upload markdown file/i) as HTMLInputElement;
+    const input = screen.getByLabelText(/upload markdown or convertible document/i) as HTMLInputElement;
     const file = new File(["# Uploaded file"], "note.md", { type: "text/markdown" });
 
     await user.upload(input, file);
@@ -1349,6 +1349,109 @@ describe("WorkspaceShell interactions", () => {
     });
     expect(screen.getByRole("tab", { name: /existing draft/i })).toBeInTheDocument();
     expect(page).toHaveAttribute("data-file-drag-active", "false");
+  });
+
+  it("converts a supported document selected from the regular file import picker", async () => {
+    const user = userEvent.setup();
+    mockedConvertDocumentToMarkdown.mockResolvedValue({
+      markdown: "# Converted Upload",
+      label: "Converted document",
+      sourceName: "upload.docx"
+    });
+
+    render(<WorkspaceShell markdown="# Existing draft" sourceInput="" />);
+
+    const input = screen.getByLabelText(/upload markdown or convertible document/i) as HTMLInputElement;
+    expect(input.getAttribute("accept")).toContain(".docx");
+
+    await user.upload(
+      input,
+      new File(["demo"], "upload.docx", {
+        type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      })
+    );
+
+    await waitFor(() => {
+      expect(mockedConvertDocumentToMarkdown).toHaveBeenCalledWith(expect.any(File));
+    });
+    await waitFor(() => {
+      expect(screen.getByRole("tab", { name: /converted upload/i })).toHaveAttribute("aria-selected", "true");
+    });
+    await waitFor(() => {
+      expect(
+        within(screen.getByTestId("preview-panel")).getByRole("heading", { name: "Converted Upload" })
+      ).toBeInTheDocument();
+    });
+    expect(screen.getByText("Converted upload.docx to Markdown.")).toBeInTheDocument();
+  });
+
+  it("converts a supported document selected from the new tab file picker", async () => {
+    const user = userEvent.setup();
+    mockedConvertDocumentToMarkdown.mockResolvedValue({
+      markdown: "# Converted New Tab",
+      label: "Converted document",
+      sourceName: "new-tab.docx"
+    });
+
+    const { container } = render(<WorkspaceShell markdown="# Existing draft" sourceInput="" />);
+    const input = container.querySelector('input[aria-hidden="true"][type="file"]') as HTMLInputElement;
+
+    expect(input).not.toBeNull();
+    expect(input.getAttribute("accept")).toContain(".docx");
+
+    await user.upload(
+      input,
+      new File(["demo"], "new-tab.docx", {
+        type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      })
+    );
+
+    await waitFor(() => {
+      expect(mockedConvertDocumentToMarkdown).toHaveBeenCalledWith(expect.any(File));
+    });
+    await waitFor(() => {
+      expect(screen.getByRole("tab", { name: /converted new tab/i })).toHaveAttribute("aria-selected", "true");
+    });
+    await waitFor(() => {
+      expect(
+        within(screen.getByTestId("preview-panel")).getByRole("heading", { name: "Converted New Tab" })
+      ).toBeInTheDocument();
+    });
+  });
+
+  it("converts a dropped supported document instead of reading it as text", async () => {
+    mockedConvertDocumentToMarkdown.mockResolvedValue({
+      markdown: "# Converted Drop",
+      label: "Converted document",
+      sourceName: "drop.docx"
+    });
+
+    const { container } = render(<WorkspaceShell markdown="# Existing draft" sourceInput="" />);
+    const page = container.querySelector(".workspace-page");
+    const file = new File(["demo"], "drop.docx", {
+      type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    });
+
+    expect(page).not.toBeNull();
+
+    fireEvent.drop(page as Element, {
+      dataTransfer: {
+        files: [file],
+        types: ["Files"]
+      }
+    });
+
+    await waitFor(() => {
+      expect(mockedConvertDocumentToMarkdown).toHaveBeenCalledWith(expect.any(File));
+    });
+    await waitFor(() => {
+      expect(screen.getByRole("tab", { name: /converted drop/i })).toHaveAttribute("aria-selected", "true");
+    });
+    await waitFor(() => {
+      expect(
+        within(screen.getByTestId("preview-panel")).getByRole("heading", { name: "Converted Drop" })
+      ).toBeInTheDocument();
+    });
   });
 
   it("converts a supported document and opens the Markdown in a new workspace tab", async () => {

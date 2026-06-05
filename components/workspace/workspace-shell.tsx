@@ -39,7 +39,11 @@ import { loadMarkdownSourceViaApi, LoadedMarkdownSource } from "@/lib/workspace/
 import { MarkdownRenderer } from "@/components/markdown/markdown-renderer";
 import { OutlinePanel } from "@/components/workspace/outline-panel";
 import { EditorPresentationMode, SourcePanel, SourcePanelMode } from "@/components/workspace/source-panel";
-import { convertDocumentToMarkdown } from "@/lib/workspace/convert-document";
+import {
+  convertDocumentToMarkdown,
+  isConvertibleDocumentFile,
+  workspaceFileInputAccept
+} from "@/lib/workspace/convert-document";
 import {
   getWorkspacePreviewFontStack,
   isWorkspacePreviewFont,
@@ -1023,8 +1027,8 @@ export function WorkspaceShell({
             const file = await fileHandle.getFile();
             await openFileInNewTab(file);
           }
-        } catch {
-          setStatusMessage(messages.status.readFileFailed);
+        } catch (error) {
+          setStatusMessage(error instanceof Error ? error.message : messages.status.readFileFailed);
         }
       })();
     });
@@ -1168,8 +1172,12 @@ export function WorkspaceShell({
     return /\.(?:md|markdown|mdown|mkd|mdx|txt)$/i.test(file.name);
   }
 
-  function getMarkdownFiles(dataTransfer: DataTransfer) {
-    return Array.from(dataTransfer.files).filter(isMarkdownImportFile);
+  function isWorkspaceImportFile(file: File) {
+    return isMarkdownImportFile(file) || isConvertibleDocumentFile(file);
+  }
+
+  function getWorkspaceImportFiles(dataTransfer: DataTransfer) {
+    return Array.from(dataTransfer.files).filter(isWorkspaceImportFile);
   }
 
   function updateActiveTabMetadata(patch: Partial<WorkspaceTab>) {
@@ -1471,6 +1479,11 @@ export function WorkspaceShell({
   }
 
   async function openFileInNewTab(file: File) {
+    if (isConvertibleDocumentFile(file)) {
+      await openConvertedFileInNewTab(file);
+      return;
+    }
+
     const nextMarkdown = await readFileContents(file);
     const nextTab = createExplicitImportTab(nextMarkdown, `file:${file.name}`, {
       sourceKind: "file-import"
@@ -1537,7 +1550,11 @@ export function WorkspaceShell({
   }
 
   async function handleNewTabFileSelected(file: File) {
-    await openFileInNewTab(file);
+    try {
+      await openFileInNewTab(file);
+    } catch (error) {
+      setStatusMessage(error instanceof Error ? error.message : messages.status.loadFailed);
+    }
   }
 
   async function handleNewTabUrlSubmit(event: FormEvent<HTMLFormElement>) {
@@ -1608,7 +1625,7 @@ export function WorkspaceShell({
   }
 
   async function handleWorkspaceDrop(event: ReactDragEvent<HTMLDivElement>) {
-    const droppedFiles = getMarkdownFiles(event.dataTransfer);
+    const droppedFiles = getWorkspaceImportFiles(event.dataTransfer);
 
     if (droppedFiles.length === 0) {
       setFileDragActive(false);
@@ -1626,8 +1643,8 @@ export function WorkspaceShell({
       for (const file of droppedFiles) {
         await openFileInNewTab(file);
       }
-    } catch {
-      setStatusMessage(messages.status.readFileFailed);
+    } catch (error) {
+      setStatusMessage(error instanceof Error ? error.message : messages.status.readFileFailed);
     }
   }
 
@@ -1722,19 +1739,28 @@ export function WorkspaceShell({
   }
 
   async function handleFileImport(file: File) {
-    const nextMarkdown = await readFileContents(file);
+    try {
+      if (isConvertibleDocumentFile(file)) {
+        await openConvertedFileInNewTab(file);
+        return;
+      }
 
-    setActiveImportMode("file");
-    setCurrentSource(`file:${file.name}`);
-    setCurrentMarkdown(nextMarkdown);
-    updateActiveTabMetadata({
-      hasExplicitImportChoice: true,
-      markdown: nextMarkdown,
-      sourceInput: `file:${file.name}`,
-      sourceKind: "file-import"
-    });
-    setStatusMessage(messages.status.loadedFile(file.name));
-    setCurrentMode("preview");
+      const nextMarkdown = await readFileContents(file);
+
+      setActiveImportMode("file");
+      setCurrentSource(`file:${file.name}`);
+      setCurrentMarkdown(nextMarkdown);
+      updateActiveTabMetadata({
+        hasExplicitImportChoice: true,
+        markdown: nextMarkdown,
+        sourceInput: `file:${file.name}`,
+        sourceKind: "file-import"
+      });
+      setStatusMessage(messages.status.loadedFile(file.name));
+      setCurrentMode("preview");
+    } catch (error) {
+      setStatusMessage(error instanceof Error ? error.message : messages.status.loadFailed);
+    }
   }
 
   async function handleConvertFile(file: File) {
@@ -2332,7 +2358,7 @@ export function WorkspaceShell({
           }}
           ref={newTabFileInputRef}
           type="file"
-          accept=".md,.markdown,.mdx,.txt,text/markdown,text/plain"
+          accept={workspaceFileInputAccept}
         />
         <div
           className="workspace-grid"

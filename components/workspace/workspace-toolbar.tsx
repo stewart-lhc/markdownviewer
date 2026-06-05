@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Clipboard, Columns2, Eye, FileUp, FolderOpen, Link, MoreHorizontal, Pencil, RefreshCw, Save, X } from "lucide-react";
 import type { SourcePanelMode } from "@/components/workspace/source-panel";
 import type { WorkspaceMessages } from "@/lib/i18n/messages";
-import { convertedDocumentAccept } from "@/lib/workspace/convert-document";
+import { convertedDocumentAccept, workspaceFileInputAccept } from "@/lib/workspace/convert-document";
 
 type WorkspaceToolbarProps = {
   activeImportMode: SourcePanelMode;
@@ -261,7 +261,7 @@ export function WorkspaceToolbar({
           }}
           ref={fileInputRef}
           type="file"
-          accept=".md,.markdown,.mdx,.txt,text/markdown,text/plain"
+          accept={workspaceFileInputAccept}
         />
         <input
           aria-label={messages.convertUploadLabel}
@@ -297,7 +297,7 @@ export function WorkspaceToolbar({
             }}
             ref={fileInputRef}
             type="file"
-            accept=".md,.markdown,.mdx,.txt,text/markdown,text/plain"
+            accept={workspaceFileInputAccept}
           />
           <input
             aria-label={messages.convertUploadLabel}

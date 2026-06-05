@@ -484,7 +484,7 @@ export const messages: Record<Locale, Messages> = {
         saveToDisk: "Save to disk",
         shareLink: "Share Link",
         sourceUrlLabel: "Markdown source URL",
-        uploadLabel: "Upload markdown file",
+        uploadLabel: "Upload Markdown or convertible document",
         url: "URL"
       },
       editor: {
@@ -866,7 +866,7 @@ export const messages: Record<Locale, Messages> = {
         saveToDisk: "保存到磁盘",
         shareLink: "分享链接",
         sourceUrlLabel: "Markdown 来源 URL",
-        uploadLabel: "上传 Markdown 文件",
+        uploadLabel: "上传 Markdown 或可转换文档",
         url: "URL"
       },
       editor: {
