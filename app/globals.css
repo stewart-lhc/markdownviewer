@@ -3910,7 +3910,7 @@ html[data-theme] .workspace-reader-body .markdown-body h4,
 .workspace-reader-body .markdown-body th,
 .workspace-reader-body .markdown-body td {
   padding: 8px 10px;
-  font-size: 0.84rem;
+  font-size: 1em;
   color: var(--workspace-reader-text);
   border-color: var(--workspace-reader-table-border);
   background: var(--workspace-reader-table-bg);

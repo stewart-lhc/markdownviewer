@@ -127,6 +127,7 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain("--workspace-preview-inline-margin: 25%;");
     expect(css).toContain("font-family: var(--workspace-preview-font-family);");
     expect(css).toContain("font-size: var(--workspace-preview-font-size);");
+    expect(css).toContain(".workspace-reader-body .markdown-body th,\n.workspace-reader-body .markdown-body td {\n  padding: 8px 10px;\n  font-size: 1em;");
     expect(css).toContain('.workspace-reader-body[data-locale="zh-CN"] .markdown-body,');
     expect(css).toContain(".workspace-reader-body .markdown-body.markdown-body--cjk {");
     expect(css).toContain("line-height: 1.88;");
