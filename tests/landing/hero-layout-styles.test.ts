@@ -75,6 +75,9 @@ describe("landing hero layout styles", () => {
     expect(css).toContain(".site-footer__workflows {");
     expect(css).toContain(".site-footer__legal {");
     expect(css).toContain(".site-footer__bottom {");
+    expect(css).toContain(".site-footer__launch-badges {");
+    expect(css).toContain(".site-footer__launch-badge {");
+    expect(css).toContain(".site-footer__uneed-badge {");
     expect(css).not.toContain(".workflow-link-bar {");
   });
 

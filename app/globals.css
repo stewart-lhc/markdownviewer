@@ -1454,6 +1454,106 @@ button {
   font-size: 0.82rem;
 }
 
+.site-footer__bottom-copy {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  min-width: 0;
+}
+
+.site-footer__launch-badges {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  min-width: 0;
+}
+
+.site-footer__launch-badge {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 14px;
+  padding: 14px 22px 14px 18px;
+  border: 2px solid transparent;
+  border-radius: 14px;
+  background:
+    linear-gradient(#fff, #fff) padding-box,
+    linear-gradient(90deg, #3525e6, #d81fe0, #22b8f0) border-box;
+  color: #0e0b1f;
+  text-decoration: none;
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.site-footer__launch-badge:hover,
+.site-footer__launch-badge:focus-visible {
+  color: #0e0b1f;
+  transform: translateY(-1px);
+  box-shadow: 0 14px 30px rgba(14, 11, 31, 0.12);
+}
+
+.site-footer__launch-badge svg {
+  width: 56px;
+  height: 56px;
+  flex: 0 0 56px;
+}
+
+.site-footer__launch-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+.site-footer__launch-kicker {
+  color: #6a6585;
+  font-family: var(--mono);
+  font-size: 0.56rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.site-footer__launch-name {
+  color: #0e0b1f;
+  font-size: 1.38rem;
+  font-weight: 800;
+}
+
+.site-footer__launch-domain {
+  margin-top: 4px;
+  color: #6a6585;
+  font-size: 0.69rem;
+}
+
+.site-footer__uneed-badge {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 1 250px;
+  max-width: 100%;
+  line-height: 0;
+  transition:
+    transform 0.16s ease,
+    filter 0.16s ease;
+}
+
+.site-footer__uneed-badge:hover,
+.site-footer__uneed-badge:focus-visible {
+  transform: translateY(-1px);
+  filter: drop-shadow(0 14px 24px rgba(14, 11, 31, 0.1));
+}
+
+.site-footer__uneed-badge img {
+  display: block;
+  width: 250px;
+  max-width: 100%;
+  height: auto;
+}
+
 .workspace-page {
   height: 100vh;
   padding: 6px;
@@ -4613,6 +4713,21 @@ html[data-theme] .workspace-reader-body .markdown-body h4,
   .site-footer__bottom {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .site-footer__bottom-copy {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .site-footer__launch-badges {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .site-footer__launch-badge {
+    width: 100%;
   }
 
   .changelog-hero {

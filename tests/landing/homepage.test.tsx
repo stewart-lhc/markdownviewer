@@ -42,6 +42,18 @@ describe("homepage", () => {
     expect(screen.getByRole("link", { name: /terms of service/i })).toHaveAttribute("href", "#terms");
     expect(screen.getByRole("link", { name: /privacy policy/i })).toHaveAttribute("href", "#privacy");
     expect(screen.getByRole("link", { name: /contact/i })).toHaveAttribute("href", "#contact");
+    expect(screen.getByRole("link", { name: /launched on tiny startups/i })).toHaveAttribute(
+      "href",
+      "https://www.tinystartups.com/startup/markdown-viewer"
+    );
+    expect(screen.getByRole("link", { name: /launching soon on uneed/i })).toHaveAttribute(
+      "href",
+      "https://www.uneed.best/tool/markdown-viewer"
+    );
+    expect(screen.getByAltText(/launching soon on uneed/i)).toHaveAttribute(
+      "src",
+      "https://www.uneed.best/EMBED3B.png"
+    );
     expect(screen.getByText(/© 2026 markdownviewer\.run/i)).toBeInTheDocument();
   });
 
