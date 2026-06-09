@@ -291,7 +291,14 @@ export function HomePageContent({ locale = defaultLocale }: HomePageContentProps
                 target="_blank"
                 rel="noopener"
               >
-                <img src="https://www.uneed.best/EMBED3B.png" alt="Launching Soon on Uneed" width="250" />
+                <img
+                  src="https://www.uneed.best/EMBED3B.png"
+                  alt="Launching Soon on Uneed"
+                  width="250"
+                  height="65"
+                  loading="lazy"
+                  decoding="async"
+                />
               </a>
             </div>
           </div>

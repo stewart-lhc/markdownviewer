@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import "@/app/globals.css";
-import "katex/dist/katex.min.css";
 import { GoogleAnalytics } from "@/components/analytics/google-analytics";
-import { PwaInstallPrompt } from "@/components/pwa/pwa-install-prompt";
-import { PwaRegistration } from "@/components/pwa/pwa-registration";
+import { PwaRuntime } from "@/components/pwa/pwa-runtime";
 
 const siteUrl = "https://markdownviewer.run";
 const siteDescription =
@@ -82,8 +80,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
     <html lang="en">
       <body>
         {children}
-        <PwaRegistration />
-        <PwaInstallPrompt />
+        <PwaRuntime />
         <GoogleAnalytics measurementId={gaMeasurementId} />
       </body>
     </html>
