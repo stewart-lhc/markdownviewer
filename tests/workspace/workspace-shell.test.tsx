@@ -321,6 +321,42 @@ describe("WorkspaceShell interactions", () => {
     expect(screen.getByRole("tab", { name: /second draft/i })).toHaveAttribute("aria-selected", "true");
   });
 
+  it("imports a pasted URL into a new workspace tab", async () => {
+    const user = userEvent.setup();
+    const pastedUrl = "https://github.com/BuilderPulse/BuilderPulse/blob/main/zh%2F2026%2F2026-06-09.md";
+    const readText = vi.fn().mockResolvedValue(pastedUrl);
+    const loadSource = vi.fn().mockResolvedValue({
+      markdown: "# BuilderPulse 2026-06-09",
+      label: "GitHub source",
+      resolvedUrl:
+        "https://raw.githubusercontent.com/BuilderPulse/BuilderPulse/main/zh%2F2026%2F2026-06-09.md"
+    });
+
+    Object.defineProperty(window.navigator, "clipboard", {
+      configurable: true,
+      value: { readText }
+    });
+
+    render(<WorkspaceShell loadSource={loadSource} markdown="# First draft" sourceInput="" />);
+
+    await user.click(screen.getByRole("button", { name: /new tab/i }));
+    await user.click(within(screen.getByRole("dialog", { name: /new tab/i })).getByRole("button", { name: /paste/i }));
+
+    await waitFor(() => {
+      expect(loadSource).toHaveBeenCalledWith(pastedUrl);
+    });
+    expect(screen.getByRole("tab", { name: /builderpulse 2026-06-09/i })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+    expect(
+      await within(screen.getByTestId("preview-panel")).findByRole("heading", {
+        level: 1,
+        name: "BuilderPulse 2026-06-09"
+      })
+    ).toBeInTheDocument();
+  });
+
   it("shows a localized folder fallback when the browser does not support directory access", async () => {
     const user = userEvent.setup();
 

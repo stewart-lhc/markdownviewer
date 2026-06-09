@@ -18,7 +18,7 @@ type WorkspaceToolbarProps = {
   onPasteIntoEditor: () => void;
   onConvertFile: (file: File) => void;
   onFileImport: (file: File) => void;
-  onParseSource: () => void;
+  onParseSource: (source?: string) => void;
   onSourceChange: (value: string) => void;
   onExportHtml: () => void;
   onExportPdf: () => void;
@@ -62,6 +62,7 @@ export function WorkspaceToolbar({
   const [importMenuOpen, setImportMenuOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [urlDialogOpen, setUrlDialogOpen] = useState(false);
+  const [sourceDraft, setSourceDraft] = useState(sourceValue);
   const convertFileInputRef = useRef<HTMLInputElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const importMenuRef = useRef<HTMLDivElement | null>(null);
@@ -91,6 +92,10 @@ export function WorkspaceToolbar({
       urlInputRef.current?.focus();
     }
   }, [activeImportMode, compact, urlDialogOpen]);
+
+  useEffect(() => {
+    setSourceDraft(sourceValue);
+  }, [sourceValue]);
 
   function runAction(action: () => void) {
     setImportMenuOpen(false);
@@ -124,8 +129,17 @@ export function WorkspaceToolbar({
   }
 
   function parseUrlSource() {
-    onParseSource();
+    onParseSource(sourceDraft);
     setUrlDialogOpen(false);
+  }
+
+  function openUrlSource() {
+    onParseSource(sourceDraft);
+  }
+
+  function changeUrlSource(value: string) {
+    setSourceDraft(value);
+    onSourceChange(value);
   }
 
   const visibleModes = compact ? modes.filter((entry) => entry !== "split") : modes;
@@ -322,12 +336,12 @@ export function WorkspaceToolbar({
           <input
             aria-label={messages.sourceUrlLabel}
             className="input input--compact toolbar-url-input"
-            onChange={(event) => onSourceChange(event.currentTarget.value)}
+            onChange={(event) => changeUrlSource(event.currentTarget.value)}
             placeholder="https://github.com/acme/repo/blob/main/README.md"
             ref={urlInputRef}
-            value={sourceValue}
+            value={sourceDraft}
           />
-          <button className="toolbar-button" onClick={onParseSource} type="button">
+          <button className="toolbar-button" onClick={openUrlSource} type="button">
             {messages.open}
           </button>
         </div>
@@ -474,10 +488,10 @@ export function WorkspaceToolbar({
               <input
                 aria-label={messages.sourceUrlLabel}
                 className="input input--compact toolbar-url-input"
-                onChange={(event) => onSourceChange(event.currentTarget.value)}
+                onChange={(event) => changeUrlSource(event.currentTarget.value)}
                 placeholder="https://github.com/acme/repo/blob/main/README.md"
                 ref={urlInputRef}
-                value={sourceValue}
+                value={sourceDraft}
               />
               <button className="toolbar-button" onClick={parseUrlSource} type="button">
                 {messages.open}

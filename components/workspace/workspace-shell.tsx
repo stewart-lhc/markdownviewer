@@ -36,6 +36,7 @@ import {
 } from "@/lib/workspace/folder-paths";
 import { scanMarkdownFolder, type FolderFileEntry } from "@/lib/workspace/folder-scan";
 import { loadMarkdownSourceViaApi, LoadedMarkdownSource } from "@/lib/workspace/load-markdown-source";
+import { detectSourceType } from "@/lib/workspace/source-parser";
 import { MarkdownRenderer } from "@/components/markdown/markdown-renderer";
 import { OutlinePanel } from "@/components/workspace/outline-panel";
 import { EditorPresentationMode, SourcePanel, SourcePanelMode } from "@/components/workspace/source-panel";
@@ -498,6 +499,10 @@ function deriveImportMode(sourceInput: string): SourcePanelMode {
   }
 
   return "paste";
+}
+
+function shouldImportPastedTextAsUrl(input: string) {
+  return detectSourceType(input) !== "markdown";
 }
 
 function buildMarkdownLineStarts(markdown: string) {
@@ -1581,6 +1586,24 @@ export function WorkspaceShell({
 
     try {
       const pasted = await navigator.clipboard.readText();
+      const pastedSource = pasted.trim();
+
+      if (pastedSource && shouldImportPastedTextAsUrl(pastedSource)) {
+        try {
+          const result = await loadSource(pastedSource);
+          const resolvedUrl = result.resolvedUrl ?? pastedSource;
+          const nextTab = createExplicitImportTab(result.markdown, resolvedUrl, {
+            sourceKind: "remote-url"
+          });
+
+          activateWorkspaceTab(nextTab, "url", messages.status.loadedSource(result.label));
+          return;
+        } catch (error) {
+          setStatusMessage(error instanceof Error ? error.message : messages.status.loadFailed);
+          return;
+        }
+      }
+
       const nextTab = createExplicitImportTab(pasted, "", {
         sourceKind: "draft"
       });
@@ -1791,17 +1814,25 @@ export function WorkspaceShell({
     setStatusMessage(messages.status.closedTab);
   }
 
-  async function handleParseSource() {
+  async function handleParseSource(sourceOverride?: string) {
+    const requestedSource = (sourceOverride ?? currentSource).trim();
+
+    if (!requestedSource) {
+      setStatusMessage(messages.status.urlRequired);
+      return;
+    }
+
     try {
-      const result = await loadSource(currentSource);
+      const result = await loadSource(requestedSource);
+      const resolvedUrl = result.resolvedUrl ?? requestedSource;
 
       setActiveImportMode("url");
       setCurrentMarkdown(result.markdown);
-      setCurrentSource(result.resolvedUrl ?? currentSource);
+      setCurrentSource(resolvedUrl);
       updateActiveTabMetadata({
         hasExplicitImportChoice: true,
         markdown: result.markdown,
-        sourceInput: result.resolvedUrl ?? currentSource,
+        sourceInput: resolvedUrl,
         sourceKind: "remote-url"
       });
       setStatusMessage(messages.status.loadedSource(result.label));
