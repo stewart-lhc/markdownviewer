@@ -20,24 +20,28 @@ export const productUpdates: ProductUpdate[] = [
     en: {
       title: "Mobile workspace reader chrome",
       summary:
-        "Markdownviewer now gives mobile readers more vertical space by hiding workspace chrome until it is needed.",
+        "Markdownviewer now gives mobile readers more vertical space and a clear path to install the app from the site.",
       highlights: [
         "The mobile workspace top bar now hides automatically while scrolling down and returns when scrolling up.",
         "The mobile preview bottom bar is hidden by default so the document gets the full screen for reading.",
         "A bottom-right floating control opens the preview controls when typography, theme, or sharing actions are needed.",
+        "A mobile PWA install prompt now triggers the native install flow when the browser exposes it.",
+        "iPhone, iPad, and browsers without a native prompt now get clear add-to-home-screen guidance.",
         "Scrolling down closes the mobile preview controls again to keep the reader focused on the document.",
-        "Added focused workspace tests and CSS guards for the mobile header and bottom-bar behavior."
+        "Added focused tests and CSS guards for the mobile header, bottom bar, and install prompt behavior."
       ]
     },
     "zh-CN": {
       title: "移动端 workspace 阅读 chrome",
-      summary: "Markdownviewer 现在会在移动端把阅读空间留给正文，只在需要时显示 workspace 控件。",
+      summary: "Markdownviewer 现在会在移动端把阅读空间留给正文，并在站内提供清晰的安装入口。",
       highlights: [
         "移动端 workspace 顶栏会在下滑阅读时自动隐藏，并在上滑时恢复显示。",
         "移动端预览底栏默认隐藏，让文档正文获得完整阅读空间。",
         "右下角浮动按钮可以在需要调整排版、主题或分享时展开预览控制。",
+        "新增移动端 PWA 安装提示；浏览器支持时会触发原生安装流程。",
+        "iPhone、iPad 或没有原生安装事件的浏览器会显示添加到主屏幕指引。",
         "继续下滑阅读会再次收起移动端预览控制，减少对正文的遮挡。",
-        "新增针对移动端顶栏和底栏行为的 workspace 测试与 CSS guard。"
+        "新增针对移动端顶栏、底栏和安装提示行为的测试与 CSS guard。"
       ]
     }
   },

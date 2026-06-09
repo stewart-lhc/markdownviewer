@@ -50,7 +50,7 @@ It is designed to be more than a plain textarea preview. Markdownviewer gives RE
 - **Persistent workspace tabs** - keep multiple Markdown documents open with independent source labels and restored tab state.
 - **Stored share links** - generate canonical `/share/{id}` pages through `/api/share`, backed by Vercel Blob in production and a local file-store fallback in development.
 - **Full share-page reader** - shared documents keep the logo, table of contents, typography controls, themes, font size controls, preview margin controls, and open-in-workspace behavior.
-- **Installable PWA** - install Markdownviewer from a supported desktop browser and open `.md` files with it through the operating system file picker.
+- **Installable PWA** - install Markdownviewer from supported browsers, use the mobile install prompt, and open `.md` files with it on compatible desktop Chromium browsers.
 - **Export** - export polished HTML or print/PDF from the preview workspace.
 - **Chinese localization** - use localized landing and workspace routes at `/zh-CN`.
 - **Mobile app-style workspace** - refined mobile navigation, focused tab selection, auto-hiding top chrome, and a collapsible preview control bar.
@@ -61,7 +61,7 @@ It is designed to be more than a plain textarea preview. Markdownviewer gives RE
 
 | Version | Date | Product update |
 | --- | --- | --- |
-| **26.609** | 2026-06-09 | Refined the mobile workspace reader with a top bar that hides on downward scroll and returns on upward scroll, plus a default-hidden preview bottom bar opened from a bottom-right floating control. |
+| **26.609** | 2026-06-09 | Refined the mobile workspace reader with auto-hiding top chrome, a default-hidden preview bottom bar, and a mobile PWA install prompt with native install support plus add-to-home-screen guidance. |
 | **26.604** | 2026-06-04 | Added server-stored share links, canonical `/share/{id}` pages, Vercel Blob production storage, local development fallback storage, full preview-reader controls on share pages, the restored share-page logo, and working M- / M+ preview margin controls. |
 | **26.603** | 2026-06-03 | Added document-to-Markdown conversion for Office, data, HTML, and text-heavy PDF files, a focused converter SEO page, updated homepage/README/llms discovery copy, and evenly spaced preview margin levels. |
 | **26.602** | 2026-06-02 | Added six long-tail SEO landing pages, homepage quick links plus sitemap/llms discovery, FAQ structured data, default wide preview margins, workspace language switching, share-link fallback copying, and a build-stable local monospace font stack. |
@@ -248,7 +248,7 @@ MIT License. See [LICENSE](LICENSE).
 - **持久 workspace tabs** - 多个 Markdown 文档可以独立保存来源标签和恢复状态。
 - **正式分享链接** - 通过 `/api/share` 生成规范的 `/share/{id}` 页面；生产环境使用 Vercel Blob，本地开发使用文件存储 fallback。
 - **完整分享页阅读器** - 分享文档保留 LOGO、目录、排版控制、主题、字号、预览留白控制，以及在 workspace 中打开的入口。
-- **可安装 PWA** - 在支持的桌面浏览器中安装后，可以通过系统文件打开流程打开 `.md` 文件。
+- **可安装 PWA** - 可从支持的浏览器安装 Markdownviewer，移动端提供安装提示；兼容的桌面 Chromium 浏览器还可以通过系统文件打开 `.md`。
 - **导出能力** - 可以从预览工作区导出 HTML，或打印/保存 PDF。
 - **中文界面** - 提供 `/zh-CN` 的本地化首页和工作区。
 - **移动端工作区** - 优化移动端导航、tab 选择、自动隐藏顶栏和可收起的底部预览控制栏。
@@ -259,7 +259,7 @@ MIT License. See [LICENSE](LICENSE).
 
 | 版本 | 日期 | 产品更新 |
 | --- | --- | --- |
-| **26.609** | 2026-06-09 | 优化移动端 workspace 阅读器：顶栏下滑时自动隐藏、上滑时恢复；底部预览控制栏默认隐藏，并通过右下角浮动按钮展开。 |
+| **26.609** | 2026-06-09 | 优化移动端 workspace 阅读器：顶栏自动隐藏、底部预览控制栏默认收起，并新增移动端 PWA 安装提示，支持原生安装和添加到主屏幕指引。 |
 | **26.604** | 2026-06-04 | 新增服务端存储分享链接、规范 `/share/{id}` 页面、Vercel Blob 生产存储、本地开发 fallback 存储、分享页完整预览阅读控制、恢复分享页 LOGO，并修复 M- / M+ 预览留白控制。 |
 | **26.603** | 2026-06-03 | 新增 Office、数据文件、HTML 和文本型 PDF 的文档转 Markdown，新增转换器 SEO 页面，更新首页/README/llms 发现文案，并调整预览留白档位。 |
 | **26.602** | 2026-06-02 | 新增 6 个长尾 SEO 页面、首页 quick links、sitemap/llms 入口、FAQ structured data、默认宽预览留白、workspace 语言切换、分享链接 fallback 复制和本地 monospace 字体栈。 |
