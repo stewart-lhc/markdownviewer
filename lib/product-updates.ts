@@ -27,6 +27,7 @@ export const productUpdates: ProductUpdate[] = [
         "A bottom-right floating control opens the preview controls when typography, theme, or sharing actions are needed.",
         "A mobile PWA install prompt now triggers the native install flow when the browser exposes it.",
         "iPhone, iPad, and browsers without a native prompt now get clear add-to-home-screen guidance.",
+        "The mobile install prompt now keeps readable text and button contrast in dark workspace themes.",
         "Scrolling down closes the mobile preview controls again to keep the reader focused on the document.",
         "Added focused tests and CSS guards for the mobile header, bottom bar, and install prompt behavior."
       ]
@@ -40,6 +41,7 @@ export const productUpdates: ProductUpdate[] = [
         "右下角浮动按钮可以在需要调整排版、主题或分享时展开预览控制。",
         "新增移动端 PWA 安装提示；浏览器支持时会触发原生安装流程。",
         "iPhone、iPad 或没有原生安装事件的浏览器会显示添加到主屏幕指引。",
+        "移动端安装提示在深色 workspace 主题下保持文字和按钮对比度。",
         "继续下滑阅读会再次收起移动端预览控制，减少对正文的遮挡。",
         "新增针对移动端顶栏、底栏和安装提示行为的测试与 CSS guard。"
       ]

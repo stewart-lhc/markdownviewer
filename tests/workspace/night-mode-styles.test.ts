@@ -21,4 +21,16 @@ describe("workspace theme styles", () => {
     expect(css).toContain('.theme-option__swatch[data-theme-id="evergreen"]');
     expect(css).toContain('.theme-option__swatch[data-theme-id="terminal"]');
   });
+
+  it("keeps the mobile PWA install prompt readable in dark workspace themes", () => {
+    expect(css).toContain("--pwa-install-action-bg:");
+    expect(css).toContain("--pwa-install-action-ink:");
+    expect(css).toContain('html[data-theme="night"]');
+    expect(css).toContain('html[data-theme="terminal"]');
+    expect(css).toContain(".pwa-install-prompt {");
+    expect(css).toContain(".pwa-install-prompt__action {");
+    expect(css).toContain("background: var(--pwa-install-action-bg);");
+    expect(css).toContain("color: var(--pwa-install-action-ink);");
+    expect(css).not.toContain(".pwa-install-prompt__action {\n    min-height: 38px;\n    border: 0;\n    border-radius: 12px;\n    background: var(--ink);\n    color: #fff;");
+  });
 });
