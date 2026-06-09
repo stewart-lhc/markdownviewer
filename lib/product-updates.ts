@@ -15,6 +15,33 @@ export type ProductUpdate = {
 
 export const productUpdates: ProductUpdate[] = [
   {
+    version: "26.609",
+    date: "2026-06-09",
+    en: {
+      title: "Mobile workspace reader chrome",
+      summary:
+        "Markdownviewer now gives mobile readers more vertical space by hiding workspace chrome until it is needed.",
+      highlights: [
+        "The mobile workspace top bar now hides automatically while scrolling down and returns when scrolling up.",
+        "The mobile preview bottom bar is hidden by default so the document gets the full screen for reading.",
+        "A bottom-right floating control opens the preview controls when typography, theme, or sharing actions are needed.",
+        "Scrolling down closes the mobile preview controls again to keep the reader focused on the document.",
+        "Added focused workspace tests and CSS guards for the mobile header and bottom-bar behavior."
+      ]
+    },
+    "zh-CN": {
+      title: "移动端 workspace 阅读 chrome",
+      summary: "Markdownviewer 现在会在移动端把阅读空间留给正文，只在需要时显示 workspace 控件。",
+      highlights: [
+        "移动端 workspace 顶栏会在下滑阅读时自动隐藏，并在上滑时恢复显示。",
+        "移动端预览底栏默认隐藏，让文档正文获得完整阅读空间。",
+        "右下角浮动按钮可以在需要调整排版、主题或分享时展开预览控制。",
+        "继续下滑阅读会再次收起移动端预览控制，减少对正文的遮挡。",
+        "新增针对移动端顶栏和底栏行为的 workspace 测试与 CSS guard。"
+      ]
+    }
+  },
+  {
     version: "26.604",
     date: "2026-06-04",
     en: {

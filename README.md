@@ -11,7 +11,7 @@
 
 [Live Markdown Viewer](https://markdownviewer.run/) - [Open the Workspace](https://markdownviewer.run/workspace) - [Changelog](https://markdownviewer.run/changelog) - [Star the Project](https://github.com/stewart-lhc/markdownviewer)
 
-Current product update: **26.604**. Current package release: **v0.2.0**. See [CHANGELOG.md](CHANGELOG.md) and the live [Changelog](https://markdownviewer.run/changelog) for release notes and update history.
+Current product update: **26.609**. Current package release: **v0.2.0**. See [CHANGELOG.md](CHANGELOG.md) and the live [Changelog](https://markdownviewer.run/changelog) for release notes and update history.
 
 </div>
 
@@ -53,7 +53,7 @@ It is designed to be more than a plain textarea preview. Markdownviewer gives RE
 - **Installable PWA** - install Markdownviewer from a supported desktop browser and open `.md` files with it through the operating system file picker.
 - **Export** - export polished HTML or print/PDF from the preview workspace.
 - **Chinese localization** - use localized landing and workspace routes at `/zh-CN`.
-- **Mobile app-style workspace** - refined mobile navigation, larger import controls, focused tab selection, and a full-width preview bottom bar.
+- **Mobile app-style workspace** - refined mobile navigation, focused tab selection, auto-hiding top chrome, and a collapsible preview control bar.
 - **Focused Markdown workflow pages** - dedicated pages for README preview, GFM, Mermaid, Markdown math, AI Markdown, online Markdown file viewing, and document conversion.
 - **Open-source and self-hostable** - MIT licensed, built with Next.js, React, and TypeScript.
 
@@ -61,12 +61,12 @@ It is designed to be more than a plain textarea preview. Markdownviewer gives RE
 
 | Version | Date | Product update |
 | --- | --- | --- |
+| **26.609** | 2026-06-09 | Refined the mobile workspace reader with a top bar that hides on downward scroll and returns on upward scroll, plus a default-hidden preview bottom bar opened from a bottom-right floating control. |
 | **26.604** | 2026-06-04 | Added server-stored share links, canonical `/share/{id}` pages, Vercel Blob production storage, local development fallback storage, full preview-reader controls on share pages, the restored share-page logo, and working M- / M+ preview margin controls. |
 | **26.603** | 2026-06-03 | Added document-to-Markdown conversion for Office, data, HTML, and text-heavy PDF files, a focused converter SEO page, updated homepage/README/llms discovery copy, and evenly spaced preview margin levels. |
 | **26.602** | 2026-06-02 | Added six long-tail SEO landing pages, homepage quick links plus sitemap/llms discovery, FAQ structured data, default wide preview margins, workspace language switching, share-link fallback copying, and a build-stable local monospace font stack. |
 | **26.531** | 2026-05-31 | Fixed mobile landing layout, added full-width top navigation, shipped the live changelog page, enlarged mobile workspace import controls, auto-collapsed the mobile tab rail, exposed generated share links, and refined the mobile preview bottom bar. |
 | **26.530** | 2026-05-30 | Added Local Folder Workspace, folder browsing, relative Markdown link navigation, save-to-disk, folder reconnect states, mobile workspace layout fixes, and PWA tab handling improvements. |
-| **26.529** | 2026-05-29 | Added Chinese localization, installable PWA metadata, service worker support, Markdown file handlers, and operating-system file launch handling. |
 
 ### Perfect For
 
@@ -251,7 +251,7 @@ MIT License. See [LICENSE](LICENSE).
 - **可安装 PWA** - 在支持的桌面浏览器中安装后，可以通过系统文件打开流程打开 `.md` 文件。
 - **导出能力** - 可以从预览工作区导出 HTML，或打印/保存 PDF。
 - **中文界面** - 提供 `/zh-CN` 的本地化首页和工作区。
-- **移动端工作区** - 优化移动端导航、导入按钮、tab 选择和底部预览控制栏。
+- **移动端工作区** - 优化移动端导航、tab 选择、自动隐藏顶栏和可收起的底部预览控制栏。
 - **聚焦工作流页面** - 为 README 预览、GFM、Mermaid、Markdown math、AI Markdown、在线 Markdown 文件查看和文档转换提供独立页面。
 - **开源可自托管** - MIT License，基于 Next.js、React 和 TypeScript。
 
@@ -259,12 +259,12 @@ MIT License. See [LICENSE](LICENSE).
 
 | 版本 | 日期 | 产品更新 |
 | --- | --- | --- |
+| **26.609** | 2026-06-09 | 优化移动端 workspace 阅读器：顶栏下滑时自动隐藏、上滑时恢复；底部预览控制栏默认隐藏，并通过右下角浮动按钮展开。 |
 | **26.604** | 2026-06-04 | 新增服务端存储分享链接、规范 `/share/{id}` 页面、Vercel Blob 生产存储、本地开发 fallback 存储、分享页完整预览阅读控制、恢复分享页 LOGO，并修复 M- / M+ 预览留白控制。 |
 | **26.603** | 2026-06-03 | 新增 Office、数据文件、HTML 和文本型 PDF 的文档转 Markdown，新增转换器 SEO 页面，更新首页/README/llms 发现文案，并调整预览留白档位。 |
 | **26.602** | 2026-06-02 | 新增 6 个长尾 SEO 页面、首页 quick links、sitemap/llms 入口、FAQ structured data、默认宽预览留白、workspace 语言切换、分享链接 fallback 复制和本地 monospace 字体栈。 |
 | **26.531** | 2026-05-31 | 修复移动端首页布局，新增满宽顶部导航，发布 live changelog 页面，放大移动端导入控制，选择/导入 tab 后自动收起 tab 栏，并优化移动端预览底栏。 |
 | **26.530** | 2026-05-30 | 新增本地文件夹工作区、文件夹浏览、相对 Markdown link 跳转、保存到磁盘、文件夹重连状态、移动端 workspace 修复和 PWA tab 处理。 |
-| **26.529** | 2026-05-29 | 新增中文本地化、可安装 PWA metadata、service worker、Markdown file handlers 和系统文件启动处理。 |
 
 ### 适合哪些场景
 

@@ -79,6 +79,8 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain("top: 0 !important;");
     expect(css).toContain("left: 0 !important;");
     expect(css).toContain("right: 0 !important;");
+    expect(css).toContain(".workspace-page[data-mobile-header-visible=\"false\"] .workspace-header {");
+    expect(css).toContain("transform: translateY(calc(-100% - env(safe-area-inset-top, 0px)));");
     expect(css).toContain("padding-top: 128px;");
     expect(css).toContain(".workspace-tabs-backdrop {");
     expect(css).toContain("backdrop-filter: blur(8px) saturate(0.9);");
@@ -97,6 +99,10 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain(".toolbar-mobile-settings-strip .workspace-preview-font-list {");
     expect(css).toContain(".workspace-preview-bottom-bar {");
     expect(css).toContain("grid-template-columns: minmax(0, 4fr) minmax(88px, 1.2fr);");
+    expect(css).toContain(".workspace-page .workspace-preview-bottom-bar {");
+    expect(css).toContain(".workspace-page[data-preview-controls-open=\"true\"] .workspace-preview-bottom-bar {");
+    expect(css).toContain(".workspace-preview-bottom-toggle {");
+    expect(css).toContain(".workspace-preview-bottom-toggle[aria-expanded=\"true\"] {");
     expect(css).toContain("grid-template-columns: repeat(4, minmax(0, 1fr));");
     expect(css).toContain(".workspace-preview-bottom-bar .toolbar-overflow {");
     expect(css).toContain("justify-self: stretch !important;");

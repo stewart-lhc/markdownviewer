@@ -14,7 +14,18 @@ import {
   useRef,
   useState
 } from "react";
-import { Check, Clipboard, FileUp, FolderOpen, Link, PanelLeftClose, PanelLeftOpen, Share2, X } from "lucide-react";
+import {
+  Check,
+  Clipboard,
+  FileUp,
+  FolderOpen,
+  Link,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Share2,
+  SlidersHorizontal,
+  X
+} from "lucide-react";
 import { BrandLink } from "@/components/brand/brand-link";
 import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 import { FolderRail } from "@/components/workspace/folder-rail";
@@ -651,6 +662,8 @@ export function WorkspaceShell({
   const [splitEditorPercent, setSplitEditorPercent] = useState(50);
   const [splitResizing, setSplitResizing] = useState(false);
   const [tabsCollapsed, setTabsCollapsed] = useState(false);
+  const [mobileHeaderVisible, setMobileHeaderVisible] = useState(true);
+  const [mobilePreviewControlsOpen, setMobilePreviewControlsOpen] = useState(false);
   const [tabsStorageReady, setTabsStorageReady] = useState(false);
   const [tocOpen, setTocOpen] = useState(false);
   const [folderRootHandle, setFolderRootHandle] = useState<FileSystemDirectoryHandle | null>(null);
@@ -673,6 +686,7 @@ export function WorkspaceShell({
   const skipNextModePersistRef = useRef(false);
   const lastEditorSelectionStartRef = useRef(0);
   const suppressPreviewScrollSyncRef = useRef(false);
+  const lastMobilePreviewScrollTopRef = useRef(0);
 
   function showShareCopyState(state: ShareCopyState) {
     window.clearTimeout(shareCopyResetTimeoutRef.current);
@@ -747,6 +761,32 @@ export function WorkspaceShell({
   function collapseTabsForReading() {
     if (compactWorkspace) {
       setTabsCollapsed(true);
+    }
+  }
+
+  function updateMobileChromeFromPreviewScroll(scrollTop: number) {
+    if (!compactWorkspace) {
+      return;
+    }
+
+    const lastScrollTop = lastMobilePreviewScrollTopRef.current;
+    const delta = scrollTop - lastScrollTop;
+
+    lastMobilePreviewScrollTopRef.current = scrollTop;
+
+    if (scrollTop <= 12) {
+      setMobileHeaderVisible(true);
+      return;
+    }
+
+    if (delta > 8) {
+      setMobileHeaderVisible(false);
+      setMobilePreviewControlsOpen(false);
+      return;
+    }
+
+    if (delta < -8) {
+      setMobileHeaderVisible(true);
     }
   }
 
@@ -981,10 +1021,14 @@ export function WorkspaceShell({
 
   useEffect(() => {
     if (!compactWorkspace) {
+      setMobileHeaderVisible(true);
+      setMobilePreviewControlsOpen(false);
       return;
     }
 
     setTabsCollapsed(true);
+    setMobileHeaderVisible(true);
+    setMobilePreviewControlsOpen(false);
     setCurrentMode((current) => (current === "split" ? "preview" : current));
   }, [compactWorkspace]);
 
@@ -2260,6 +2304,8 @@ export function WorkspaceShell({
     <div
       className="workspace-page page-shell"
       data-file-drag-active={fileDragActive}
+      data-mobile-header-visible={mobileHeaderVisible}
+      data-preview-controls-open={mobilePreviewControlsOpen}
       data-tabs-collapsed={tabsCollapsed}
       onDragEnter={handleWorkspaceDragEnter}
       onDragLeave={handleWorkspaceDragLeave}
@@ -2592,10 +2638,12 @@ export function WorkspaceShell({
                 data-testid="preview-scroll-region"
                 onScroll={(event) => {
                   if (suppressPreviewScrollSyncRef.current) {
+                    updateMobileChromeFromPreviewScroll(event.currentTarget.scrollTop);
                     return;
                   }
 
                   syncPaneScroll(event.currentTarget, editorRef.current);
+                  updateMobileChromeFromPreviewScroll(event.currentTarget.scrollTop);
                 }}
                 ref={previewRef}
                 style={previewReaderStyle}
@@ -2603,32 +2651,64 @@ export function WorkspaceShell({
                 <MarkdownRenderer markdown={previewMarkdown} onLinkClick={handlePreviewLinkClick} />
               </div>
               {compactWorkspace ? (
-                <div className="workspace-preview-bottom-bar">
-                  <div className="workspace-preview-bottom-controls">
-                    <WorkspaceThemeSelector messages={messages.preview} onThemeChange={setTheme} theme={theme} />
-                    <WorkspacePreviewTypographyControls
-                      font={previewFont}
-                      fontSize={previewFontSize}
-                      margin={previewMargin}
-                      maxMargin={maxPreviewMargin}
-                      maxFontSize={maxPreviewFontSize}
-                      messages={messages.preview}
-                      minMargin={minPreviewMargin}
-                      minFontSize={minPreviewFontSize}
-                      onFontChange={setPreviewFont}
-                      onFontSizeChange={(nextFontSize) => setPreviewFontSize(clampPreviewFontSize(nextFontSize))}
-                      onMarginChange={(nextMargin) => setPreviewMargin(clampPreviewMargin(nextMargin))}
-                      showMarginControl={false}
-                    />
+                <>
+                  <div className="workspace-preview-bottom-bar" aria-hidden={!mobilePreviewControlsOpen}>
+                    <div className="workspace-preview-bottom-controls">
+                      <WorkspaceThemeSelector messages={messages.preview} onThemeChange={setTheme} theme={theme} />
+                      <WorkspacePreviewTypographyControls
+                        font={previewFont}
+                        fontSize={previewFontSize}
+                        margin={previewMargin}
+                        maxMargin={maxPreviewMargin}
+                        maxFontSize={maxPreviewFontSize}
+                        messages={messages.preview}
+                        minMargin={minPreviewMargin}
+                        minFontSize={minPreviewFontSize}
+                        onFontChange={setPreviewFont}
+                        onFontSizeChange={(nextFontSize) => setPreviewFontSize(clampPreviewFontSize(nextFontSize))}
+                        onMarginChange={(nextMargin) => setPreviewMargin(clampPreviewMargin(nextMargin))}
+                        showMarginControl={false}
+                      />
+                    </div>
+                    <button className="toolbar-button workspace-preview-share-button" onClick={handleShare} type="button">
+                      <Share2 aria-hidden="true" size={16} strokeWidth={2} />
+                      <span className="workspace-preview-share-label-full">{messages.toolbar.shareLink}</span>
+                      <span className="workspace-preview-share-label-compact">
+                        {locale === "zh-CN" ? "分享" : "Share"}
+                      </span>
+                    </button>
                   </div>
-                  <button className="toolbar-button workspace-preview-share-button" onClick={handleShare} type="button">
-                    <Share2 aria-hidden="true" size={16} strokeWidth={2} />
-                    <span className="workspace-preview-share-label-full">{messages.toolbar.shareLink}</span>
-                    <span className="workspace-preview-share-label-compact">
-                      {locale === "zh-CN" ? "分享" : "Share"}
-                    </span>
+                  <button
+                    aria-expanded={mobilePreviewControlsOpen}
+                    aria-label={
+                      mobilePreviewControlsOpen
+                        ? locale === "zh-CN"
+                          ? "隐藏底栏"
+                          : "Hide bottom bar"
+                        : locale === "zh-CN"
+                          ? "显示底栏"
+                          : "Show bottom bar"
+                    }
+                    className="workspace-preview-bottom-toggle"
+                    onClick={() => setMobilePreviewControlsOpen((current) => !current)}
+                    title={
+                      mobilePreviewControlsOpen
+                        ? locale === "zh-CN"
+                          ? "隐藏底栏"
+                          : "Hide bottom bar"
+                        : locale === "zh-CN"
+                          ? "显示底栏"
+                          : "Show bottom bar"
+                    }
+                    type="button"
+                  >
+                    {mobilePreviewControlsOpen ? (
+                      <X aria-hidden="true" size={20} strokeWidth={2.2} />
+                    ) : (
+                      <SlidersHorizontal aria-hidden="true" size={20} strokeWidth={2.2} />
+                    )}
                   </button>
-                </div>
+                </>
               ) : null}
             </section>
           ) : null}

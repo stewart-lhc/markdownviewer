@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## 26.609 - 2026-06-09
+
+### Changed
+
+- Updated the mobile workspace reader so the top bar automatically hides while scrolling down and returns when scrolling up.
+- Changed the mobile preview bottom bar to stay hidden by default, with a floating bottom-right control that opens the reader controls only when needed.
+- Added focused workspace tests and layout guards for mobile header auto-hide behavior and the collapsible preview bottom bar.
+
 ## 26.604 - 2026-06-04
 
 ### Added

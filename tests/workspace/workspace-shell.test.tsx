@@ -600,6 +600,58 @@ describe("WorkspaceShell interactions", () => {
     });
   });
 
+  it("hides the mobile top bar while scrolling down and shows it when scrolling up", async () => {
+    mockCompactWorkspace();
+
+    const { container } = render(<WorkspaceShell markdown={"# Mobile reader\n\n" + "Text\n\n".repeat(40)} sourceInput="" />);
+    const page = container.querySelector(".workspace-page");
+    const preview = await screen.findByTestId("preview-scroll-region");
+
+    await waitFor(() => {
+      expect(page).toHaveAttribute("data-mobile-header-visible", "true");
+    });
+
+    preview.scrollTop = 140;
+    fireEvent.scroll(preview);
+
+    await waitFor(() => {
+      expect(page).toHaveAttribute("data-mobile-header-visible", "false");
+    });
+
+    preview.scrollTop = 60;
+    fireEvent.scroll(preview);
+
+    await waitFor(() => {
+      expect(page).toHaveAttribute("data-mobile-header-visible", "true");
+    });
+  });
+
+  it("keeps the mobile bottom bar hidden until the floating button opens it", async () => {
+    const user = userEvent.setup();
+
+    mockCompactWorkspace();
+
+    const { container } = render(<WorkspaceShell markdown="# Mobile controls" sourceInput="" />);
+    const page = container.querySelector(".workspace-page");
+
+    await waitFor(() => {
+      expect(page).toHaveAttribute("data-preview-controls-open", "false");
+    });
+
+    await user.click(screen.getByRole("button", { name: /show bottom bar/i }));
+
+    expect(page).toHaveAttribute("data-preview-controls-open", "true");
+    expect(screen.getByRole("button", { name: /hide bottom bar/i })).toHaveAttribute("aria-expanded", "true");
+
+    const preview = screen.getByTestId("preview-scroll-region");
+    preview.scrollTop = 120;
+    fireEvent.scroll(preview);
+
+    await waitFor(() => {
+      expect(page).toHaveAttribute("data-preview-controls-open", "false");
+    });
+  });
+
   it("restores persisted workspace tabs from browser storage", async () => {
     window.localStorage.setItem(
       workspaceTabsStorageKey,
