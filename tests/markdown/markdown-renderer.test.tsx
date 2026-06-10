@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import { afterEach } from "vitest";
 import { MarkdownRenderer } from "@/components/markdown/markdown-renderer";
 
 const source = `
@@ -19,6 +20,10 @@ graph TD
 
 Inline math $a^2 + b^2 = c^2$
 `;
+
+afterEach(() => {
+  document.head.querySelector('link[data-markdownviewer-katex="true"]')?.remove();
+});
 
 describe("MarkdownRenderer", () => {
   it("renders technical markdown content", () => {
@@ -92,5 +97,14 @@ describe("MarkdownRenderer", () => {
 
     expect(screen.getByRole("checkbox", { name: "Completed task" })).toBeInTheDocument();
     expect(screen.getByRole("checkbox", { name: "Incomplete task" })).toBeInTheDocument();
+  });
+
+  it("loads KaTeX styles only when math is present", () => {
+    render(<MarkdownRenderer markdown="Inline math $a^2 + b^2 = c^2$" />);
+
+    expect(document.head.querySelector('link[data-markdownviewer-katex="true"]')).toHaveAttribute(
+      "href",
+      "/katex/katex.min.css"
+    );
   });
 });

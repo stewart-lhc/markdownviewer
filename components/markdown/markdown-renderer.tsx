@@ -1,6 +1,6 @@
 "use client";
 
-import { Children, isValidElement, memo, useMemo } from "react";
+import { Children, isValidElement, memo, useEffect, useMemo } from "react";
 import type { ComponentProps, ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
@@ -85,6 +85,7 @@ const rehypePlugins: ComponentProps<typeof ReactMarkdown>["rehypePlugins"] = [
 ];
 
 const cjkPattern = /[\u3400-\u9fff\uf900-\ufaff]/;
+const mathPattern = /(^|[^\\])(?:\$\$?[\s\S]+?\$\$?|\\\(|\\\[)/;
 const sampleImageDimensions = new Map<string, ImageDimensions>([
   ["/sample-markdown-preview.svg", { height: 360, width: 960 }],
   ["/sample-linked-thumbnail.svg", { height: 180, width: 480 }]
@@ -111,6 +112,22 @@ function getImageDimensions(src?: string): ImageDimensions | undefined {
     width: Number.parseInt(placeholdMatch[1] ?? "", 10),
     height: Number.parseInt(placeholdMatch[2] ?? "", 10)
   };
+}
+
+function ensureKatexStylesheet() {
+  if (typeof document === "undefined") {
+    return;
+  }
+
+  if (document.querySelector('link[data-markdownviewer-katex="true"]')) {
+    return;
+  }
+
+  const link = document.createElement("link");
+  link.dataset.markdownviewerKatex = "true";
+  link.rel = "stylesheet";
+  link.href = "/katex/katex.min.css";
+  document.head.append(link);
 }
 
 function serializeSourcePosition(position?: NodePosition) {
@@ -177,6 +194,7 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
   onLinkClick,
   variant = "default"
 }: MarkdownRendererProps) {
+  const hasMath = mathPattern.test(markdown);
   const className = [
     "markdown-body",
     variant === "compact" && "markdown-body--compact",
@@ -184,6 +202,13 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
   ]
     .filter(Boolean)
     .join(" ");
+
+  useEffect(() => {
+    if (hasMath) {
+      ensureKatexStylesheet();
+    }
+  }, [hasMath]);
+
   const components = useMemo<ComponentProps<typeof ReactMarkdown>["components"]>(
     () => ({
       pre({ children, node }) {
