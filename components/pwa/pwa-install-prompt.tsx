@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Download, Share2, X } from "lucide-react";
+import styles from "./pwa-install-prompt.module.css";
 import { defaultLocale, type Locale } from "@/lib/i18n/locales";
 
 type BeforeInstallPromptEvent = Event & {
@@ -147,19 +148,19 @@ export function PwaInstallPrompt() {
   return (
     <aside
       aria-label={title}
-      className="pwa-install-prompt"
+      className={styles.prompt}
       data-instructions-open={instructionsOpen}
       role="complementary"
     >
-      <div className="pwa-install-prompt__icon" aria-hidden="true">
+      <div className={styles.icon} aria-hidden="true">
         {ios || instructionsOpen ? <Share2 size={18} strokeWidth={2.2} /> : <Download size={18} strokeWidth={2.2} />}
       </div>
-      <div className="pwa-install-prompt__copy">
+      <div className={styles.copy}>
         <strong>{title}</strong>
         <p>{body}</p>
       </div>
       <button
-        className="pwa-install-prompt__action"
+        className={styles.action}
         onClick={instructionsOpen && !deferredPrompt ? dismissPrompt : handleInstallClick}
         type="button"
       >
@@ -167,7 +168,7 @@ export function PwaInstallPrompt() {
       </button>
       <button
         aria-label={isChinese ? "关闭安装提示" : "Dismiss install prompt"}
-        className="pwa-install-prompt__dismiss"
+        className={styles.dismiss}
         onClick={dismissPrompt}
         type="button"
       >
