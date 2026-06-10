@@ -11,7 +11,7 @@
 
 [Live Markdown Viewer](https://markdownviewer.run/) - [Open the Workspace](https://markdownviewer.run/workspace) - [Changelog](https://markdownviewer.run/changelog) - [Star the Project](https://github.com/stewart-lhc/markdownviewer)
 
-Current product update: **26.609**. Current package release: **v0.2.0**. See [CHANGELOG.md](CHANGELOG.md) and the live [Changelog](https://markdownviewer.run/changelog) for release notes and update history.
+Current product update: **26.610**. Current package release: **v0.2.0**. See [CHANGELOG.md](CHANGELOG.md) and the live [Changelog](https://markdownviewer.run/changelog) for release notes and update history.
 
 </div>
 
@@ -61,6 +61,7 @@ It is designed to be more than a plain textarea preview. Markdownviewer gives RE
 
 | Version | Date | Product update |
 | --- | --- | --- |
+| **26.610** | 2026-06-10 | Refined the desktop workspace with per-tab preview scroll restoration, new tabs that start at the top, a resizable tab sidebar, a cleaner Paste/Blank/File/Folder new-tab dialog, consistent editor toolbar icons, preview line-height controls, auto-dismissing status messages, and theme-aware contents scrollbars. |
 | **26.609** | 2026-06-09 | Refined the mobile workspace reader with auto-hiding top chrome, a default-hidden preview bottom bar, and a mobile PWA install prompt with native install support plus add-to-home-screen guidance. |
 | **26.604** | 2026-06-04 | Added server-stored share links, canonical `/share/{id}` pages, Vercel Blob production storage, local development fallback storage, full preview-reader controls on share pages, the restored share-page logo, and working M- / M+ preview margin controls. |
 | **26.603** | 2026-06-03 | Added document-to-Markdown conversion for Office, data, HTML, and text-heavy PDF files, a focused converter SEO page, updated homepage/README/llms discovery copy, and evenly spaced preview margin levels. |
@@ -259,6 +260,7 @@ MIT License. See [LICENSE](LICENSE).
 
 | 版本 | 日期 | 产品更新 |
 | --- | --- | --- |
+| **26.610** | 2026-06-10 | 优化桌面端 workspace：每个 tab 记住自己的预览滚动位置，新建 tab 默认从顶部打开，左侧 tab 栏可拖拽调整宽度，新建 tab 弹窗改为 Paste / Blank / File / Folder 四个纵向按钮，编辑器工具栏图标统一，新增预览行距 L- / L+ 控制，普通状态提示 3 秒后自动消失，并让目录滚动条跟随深色主题。 |
 | **26.609** | 2026-06-09 | 优化移动端 workspace 阅读器：顶栏自动隐藏、底部预览控制栏默认收起，并新增移动端 PWA 安装提示，支持原生安装和添加到主屏幕指引。 |
 | **26.604** | 2026-06-04 | 新增服务端存储分享链接、规范 `/share/{id}` 页面、Vercel Blob 生产存储、本地开发 fallback 存储、分享页完整预览阅读控制、恢复分享页 LOGO，并修复 M- / M+ 预览留白控制。 |
 | **26.603** | 2026-06-03 | 新增 Office、数据文件、HTML 和文本型 PDF 的文档转 Markdown，新增转换器 SEO 页面，更新首页/README/llms 发现文案，并调整预览留白档位。 |

@@ -21,14 +21,18 @@ export type WorkspacePreviewFont =
 type WorkspacePreviewTypographyControlsProps = {
   font: WorkspacePreviewFont;
   fontSize: number;
+  lineHeight: number;
   margin: number;
+  maxLineHeight: number;
   maxMargin: number;
   maxFontSize: number;
   messages: WorkspaceMessages["preview"];
+  minLineHeight: number;
   minMargin: number;
   minFontSize: number;
   onFontChange: (font: WorkspacePreviewFont) => void;
   onFontSizeChange: (fontSize: number) => void;
+  onLineHeightChange: (lineHeight: number) => void;
   onMarginChange: (margin: number) => void;
   showMarginControl?: boolean;
 };
@@ -116,14 +120,18 @@ export function getWorkspacePreviewFontStack(font: WorkspacePreviewFont) {
 export function WorkspacePreviewTypographyControls({
   font,
   fontSize,
+  lineHeight,
   margin,
+  maxLineHeight,
   maxMargin,
   maxFontSize,
   messages,
+  minLineHeight,
   minMargin,
   minFontSize,
   onFontChange,
   onFontSizeChange,
+  onLineHeightChange,
   onMarginChange,
   showMarginControl = true
 }: WorkspacePreviewTypographyControlsProps) {
@@ -213,6 +221,29 @@ export function WorkspacePreviewTypographyControls({
           type="button"
         >
           A+
+        </button>
+      </div>
+      <div className="workspace-preview-line-height-control">
+        <button
+          aria-label={messages.decreaseLineHeight}
+          className="toolbar-button workspace-preview-line-height-button"
+          disabled={lineHeight <= minLineHeight}
+          onClick={() => onLineHeightChange(lineHeight - 5)}
+          type="button"
+        >
+          L-
+        </button>
+        <output aria-label={messages.lineHeight} className="workspace-preview-line-height-value sr-only">
+          {(lineHeight / 100).toFixed(2)}
+        </output>
+        <button
+          aria-label={messages.increaseLineHeight}
+          className="toolbar-button workspace-preview-line-height-button"
+          disabled={lineHeight >= maxLineHeight}
+          onClick={() => onLineHeightChange(lineHeight + 5)}
+          type="button"
+        >
+          L+
         </button>
       </div>
       {showMarginControl ? (

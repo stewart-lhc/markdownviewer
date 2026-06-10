@@ -2,6 +2,23 @@
 
 All notable changes to this project are documented in this file.
 
+## 26.610 - 2026-06-10
+
+### Added
+
+- Added per-tab preview scroll restoration so each workspace tab reopens at the last reading position.
+- Added a resizable workspace tab sidebar, matching the editor/preview split resize behavior.
+- Added a direct Blank option to the new-tab dialog.
+- Added preview line-height controls with L- and L+ buttons, persisted with the existing reader typography settings.
+
+### Changed
+
+- Changed new tabs to open at the top of the document instead of inheriting the previous tab's scroll position.
+- Rebuilt the new-tab dialog around four equal vertical actions: Paste, Blank, File, and Folder.
+- Replaced the editor toolbar's small text glyphs with consistent SVG icons, including a proper strikethrough icon.
+- Updated workspace status messages so idle notifications disappear automatically after three seconds while loading statuses remain visible.
+- Updated the floating contents panel scrollbar to follow dark workspace theme scrollbar colors.
+
 ## 26.609 - 2026-06-09
 
 ### Changed

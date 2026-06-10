@@ -15,6 +15,39 @@ export type ProductUpdate = {
 
 export const productUpdates: ProductUpdate[] = [
   {
+    version: "26.610",
+    date: "2026-06-10",
+    en: {
+      title: "Desktop workspace reading controls",
+      summary:
+        "Markdownviewer now keeps long workspace sessions steadier with per-tab reading positions, cleaner import choices, and more precise reader typography.",
+      highlights: [
+        "Each workspace tab now remembers its own preview scroll position and restores it when you switch back.",
+        "New tabs open at the top of the document instead of inheriting the previous tab's scroll position.",
+        "The left tab sidebar can now be resized with the same drag-and-keyboard feel as the editor/preview split.",
+        "The new-tab dialog now uses four equal vertical actions: Paste, Blank, File, and Folder.",
+        "Editor toolbar actions now use consistent SVG icons, including a proper strikethrough icon.",
+        "Preview typography controls now include L- and L+ line-height controls that persist with the reader settings.",
+        "Idle workspace status messages now disappear automatically after three seconds, while loading statuses stay visible.",
+        "The floating contents panel scrollbar now follows dark workspace theme colors."
+      ]
+    },
+    "zh-CN": {
+      title: "桌面端 workspace 阅读控制",
+      summary: "Markdownviewer 现在让长文档 workspace 更稳定：每个 tab 保留自己的阅读位置，导入入口更干净，预览排版也能细调。",
+      highlights: [
+        "每个 workspace tab 都会记住自己的预览滚动位置，切回时自动恢复。",
+        "新建 tab 默认从文档顶部打开，不再继承上一个 tab 的滚动位置。",
+        "左侧 tab 栏现在可以拖拽调整宽度，交互与编辑器/预览分栏一致。",
+        "新建 tab 弹窗改为 Paste、Blank、File、Folder 四个等宽纵向按钮。",
+        "编辑器工具栏改用统一 SVG 图标，并替换为真正的删除线图标。",
+        "预览排版控制新增 L- 和 L+ 行距调整，并随阅读器设置一起持久化。",
+        "普通 workspace 状态提示会在 3 秒后自动消失，加载中提示仍保持可见。",
+        "浮动目录面板滚动条现在会跟随深色 workspace 主题。"
+      ]
+    }
+  },
+  {
     version: "26.609",
     date: "2026-06-09",
     en: {

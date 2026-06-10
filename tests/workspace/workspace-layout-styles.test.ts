@@ -16,12 +16,14 @@ describe("workspace core canvas styles", () => {
 
   it("locks the workspace into an app-like fixed-height shell with matched panes", () => {
     expect(css).toContain(".workspace-tabs-rail {");
-    expect(css).toContain("grid-template-columns: 190px minmax(0, 1fr);");
+    expect(css).toContain("grid-template-columns: var(--workspace-tabs-width, 190px) 6px minmax(0, 1fr);");
     expect(css).toContain("grid-template-rows: auto minmax(0, 1fr);");
     expect(css).toContain(".workspace-page[data-tabs-collapsed=\"true\"] {");
     expect(css).toContain(".workspace-page[data-tabs-collapsed=\"true\"] .workspace-shell-card {");
     expect(css).toContain(".workspace-shell-card {");
-    expect(css).toContain("grid-column: 2;");
+    expect(css).toContain("grid-column: 3;");
+    expect(css).toContain(".workspace-sidebar-resizer {");
+    expect(css).toContain(".workspace-page[data-tabs-resizing=\"true\"] .workspace-sidebar-resizer::before {");
     expect(css).toContain("height: 100%;");
     expect(css).toContain(".workspace-tabs-list {");
     expect(css).toContain(".workspace-tab-row[data-active=\"true\"] {");
@@ -54,7 +56,8 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain(".workspace-preview-type-controls {");
     expect(css).toContain(".workspace-preview-font-button {");
     expect(css).toContain(".workspace-preview-font-list {");
-    expect(css).toContain(".workspace-preview-size-control {");
+    expect(css).toContain(".workspace-preview-size-control,\n.workspace-preview-line-height-control {");
+    expect(css).toContain(".workspace-preview-line-height-control {");
     expect(css).toContain(".workspace-preview-margin-control {");
     expect(css).toContain(".workspace-page .toolbar-button {");
     expect(css).toContain(".workspace-page .toolbar-button:hover,");
@@ -95,6 +98,8 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain("@keyframes workspace-share-copy-confirm");
     expect(css).toContain(".workspace-new-tab-dialog {");
     expect(css).toContain("z-index: 110;");
+    expect(css).toContain(".workspace-new-tab-choices {\n  display: grid;\n  grid-template-columns: minmax(0, 1fr);");
+    expect(css).not.toContain(".workspace-new-tab-url-form {");
     expect(css).toContain(".toolbar-mobile-settings-strip .workspace-preview-type-controls {");
     expect(css).toContain(".toolbar-mobile-settings-strip .workspace-preview-font-list {");
     expect(css).toContain(".workspace-preview-bottom-bar {");
@@ -106,7 +111,9 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain("grid-template-columns: repeat(4, minmax(0, 1fr));");
     expect(css).toContain(".workspace-preview-bottom-bar .toolbar-overflow {");
     expect(css).toContain("justify-self: stretch !important;");
-    expect(css).toContain(".workspace-preview-bottom-bar .workspace-preview-size-control {");
+    expect(css).toContain(
+      ".workspace-preview-bottom-bar .workspace-preview-size-control,\n  .workspace-preview-bottom-bar .workspace-preview-line-height-control {"
+    );
     expect(css).toContain("display: contents !important;");
     expect(css).toContain(".workspace-preview-share-label-compact {");
   });
@@ -123,6 +130,9 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain(".workspace-editor-surface::selection,");
     expect(css).not.toContain(".workspace-editor-highlight {");
     expect(css).toContain(".workspace-editor-toolbar {");
+    expect(css).toContain(".editor-tool-button svg {");
+    expect(css).toContain("width: 17px;");
+    expect(css).toContain(".editor-tools-menu-icon svg {");
     expect(css).toContain("flex-wrap: nowrap;");
     expect(css).toContain("overflow: visible;");
     expect(css).toContain(".editor-tools-overflow {");
@@ -130,13 +140,14 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain(".workspace-reader-body {");
     expect(css).toContain("--workspace-preview-font-family: var(--body);");
     expect(css).toContain("--workspace-preview-font-size: 15px;");
+    expect(css).toContain("--workspace-preview-line-height: 1.88;");
     expect(css).toContain("--workspace-preview-inline-margin: 25%;");
     expect(css).toContain("font-family: var(--workspace-preview-font-family);");
     expect(css).toContain("font-size: var(--workspace-preview-font-size);");
+    expect(css).toContain("line-height: var(--workspace-preview-line-height);");
     expect(css).toContain(".workspace-reader-body .markdown-body th,\n.workspace-reader-body .markdown-body td {\n  padding: 8px 10px;\n  font-size: 1em;");
     expect(css).toContain('.workspace-reader-body[data-locale="zh-CN"] .markdown-body,');
     expect(css).toContain(".workspace-reader-body .markdown-body.markdown-body--cjk {");
-    expect(css).toContain("line-height: 1.88;");
     expect(css).toContain(".workspace-reader-body .markdown-body.markdown-body--cjk h1,");
     expect(css).toContain('.workspace-reader-body[data-locale="zh-CN"] .markdown-body li,');
     expect(css).toContain(".workspace-reader-body .markdown-body.markdown-body--cjk li,");
@@ -158,6 +169,9 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain("color-scheme: var(--workspace-scrollbar-color-scheme);");
     expect(css).toContain("forced-color-adjust: none;");
     expect(css).toContain("scrollbar-color: var(--workspace-scrollbar-thumb) var(--workspace-scrollbar-track);");
+    expect(css).toContain(".workspace-toc-panel::-webkit-scrollbar {");
+    expect(css).toContain(".workspace-toc-panel::-webkit-scrollbar-thumb {");
+    expect(css).toContain(".workspace-toc-panel::-webkit-scrollbar-thumb:hover {");
     expect(css).toContain("contain: layout style;");
     expect(css).not.toContain("contain: layout paint style;");
     expect(css).toContain(".workspace-page .workspace-editor-surface::-webkit-scrollbar-thumb,");

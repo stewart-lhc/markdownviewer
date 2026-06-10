@@ -149,12 +149,15 @@ export type Messages = {
       closeContents: string;
       contents: string;
       decreaseFont: string;
+      decreaseLineHeight: string;
       decreaseMargin: string;
       font: string;
       fontOptions: Record<string, string>;
       fontSize: string;
       increaseFont: string;
+      increaseLineHeight: string;
       increaseMargin: string;
+      lineHeight: string;
       margin: string;
       resizeLabel: string;
       resizeTitle: string;
@@ -192,9 +195,12 @@ export type Messages = {
       importUrlPlaceholder: string;
       newTab: string;
       railLabel: string;
+      resizeLabel: string;
+      resizeTitle: string;
       title: string;
     };
     toolbar: {
+      blank: string;
       convertFile: string;
       convertUploadLabel: string;
       exportHtml: string;
@@ -460,12 +466,15 @@ export const messages: Record<Locale, Messages> = {
         importUrlPlaceholder: "Paste a Markdown URL",
         newTab: "New tab",
         railLabel: "Open tabs",
+        resizeLabel: "Resize left sidebar",
+        resizeTitle: "Drag to resize the left sidebar",
         title: "Tabs"
       },
       header: {
         home: "Markdownviewer home"
       },
       toolbar: {
+        blank: "Blank",
         convertFile: "Convert",
         convertUploadLabel: "Convert document to Markdown",
         exportHtml: "Export HTML",
@@ -542,6 +551,7 @@ export const messages: Record<Locale, Messages> = {
         closeContents: "Close contents",
         contents: "Contents",
         decreaseFont: "Decrease preview font size",
+        decreaseLineHeight: "Decrease preview line height",
         decreaseMargin: "Decrease preview margin",
         font: "Preview font",
         fontOptions: {
@@ -561,7 +571,9 @@ export const messages: Record<Locale, Messages> = {
         },
         fontSize: "Preview font size",
         increaseFont: "Increase preview font size",
+        increaseLineHeight: "Increase preview line height",
         increaseMargin: "Increase preview margin",
+        lineHeight: "Preview line height",
         margin: "Preview margin",
         resizeLabel: "Resize editor and preview panes",
         resizeTitle: "Drag to resize editor and preview",
@@ -843,12 +855,15 @@ export const messages: Record<Locale, Messages> = {
         importUrlPlaceholder: "粘贴 Markdown URL",
         newTab: "新建标签",
         railLabel: "打开的标签",
+        resizeLabel: "调整左侧栏宽度",
+        resizeTitle: "拖动以调整左侧栏宽度",
         title: "标签"
       },
       header: {
         home: "Markdownviewer 首页"
       },
       toolbar: {
+        blank: "空白",
         convertFile: "转换",
         convertUploadLabel: "转换文档为 Markdown",
         exportHtml: "导出 HTML",
@@ -925,6 +940,7 @@ export const messages: Record<Locale, Messages> = {
         closeContents: "关闭目录",
         contents: "目录",
         decreaseFont: "减小预览字体",
+        decreaseLineHeight: "减小预览行距",
         decreaseMargin: "减小预览留白",
         font: "预览字体",
         fontOptions: {
@@ -944,7 +960,9 @@ export const messages: Record<Locale, Messages> = {
         },
         fontSize: "预览字号",
         increaseFont: "增大预览字体",
+        increaseLineHeight: "增大预览行距",
         increaseMargin: "增大预览留白",
+        lineHeight: "预览行距",
         margin: "预览留白",
         resizeLabel: "调整编辑器和预览窗格大小",
         resizeTitle: "拖动以调整编辑器和预览大小",

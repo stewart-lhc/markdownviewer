@@ -1,6 +1,21 @@
 "use client";
 
 import {
+  Bold,
+  Code,
+  Heading1,
+  Image,
+  Italic,
+  Link2,
+  List,
+  ListOrdered,
+  ListTodo,
+  Quote,
+  Strikethrough,
+  Table2,
+  type LucideIcon,
+} from "lucide-react";
+import {
   type KeyboardEvent as ReactKeyboardEvent,
   type MutableRefObject,
   type RefObject,
@@ -34,20 +49,20 @@ type StackeditCleditModule = typeof import("@/lib/workspace/stackedit-cledit");
 
 const editorActions: Array<{
   action: MarkdownEditorAction;
-  icon: string;
+  Icon: LucideIcon;
 }> = [
-  { action: "bold", icon: "B" },
-  { action: "italic", icon: "I" },
-  { action: "heading", icon: "Tt" },
-  { action: "strike", icon: "S" },
-  { action: "bulletList", icon: "•" },
-  { action: "orderedList", icon: "1." },
-  { action: "taskList", icon: "☑" },
-  { action: "quote", icon: "❞" },
-  { action: "code", icon: "</>" },
-  { action: "table", icon: "▦" },
-  { action: "link", icon: "∞" },
-  { action: "image", icon: "▣" }
+  { action: "bold", Icon: Bold },
+  { action: "italic", Icon: Italic },
+  { action: "heading", Icon: Heading1 },
+  { action: "strike", Icon: Strikethrough },
+  { action: "bulletList", Icon: List },
+  { action: "orderedList", Icon: ListOrdered },
+  { action: "taskList", Icon: ListTodo },
+  { action: "quote", Icon: Quote },
+  { action: "code", Icon: Code },
+  { action: "table", Icon: Table2 },
+  { action: "link", Icon: Link2 },
+  { action: "image", Icon: Image }
 ];
 
 const editorToolButtonEstimateWidth = 40;
@@ -587,19 +602,23 @@ export function SourcePanel({
             role="toolbar"
             aria-label={messages.formatting}
           >
-            {visibleEditorActions.map((entry) => (
-              <button
-                aria-label={messages.actions[entry.action]}
-                className="editor-tool-button"
-                key={entry.action}
-                onClick={() => handleEditorAction(entry.action)}
-                onMouseDown={(event) => event.preventDefault()}
-                title={getEditorActionShortcutLabel(entry.action) ? `${messages.actions[entry.action]} (${getEditorActionShortcutLabel(entry.action)})` : messages.actions[entry.action]}
-                type="button"
-              >
-                <span aria-hidden="true">{entry.icon}</span>
-              </button>
-            ))}
+            {visibleEditorActions.map((entry) => {
+              const Icon = entry.Icon;
+
+              return (
+                <button
+                  aria-label={messages.actions[entry.action]}
+                  className="editor-tool-button"
+                  key={entry.action}
+                  onClick={() => handleEditorAction(entry.action)}
+                  onMouseDown={(event) => event.preventDefault()}
+                  title={getEditorActionShortcutLabel(entry.action) ? `${messages.actions[entry.action]} (${getEditorActionShortcutLabel(entry.action)})` : messages.actions[entry.action]}
+                  type="button"
+                >
+                  <Icon aria-hidden="true" strokeWidth={2.35} />
+                </button>
+              );
+            })}
             {overflowEditorActions.length ? (
               <div className="editor-tools-overflow" ref={editorToolsMenuRef}>
                 <button
@@ -616,25 +635,29 @@ export function SourcePanel({
                 </button>
                 {editorToolsMenuOpen ? (
                   <div aria-label={messages.moreTools} className="editor-tools-menu" role="menu">
-                    {overflowEditorActions.map((entry) => (
-                      <button
-                        className="editor-tools-menu-button"
-                        key={entry.action}
-                        onClick={() => handleEditorAction(entry.action)}
-                        role="menuitem"
-                        type="button"
-                      >
-                        <span aria-hidden="true" className="editor-tools-menu-icon">
-                          {entry.icon}
-                        </span>
-                        <span>{messages.actions[entry.action]}</span>
-                        {getEditorActionShortcutLabel(entry.action) ? (
-                          <span className="editor-tools-menu-shortcut">
-                            {getEditorActionShortcutLabel(entry.action)}
+                    {overflowEditorActions.map((entry) => {
+                      const Icon = entry.Icon;
+
+                      return (
+                        <button
+                          className="editor-tools-menu-button"
+                          key={entry.action}
+                          onClick={() => handleEditorAction(entry.action)}
+                          role="menuitem"
+                          type="button"
+                        >
+                          <span aria-hidden="true" className="editor-tools-menu-icon">
+                            <Icon strokeWidth={2.35} />
                           </span>
-                        ) : null}
-                      </button>
-                    ))}
+                          <span>{messages.actions[entry.action]}</span>
+                          {getEditorActionShortcutLabel(entry.action) ? (
+                            <span className="editor-tools-menu-shortcut">
+                              {getEditorActionShortcutLabel(entry.action)}
+                            </span>
+                          ) : null}
+                        </button>
+                      );
+                    })}
                   </div>
                 ) : null}
               </div>

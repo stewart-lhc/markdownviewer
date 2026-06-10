@@ -4,7 +4,6 @@ import {
   type CSSProperties,
   type ChangeEvent,
   type DragEvent as ReactDragEvent,
-  type FormEvent,
   type KeyboardEvent as ReactKeyboardEvent,
   type PointerEvent as ReactPointerEvent,
   useDeferredValue,
@@ -17,9 +16,9 @@ import {
 import {
   Check,
   Clipboard,
+  FileText,
   FileUp,
   FolderOpen,
-  Link,
   PanelLeftClose,
   PanelLeftOpen,
   Share2,
@@ -98,6 +97,7 @@ type WorkspaceTab = {
   hasExplicitSave?: boolean;
   id: string;
   markdown: string;
+  previewScrollTop?: number;
   savedMarkdownHash?: string;
   sourceKind?: WorkspaceSourceKind;
   sourceInput: string;
@@ -138,19 +138,28 @@ const workspaceDraftStorageKey = "markdownviewer.workspace.current";
 const workspaceModeStorageKey = "markdownviewer.workspace.mode";
 const workspacePreviewFontStorageKey = "markdownviewer.workspace.preview.font";
 const workspacePreviewFontSizeStorageKey = "markdownviewer.workspace.preview.fontSize";
+const workspacePreviewLineHeightStorageKey = "markdownviewer.workspace.preview.lineHeight.v1";
 const workspacePreviewMarginStorageKey = "markdownviewer.workspace.preview.margin.v3";
+const workspaceTabsWidthStorageKey = "markdownviewer.workspace.tabs.width";
 const workspaceSplitStorageKey = "markdownviewer.workspace.split";
 const workspaceTabsCollapsedStorageKey = "markdownviewer.workspace.tabs.collapsed";
 const workspaceTabsStorageKey = "markdownviewer.workspace.tabs.v1";
 const workspaceTabsStorageVersion = 1;
+const statusAutoDismissDelayMs = 3000;
 const initialWorkspaceTabId = "workspace-tab-initial";
 const maxStoredWorkspaceTabs = 24;
 const splitMinPercent = 28;
 const splitMaxPercent = 72;
+const defaultTabsWidth = 190;
+const minTabsWidth = 150;
+const maxTabsWidth = 360;
 const defaultPreviewFont: WorkspacePreviewFont = "system";
 const defaultPreviewFontSize = 15;
 const minPreviewFontSize = 13;
 const maxPreviewFontSize = 21;
+const defaultPreviewLineHeight = 188;
+const minPreviewLineHeight = 135;
+const maxPreviewLineHeight = 225;
 const previewMarginLevels = [
   "4%",
   "7%",
@@ -170,6 +179,10 @@ function clampSplitPercent(value: number) {
   return Math.min(Math.max(value, splitMinPercent), splitMaxPercent);
 }
 
+function clampTabsWidth(value: number) {
+  return Math.min(Math.max(Math.round(value), minTabsWidth), maxTabsWidth);
+}
+
 function isWorkspaceMode(value: string | null): value is WorkspaceMode {
   return value === "preview" || value === "split" || value === "editor";
 }
@@ -180,6 +193,10 @@ function clampPreviewFontSize(value: number) {
 
 function clampPreviewMargin(value: number) {
   return Math.min(Math.max(Math.round(value), minPreviewMargin), maxPreviewMargin);
+}
+
+function clampPreviewLineHeight(value: number) {
+  return Math.min(Math.max(Math.round(value), minPreviewLineHeight), maxPreviewLineHeight);
 }
 
 function getPreviewMarginCss(level: number) {
@@ -349,6 +366,10 @@ function normalizeStoredWorkspaceTab(value: unknown, index: number): WorkspaceTa
   const createdAt = typeof record.createdAt === "number" && Number.isFinite(record.createdAt)
     ? record.createdAt
     : Date.now();
+  const previewScrollTop =
+    typeof record.previewScrollTop === "number" && Number.isFinite(record.previewScrollTop)
+      ? Math.max(0, Math.round(record.previewScrollTop))
+      : undefined;
   const updatedAt = typeof record.updatedAt === "number" && Number.isFinite(record.updatedAt)
     ? record.updatedAt
     : createdAt;
@@ -361,6 +382,7 @@ function normalizeStoredWorkspaceTab(value: unknown, index: number): WorkspaceTa
     hasExplicitSave,
     id,
     markdown,
+    previewScrollTop,
     savedMarkdownHash,
     sourceKind,
     sourceInput,
@@ -421,7 +443,8 @@ function getActiveWorkspaceTabsSnapshot(
   tabs: WorkspaceTab[],
   activeTabId: string,
   markdown: string,
-  sourceInput: string
+  sourceInput: string,
+  previewScrollTop = 0
 ) {
   return tabs.map((tab) => {
     if (tab.id !== activeTabId) {
@@ -431,6 +454,7 @@ function getActiveWorkspaceTabsSnapshot(
     return {
       ...tab,
       markdown,
+      previewScrollTop,
       sourceInput,
       updatedAt: Date.now()
     };
@@ -661,9 +685,12 @@ export function WorkspaceShell({
   const [compactWorkspace, setCompactWorkspace] = useState(false);
   const [previewFont, setPreviewFont] = useState<WorkspacePreviewFont>(defaultPreviewFont);
   const [previewFontSize, setPreviewFontSize] = useState(defaultPreviewFontSize);
+  const [previewLineHeight, setPreviewLineHeight] = useState(defaultPreviewLineHeight);
   const [previewMargin, setPreviewMargin] = useState(defaultPreviewMargin);
   const [splitEditorPercent, setSplitEditorPercent] = useState(50);
   const [splitResizing, setSplitResizing] = useState(false);
+  const [tabsWidth, setTabsWidth] = useState(defaultTabsWidth);
+  const [tabsResizing, setTabsResizing] = useState(false);
   const [tabsCollapsed, setTabsCollapsed] = useState(false);
   const [mobileHeaderVisible, setMobileHeaderVisible] = useState(true);
   const [mobilePreviewControlsOpen, setMobilePreviewControlsOpen] = useState(false);
@@ -678,15 +705,17 @@ export function WorkspaceShell({
   const [folderSearchOpen, setFolderSearchOpen] = useState(false);
   const [folderSearchQuery, setFolderSearchQuery] = useState("");
   const [newTabDialogOpen, setNewTabDialogOpen] = useState(false);
-  const [newTabUrlInput, setNewTabUrlInput] = useState("");
   const [fileDragActive, setFileDragActive] = useState(false);
   const [saveState, setSaveState] = useState<FolderSaveState>("idle");
+  const pageRef = useRef<HTMLDivElement | null>(null);
   const gridRef = useRef<HTMLDivElement | null>(null);
   const editorRef = useRef<HTMLElement | null>(null);
   const previewRef = useRef<HTMLDivElement | null>(null);
   const newTabFileInputRef = useRef<HTMLInputElement | null>(null);
+  const statusAutoDismissTimeoutRef = useRef<number | undefined>(undefined);
   const shareCopyResetTimeoutRef = useRef<number | undefined>(undefined);
   const skipNextModePersistRef = useRef(false);
+  const skipNextTabsWidthPersistRef = useRef(false);
   const lastEditorSelectionStartRef = useRef(0);
   const suppressPreviewScrollSyncRef = useRef(false);
   const lastMobilePreviewScrollTopRef = useRef(0);
@@ -702,6 +731,9 @@ export function WorkspaceShell({
     }
   }
   const suppressPreviewScrollSyncTimerRef = useRef<number | null>(null);
+  const previewScrollSaveTimerRef = useRef<number | undefined>(undefined);
+  const pendingPreviewScrollRestoreRef = useRef<number | null>(0);
+  const activePreviewScrollTopRef = useRef(0);
   const syncPreviewAfterEditorChangeRef = useRef(false);
   const previewSourcePositionTargetsRef = useRef<PreviewSourcePositionTarget[]>([]);
   const paneScrollFrameRef = useRef<number | null>(null);
@@ -755,9 +787,13 @@ export function WorkspaceShell({
           "--workspace-preview-fr": `${100 - splitEditorPercent}fr`
         } as CSSProperties)
       : undefined;
+  const workspacePageStyle = {
+    "--workspace-tabs-width": `${tabsWidth}px`
+  } as CSSProperties;
   const previewReaderStyle = {
     "--workspace-preview-font-family": getWorkspacePreviewFontStack(previewFont),
     "--workspace-preview-font-size": `${previewFontSize}px`,
+    "--workspace-preview-line-height": `${previewLineHeight / 100}`,
     "--workspace-preview-inline-margin": getPreviewMarginCss(previewMargin)
   } as CSSProperties;
 
@@ -765,6 +801,39 @@ export function WorkspaceShell({
     if (compactWorkspace) {
       setTabsCollapsed(true);
     }
+  }
+
+  function getCurrentPreviewScrollTop() {
+    return Math.max(0, Math.round(previewRef.current?.scrollTop ?? activePreviewScrollTopRef.current ?? 0));
+  }
+
+  function queuePreviewScrollRestore(scrollTop = 0) {
+    const normalizedScrollTop = Math.max(0, Math.round(scrollTop));
+
+    activePreviewScrollTopRef.current = normalizedScrollTop;
+    pendingPreviewScrollRestoreRef.current = normalizedScrollTop;
+    lastMobilePreviewScrollTopRef.current = normalizedScrollTop;
+  }
+
+  function handlePreviewScroll(scrollTop: number) {
+    const normalizedScrollTop = Math.max(0, Math.round(scrollTop));
+
+    activePreviewScrollTopRef.current = normalizedScrollTop;
+
+    window.clearTimeout(previewScrollSaveTimerRef.current);
+    previewScrollSaveTimerRef.current = window.setTimeout(() => {
+      setTabs((currentTabs) =>
+        currentTabs.map((tab) =>
+          tab.id === activeTabIdRef.current && tab.previewScrollTop !== activePreviewScrollTopRef.current
+            ? {
+                ...tab,
+                previewScrollTop: activePreviewScrollTopRef.current,
+                updatedAt: Date.now()
+              }
+            : tab
+        )
+      );
+    }, 140);
   }
 
   function updateMobileChromeFromPreviewScroll(scrollTop: number) {
@@ -871,6 +940,7 @@ export function WorkspaceShell({
       setCurrentMarkdown(initialTab.markdown);
       setCurrentSource(initialTab.sourceInput);
       setActiveImportMode(deriveImportMode(initialTab.sourceInput));
+      queuePreviewScrollRestore(initialTab.previewScrollTop ?? 0);
       setTabsStorageReady(true);
       return;
     }
@@ -883,6 +953,7 @@ export function WorkspaceShell({
     setCurrentMarkdown(activeStoredTab.markdown);
     setCurrentSource(activeStoredTab.sourceInput);
     setActiveImportMode(deriveImportMode(activeStoredTab.sourceInput));
+    queuePreviewScrollRestore(activeStoredTab.previewScrollTop ?? 0);
     setTabsStorageReady(true);
   }, []);
 
@@ -894,7 +965,13 @@ export function WorkspaceShell({
           return tab;
         }
 
-        if (tab.markdown === currentMarkdown && tab.sourceInput === currentSource) {
+        const nextPreviewScrollTop = tab.id === activeTabId ? activePreviewScrollTopRef.current : tab.previewScrollTop;
+
+        if (
+          tab.markdown === currentMarkdown &&
+          tab.sourceInput === currentSource &&
+          tab.previewScrollTop === nextPreviewScrollTop
+        ) {
           return tab;
         }
 
@@ -902,6 +979,7 @@ export function WorkspaceShell({
         return {
           ...tab,
           markdown: currentMarkdown,
+          previewScrollTop: nextPreviewScrollTop,
           sourceInput: currentSource,
           updatedAt: Date.now()
         };
@@ -918,7 +996,7 @@ export function WorkspaceShell({
 
     const saveTimer = window.setTimeout(() => {
       writeStoredWorkspaceTabs(
-        getActiveWorkspaceTabsSnapshot(tabs, activeTabId, currentMarkdown, currentSource),
+        getActiveWorkspaceTabsSnapshot(tabs, activeTabId, currentMarkdown, currentSource, getCurrentPreviewScrollTop()),
         activeTabId
       );
     }, 260);
@@ -928,6 +1006,25 @@ export function WorkspaceShell({
     };
   }, [activeTabId, currentMarkdown, currentSource, tabs, tabsStorageReady]);
 
+  useLayoutEffect(() => {
+    if (currentMode === "editor" || pendingPreviewScrollRestoreRef.current === null) {
+      return;
+    }
+
+    const preview = previewRef.current;
+
+    if (!preview) {
+      return;
+    }
+
+    const nextScrollTop = pendingPreviewScrollRestoreRef.current;
+
+    preview.scrollTop = nextScrollTop;
+    activePreviewScrollTopRef.current = nextScrollTop;
+    lastMobilePreviewScrollTopRef.current = nextScrollTop;
+    pendingPreviewScrollRestoreRef.current = null;
+  }, [activeTabId, currentMode, previewMarkdown]);
+
   useEffect(() => {
     const saveDraft = () => {
       persistWorkspaceDraft(latestMarkdownRef.current);
@@ -936,7 +1033,8 @@ export function WorkspaceShell({
           tabsRef.current,
           activeTabIdRef.current,
           latestMarkdownRef.current,
-          latestSourceRef.current
+          latestSourceRef.current,
+          getCurrentPreviewScrollTop()
         ),
         activeTabIdRef.current
       );
@@ -974,9 +1072,13 @@ export function WorkspaceShell({
       window.localStorage.getItem("markdownviewer.workspace.theme");
     const storedMode = window.localStorage.getItem(workspaceModeStorageKey);
     const storedSplitPercent = Number.parseFloat(window.localStorage.getItem(workspaceSplitStorageKey) ?? "");
+    const storedTabsWidth = Number.parseFloat(window.localStorage.getItem(workspaceTabsWidthStorageKey) ?? "");
     const storedTabsCollapsed = window.localStorage.getItem(workspaceTabsCollapsedStorageKey);
     const storedPreviewFont = window.localStorage.getItem(workspacePreviewFontStorageKey);
     const storedPreviewFontSize = Number.parseFloat(window.localStorage.getItem(workspacePreviewFontSizeStorageKey) ?? "");
+    const storedPreviewLineHeight = Number.parseFloat(
+      window.localStorage.getItem(workspacePreviewLineHeightStorageKey) ?? ""
+    );
     const storedPreviewMargin = Number.parseFloat(window.localStorage.getItem(workspacePreviewMarginStorageKey) ?? "");
 
     if (isWorkspaceTheme(storedTheme)) {
@@ -985,6 +1087,11 @@ export function WorkspaceShell({
 
     if (Number.isFinite(storedSplitPercent)) {
       setSplitEditorPercent(clampSplitPercent(storedSplitPercent));
+    }
+
+    if (Number.isFinite(storedTabsWidth)) {
+      skipNextTabsWidthPersistRef.current = true;
+      setTabsWidth(clampTabsWidth(storedTabsWidth));
     }
 
     const compactViewport =
@@ -1017,6 +1124,10 @@ export function WorkspaceShell({
       setPreviewFontSize(clampPreviewFontSize(storedPreviewFontSize));
     }
 
+    if (Number.isFinite(storedPreviewLineHeight)) {
+      setPreviewLineHeight(clampPreviewLineHeight(storedPreviewLineHeight));
+    }
+
     if (Number.isFinite(storedPreviewMargin)) {
       setPreviewMargin(clampPreviewMargin(storedPreviewMargin));
     }
@@ -1040,6 +1151,15 @@ export function WorkspaceShell({
   }, [splitEditorPercent]);
 
   useEffect(() => {
+    if (skipNextTabsWidthPersistRef.current) {
+      skipNextTabsWidthPersistRef.current = false;
+      return;
+    }
+
+    window.localStorage.setItem(workspaceTabsWidthStorageKey, String(Math.round(tabsWidth)));
+  }, [tabsWidth]);
+
+  useEffect(() => {
     if (skipNextModePersistRef.current) {
       skipNextModePersistRef.current = false;
       return;
@@ -1061,8 +1181,28 @@ export function WorkspaceShell({
   }, [previewFontSize]);
 
   useEffect(() => {
+    window.localStorage.setItem(workspacePreviewLineHeightStorageKey, String(previewLineHeight));
+  }, [previewLineHeight]);
+
+  useEffect(() => {
     window.localStorage.setItem(workspacePreviewMarginStorageKey, String(previewMargin));
   }, [previewMargin]);
+
+  useEffect(() => {
+    window.clearTimeout(statusAutoDismissTimeoutRef.current);
+
+    if (!statusMessage || documentConversionPending) {
+      return;
+    }
+
+    statusAutoDismissTimeoutRef.current = window.setTimeout(() => {
+      setStatusMessage((current) => (current === statusMessage ? undefined : current));
+    }, statusAutoDismissDelayMs);
+
+    return () => {
+      window.clearTimeout(statusAutoDismissTimeoutRef.current);
+    };
+  }, [documentConversionPending, statusMessage]);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -1142,6 +1282,7 @@ export function WorkspaceShell({
   useEffect(() => {
     return () => {
       window.clearTimeout(shareCopyResetTimeoutRef.current);
+      window.clearTimeout(previewScrollSaveTimerRef.current);
 
       if (suppressPreviewScrollSyncTimerRef.current !== null) {
         window.clearTimeout(suppressPreviewScrollSyncTimerRef.current);
@@ -1556,7 +1697,8 @@ export function WorkspaceShell({
           currentTabs,
           activeTabIdRef.current,
           latestMarkdownRef.current,
-          latestSourceRef.current
+          latestSourceRef.current,
+          getCurrentPreviewScrollTop()
         ),
         nextTab
       ].slice(-maxStoredWorkspaceTabs)
@@ -1566,6 +1708,7 @@ export function WorkspaceShell({
     setCurrentSource(nextTab.sourceInput);
     setActiveImportMode(importMode);
     setStatusMessage(statusMessage ?? messages.status.newTab);
+    queuePreviewScrollRestore(nextTab.previewScrollTop ?? 0);
     if (importMode === "file") {
       setCurrentMode("preview");
     }
@@ -1621,7 +1764,20 @@ export function WorkspaceShell({
 
   function handleNewTab() {
     setNewTabDialogOpen(true);
-    setNewTabUrlInput("");
+  }
+
+  async function handleNewTabBlank() {
+    if (!(await ensureFolderSwitchAllowed())) {
+      return;
+    }
+
+    const nextTab = createExplicitImportTab("", "", {
+      sourceKind: "draft"
+    });
+
+    setNewTabDialogOpen(false);
+    activateWorkspaceTab(nextTab, "paste", messages.status.newTab);
+    setCurrentMode("editor");
   }
 
   async function handleNewTabPaste() {
@@ -1699,35 +1855,6 @@ export function WorkspaceShell({
     }
   }
 
-  async function handleNewTabUrlSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (!(await ensureFolderSwitchAllowed())) {
-      return;
-    }
-
-    const requestedUrl = newTabUrlInput.trim();
-
-    if (!requestedUrl) {
-      setStatusMessage(messages.status.urlRequired);
-      return;
-    }
-
-    try {
-      const result = await loadSource(requestedUrl);
-      const resolvedUrl = result.resolvedUrl ?? requestedUrl;
-      const nextTab = createExplicitImportTab(result.markdown, resolvedUrl, {
-        sourceKind: "remote-url"
-      });
-
-      activateWorkspaceTab(nextTab, "url", messages.status.loadedSource(result.label));
-      setNewTabDialogOpen(false);
-      setNewTabUrlInput("");
-    } catch (error) {
-      setStatusMessage(error instanceof Error ? error.message : messages.status.loadFailed);
-    }
-  }
-
   async function handleNewTabFolder() {
     if (!(await ensureFolderSwitchAllowed())) {
       return;
@@ -1791,11 +1918,21 @@ export function WorkspaceShell({
   }
 
   function switchToTab(selectedTab: WorkspaceTab) {
+    setTabs((currentTabs) =>
+      getActiveWorkspaceTabsSnapshot(
+        currentTabs,
+        activeTabIdRef.current,
+        latestMarkdownRef.current,
+        latestSourceRef.current,
+        getCurrentPreviewScrollTop()
+      )
+    );
     setActiveTabId(selectedTab.id);
     setCurrentMarkdown(selectedTab.markdown);
     setCurrentSource(selectedTab.sourceInput);
     setActiveImportMode(deriveImportMode(selectedTab.sourceInput));
     setStatusMessage(messages.status.switchedTo(getWorkspaceTabTitle(selectedTab, messages)));
+    queuePreviewScrollRestore(selectedTab.previewScrollTop ?? 0);
     setTocOpen(false);
     collapseTabsForReading();
   }
@@ -1825,13 +1962,20 @@ export function WorkspaceShell({
   }
 
   function handleCloseTab(tabId: string) {
-    const tabIndex = tabs.findIndex((tab) => tab.id === tabId);
+    const currentTabsSnapshot = getActiveWorkspaceTabsSnapshot(
+      tabs,
+      activeTabId,
+      latestMarkdownRef.current,
+      latestSourceRef.current,
+      getCurrentPreviewScrollTop()
+    );
+    const tabIndex = currentTabsSnapshot.findIndex((tab) => tab.id === tabId);
 
     if (tabIndex === -1) {
       return;
     }
 
-    if (tabs.length === 1) {
+    if (currentTabsSnapshot.length === 1) {
       const nextTab = createWorkspaceTab();
 
       setTabs([nextTab]);
@@ -1840,11 +1984,12 @@ export function WorkspaceShell({
       setCurrentSource(nextTab.sourceInput);
       setActiveImportMode("paste");
       setStatusMessage(messages.status.closedTab);
+      queuePreviewScrollRestore(0);
       setTocOpen(false);
       return;
     }
 
-    const nextTabs = tabs.filter((tab) => tab.id !== tabId);
+    const nextTabs = currentTabsSnapshot.filter((tab) => tab.id !== tabId);
 
     setTabs(nextTabs);
 
@@ -1855,6 +2000,7 @@ export function WorkspaceShell({
       setCurrentMarkdown(nextActiveTab.markdown);
       setCurrentSource(nextActiveTab.sourceInput);
       setActiveImportMode(deriveImportMode(nextActiveTab.sourceInput));
+      queuePreviewScrollRestore(nextActiveTab.previewScrollTop ?? 0);
       setTocOpen(false);
     }
 
@@ -2063,11 +2209,34 @@ export function WorkspaceShell({
     setSplitEditorPercent(clampSplitPercent(((clientX - rect.left) / rect.width) * 100));
   }
 
+  function updateTabsWidthFromClientX(clientX: number) {
+    const page = pageRef.current;
+
+    if (!page) {
+      return;
+    }
+
+    const rect = page.getBoundingClientRect();
+
+    if (rect.width <= 0) {
+      return;
+    }
+
+    setTabsWidth(clampTabsWidth(clientX - rect.left));
+  }
+
   function handleSplitResizePointerDown(event: ReactPointerEvent<HTMLDivElement>) {
     event.preventDefault();
     event.currentTarget.setPointerCapture?.(event.pointerId);
     updateSplitFromClientX(event.clientX);
     setSplitResizing(true);
+  }
+
+  function handleTabsResizePointerDown(event: ReactPointerEvent<HTMLDivElement>) {
+    event.preventDefault();
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    updateTabsWidthFromClientX(event.clientX);
+    setTabsResizing(true);
   }
 
   function handleSplitResizeKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
@@ -2103,6 +2272,39 @@ export function WorkspaceShell({
     }
   }
 
+  function handleTabsResizeKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
+    const step = event.shiftKey ? 24 : 12;
+
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      setTabsWidth((current) => clampTabsWidth(current - step));
+      return;
+    }
+
+    if (event.key === "ArrowRight") {
+      event.preventDefault();
+      setTabsWidth((current) => clampTabsWidth(current + step));
+      return;
+    }
+
+    if (event.key === "Home") {
+      event.preventDefault();
+      setTabsWidth(minTabsWidth);
+      return;
+    }
+
+    if (event.key === "End") {
+      event.preventDefault();
+      setTabsWidth(maxTabsWidth);
+      return;
+    }
+
+    if (event.key === "Enter") {
+      event.preventDefault();
+      setTabsWidth(defaultTabsWidth);
+    }
+  }
+
   useEffect(() => {
     if (!splitResizing) {
       return;
@@ -2126,6 +2328,30 @@ export function WorkspaceShell({
       window.removeEventListener("pointercancel", stopResizing);
     };
   }, [splitResizing]);
+
+  useEffect(() => {
+    if (!tabsResizing) {
+      return;
+    }
+
+    function handlePointerMove(event: PointerEvent) {
+      updateTabsWidthFromClientX(event.clientX);
+    }
+
+    function stopResizing() {
+      setTabsResizing(false);
+    }
+
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", stopResizing);
+    window.addEventListener("pointercancel", stopResizing);
+
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", stopResizing);
+      window.removeEventListener("pointercancel", stopResizing);
+    };
+  }, [tabsResizing]);
 
   function suppressPreviewScrollSyncOnce() {
     if (suppressPreviewScrollSyncTimerRef.current !== null) {
@@ -2309,6 +2535,7 @@ export function WorkspaceShell({
       data-file-drag-active={fileDragActive}
       data-mobile-header-visible={mobileHeaderVisible}
       data-preview-controls-open={mobilePreviewControlsOpen}
+      data-tabs-resizing={tabsResizing}
       data-tabs-collapsed={tabsCollapsed}
       onDragEnter={handleWorkspaceDragEnter}
       onDragLeave={handleWorkspaceDragLeave}
@@ -2316,6 +2543,8 @@ export function WorkspaceShell({
       onDrop={(event) => {
         void handleWorkspaceDrop(event);
       }}
+      ref={pageRef}
+      style={workspacePageStyle}
     >
       {compactWorkspace && !tabsCollapsed ? (
         <button
@@ -2410,6 +2639,25 @@ export function WorkspaceShell({
             </div>
           </aside>
         )
+      ) : null}
+      {!tabsCollapsed ? (
+        <div
+          aria-label={messages.tabs.resizeLabel}
+          aria-orientation="vertical"
+          aria-valuemax={maxTabsWidth}
+          aria-valuemin={minTabsWidth}
+          aria-valuenow={tabsWidth}
+          className="workspace-sidebar-resizer"
+          data-testid="workspace-sidebar-resizer"
+          onDoubleClick={() => setTabsWidth(defaultTabsWidth)}
+          onKeyDown={handleTabsResizeKeyDown}
+          onPointerDown={handleTabsResizePointerDown}
+          role="separator"
+          tabIndex={0}
+          title={messages.tabs.resizeTitle}
+        >
+          <span aria-hidden="true" />
+        </div>
       ) : null}
       <section
         aria-label={documentTitle}
@@ -2514,6 +2762,10 @@ export function WorkspaceShell({
                   <Clipboard aria-hidden="true" size={18} strokeWidth={2} />
                   <span>{messages.toolbar.paste}</span>
                 </button>
+                <button className="workspace-new-tab-choice" onClick={handleNewTabBlank} type="button">
+                  <FileText aria-hidden="true" size={18} strokeWidth={2} />
+                  <span>{messages.toolbar.blank}</span>
+                </button>
                 <button className="workspace-new-tab-choice" onClick={handleNewTabFile} type="button">
                   <FileUp aria-hidden="true" size={18} strokeWidth={2} />
                   <span>{messages.toolbar.file}</span>
@@ -2523,19 +2775,6 @@ export function WorkspaceShell({
                   <span>{messages.toolbar.openFolder}</span>
                 </button>
               </div>
-              <form className="workspace-new-tab-url-form" onSubmit={handleNewTabUrlSubmit}>
-                <Link aria-hidden="true" size={18} strokeWidth={2} />
-                <input
-                  aria-label={messages.toolbar.sourceUrlLabel}
-                  className="workspace-new-tab-url-input"
-                  onChange={(event) => setNewTabUrlInput(event.currentTarget.value)}
-                  placeholder={messages.tabs.importUrlPlaceholder}
-                  value={newTabUrlInput}
-                />
-                <button className="toolbar-button" type="submit">
-                  {messages.toolbar.open}
-                </button>
-              </form>
             </div>
           </>
         ) : null}
@@ -2612,14 +2851,20 @@ export function WorkspaceShell({
                     <WorkspacePreviewTypographyControls
                       font={previewFont}
                       fontSize={previewFontSize}
+                      lineHeight={previewLineHeight}
                       margin={previewMargin}
+                      maxLineHeight={maxPreviewLineHeight}
                       maxMargin={maxPreviewMargin}
                       maxFontSize={maxPreviewFontSize}
                       messages={messages.preview}
+                      minLineHeight={minPreviewLineHeight}
                       minMargin={minPreviewMargin}
                       minFontSize={minPreviewFontSize}
                       onFontChange={setPreviewFont}
                       onFontSizeChange={(nextFontSize) => setPreviewFontSize(clampPreviewFontSize(nextFontSize))}
+                      onLineHeightChange={(nextLineHeight) =>
+                        setPreviewLineHeight(clampPreviewLineHeight(nextLineHeight))
+                      }
                       onMarginChange={(nextMargin) => setPreviewMargin(clampPreviewMargin(nextMargin))}
                     />
                   </div>
@@ -2637,6 +2882,8 @@ export function WorkspaceShell({
                 data-locale={locale}
                 data-testid="preview-scroll-region"
                 onScroll={(event) => {
+                  handlePreviewScroll(event.currentTarget.scrollTop);
+
                   if (suppressPreviewScrollSyncRef.current) {
                     updateMobileChromeFromPreviewScroll(event.currentTarget.scrollTop);
                     return;
@@ -2658,14 +2905,20 @@ export function WorkspaceShell({
                       <WorkspacePreviewTypographyControls
                         font={previewFont}
                         fontSize={previewFontSize}
+                        lineHeight={previewLineHeight}
                         margin={previewMargin}
+                        maxLineHeight={maxPreviewLineHeight}
                         maxMargin={maxPreviewMargin}
                         maxFontSize={maxPreviewFontSize}
                         messages={messages.preview}
+                        minLineHeight={minPreviewLineHeight}
                         minMargin={minPreviewMargin}
                         minFontSize={minPreviewFontSize}
                         onFontChange={setPreviewFont}
                         onFontSizeChange={(nextFontSize) => setPreviewFontSize(clampPreviewFontSize(nextFontSize))}
+                        onLineHeightChange={(nextLineHeight) =>
+                          setPreviewLineHeight(clampPreviewLineHeight(nextLineHeight))
+                        }
                         onMarginChange={(nextMargin) => setPreviewMargin(clampPreviewMargin(nextMargin))}
                         showMarginControl={false}
                       />

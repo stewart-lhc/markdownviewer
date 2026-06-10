@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { StrictMode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -19,6 +19,7 @@ vi.mock("@/lib/workspace/convert-document", async (importOriginal) => {
 
 const workspaceTabsStorageKey = "markdownviewer.workspace.tabs.v1";
 const workspaceModeStorageKey = "markdownviewer.workspace.mode";
+const workspaceTabsWidthStorageKey = "markdownviewer.workspace.tabs.width";
 const mockedConvertDocumentToMarkdown = vi.mocked(convertDocumentToMarkdown);
 
 function getStackeditEditor(richEditor: HTMLElement) {
@@ -222,7 +223,9 @@ afterEach(() => {
   Reflect.deleteProperty(window, "showDirectoryPicker");
   Reflect.deleteProperty(window, "matchMedia");
   window.localStorage.removeItem(workspaceModeStorageKey);
+  window.localStorage.removeItem(workspaceTabsWidthStorageKey);
   mockedConvertDocumentToMarkdown.mockReset();
+  vi.useRealTimers();
   vi.restoreAllMocks();
 });
 
@@ -286,6 +289,23 @@ describe("WorkspaceShell interactions", () => {
     }, { timeout: 10000 });
   });
 
+  it("renders editor formatting tools with consistent svg icons", () => {
+    render(<WorkspaceShell markdown="# Icon check" sourceInput="" />);
+
+    const toolbar = screen.getByRole("toolbar", { name: /markdown formatting/i });
+    const toolButtons = Array.from(toolbar.querySelectorAll<HTMLButtonElement>(".editor-tool-button:not(.editor-tool-button--overflow)"));
+
+    expect(toolButtons).toHaveLength(12);
+    expect(toolButtons.every((button) => button.querySelector("svg"))).toBe(true);
+
+    for (const label of [/strikethrough/i, /table/i, /link/i, /image/i]) {
+      const button = within(toolbar).getByRole("button", { name: label });
+
+      expect(button.querySelector("svg")).not.toBeNull();
+      expect(button.textContent?.trim()).toBe("");
+    }
+  });
+
   it("restores the selected preview split editor mode across refreshes", async () => {
     const user = userEvent.setup();
     window.localStorage.setItem(workspaceModeStorageKey, "editor");
@@ -342,6 +362,71 @@ describe("WorkspaceShell interactions", () => {
     await user.click(getWorkspaceTabButton(/second draft/i));
 
     expect(getWorkspaceTabButton(/second draft/i)).toHaveAttribute("aria-current", "page");
+  });
+
+  it("keeps a separate preview scroll position for each workspace tab", async () => {
+    const user = userEvent.setup();
+    const readText = vi.fn().mockResolvedValue("# Second draft\n\n" + "Second body\n\n".repeat(20));
+
+    Object.defineProperty(window.navigator, "clipboard", {
+      configurable: true,
+      value: { readText }
+    });
+
+    render(<WorkspaceShell markdown={"# First draft\n\n" + "First body\n\n".repeat(20)} sourceInput="" />);
+
+    const preview = screen.getByTestId("preview-scroll-region") as HTMLDivElement;
+    preview.scrollTop = 220;
+    fireEvent.scroll(preview);
+
+    await user.click(screen.getByRole("button", { name: /new tab/i }));
+    await user.click(within(screen.getByRole("dialog", { name: /new tab/i })).getByRole("button", { name: /paste/i }));
+
+    await waitFor(() => {
+      expect(getWorkspaceTabButton(/second draft/i)).toHaveAttribute("aria-current", "page");
+      expect(preview.scrollTop).toBe(0);
+    });
+
+    preview.scrollTop = 460;
+    fireEvent.scroll(preview);
+
+    await user.click(getWorkspaceTabButton(/first draft/i));
+
+    await waitFor(() => {
+      expect(getWorkspaceTabButton(/first draft/i)).toHaveAttribute("aria-current", "page");
+      expect(preview.scrollTop).toBe(220);
+    });
+
+    await user.click(getWorkspaceTabButton(/second draft/i));
+
+    await waitFor(() => {
+      expect(getWorkspaceTabButton(/second draft/i)).toHaveAttribute("aria-current", "page");
+      expect(preview.scrollTop).toBe(460);
+    });
+  });
+
+  it("opens a blank tab directly from the new tab dialog", async () => {
+    const user = userEvent.setup();
+
+    render(<WorkspaceShell markdown="# First draft" sourceInput="" />);
+
+    await user.click(screen.getByRole("button", { name: /new tab/i }));
+    const dialog = screen.getByRole("dialog", { name: /new tab/i });
+
+    expect(within(dialog).getAllByRole("button").map((button) => button.textContent?.trim()).filter(Boolean)).toEqual([
+      "Paste",
+      "Blank",
+      "File",
+      "Folder"
+    ]);
+
+    await user.click(within(dialog).getByRole("button", { name: /blank/i }));
+
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog", { name: /new tab/i })).not.toBeInTheDocument();
+      expect(getWorkspaceTabButton(/untitled document/i)).toHaveAttribute("aria-current", "page");
+      expect(screen.getByTestId("workspace-grid")).toHaveAttribute("data-mode", "editor");
+    });
   });
 
   it("imports a pasted URL into a new workspace tab", async () => {
@@ -690,6 +775,7 @@ describe("WorkspaceShell interactions", () => {
             createdAt: 2,
             id: "tab-beta",
             markdown: "# Persisted beta",
+            previewScrollTop: 240,
             sourceInput: "https://example.com/beta.md",
             updatedAt: 2
           }
@@ -711,6 +797,7 @@ describe("WorkspaceShell interactions", () => {
         name: "Persisted beta"
       })
     ).toBeInTheDocument();
+    expect(screen.getByTestId("preview-scroll-region")).toHaveProperty("scrollTop", 240);
   });
 
   it("persists open workspace tabs before the page is hidden", async () => {
@@ -723,6 +810,10 @@ describe("WorkspaceShell interactions", () => {
     });
 
     render(<WorkspaceShell markdown="# First draft" sourceInput="" />);
+    const preview = screen.getByTestId("preview-scroll-region");
+
+    preview.scrollTop = 180;
+    fireEvent.scroll(preview);
 
     await user.click(screen.getByRole("button", { name: /new tab/i }));
     await user.click(within(screen.getByRole("dialog", { name: /new tab/i })).getByRole("button", { name: /paste/i }));
@@ -740,6 +831,7 @@ describe("WorkspaceShell interactions", () => {
       expect.arrayContaining([
         expect.objectContaining({
           markdown: "# First draft",
+          previewScrollTop: 180,
           sourceInput: ""
         }),
         expect.objectContaining({
@@ -812,9 +904,69 @@ describe("WorkspaceShell interactions", () => {
     window.localStorage.removeItem("markdownviewer.workspace.split");
   });
 
+  it("lets the user resize the workspace tabs sidebar", async () => {
+    window.localStorage.removeItem(workspaceTabsWidthStorageKey);
+
+    const { container } = render(<WorkspaceShell markdown="# Resize tabs" sourceInput="" />);
+
+    const page = container.querySelector(".workspace-page") as HTMLDivElement;
+    const resizer = screen.getByRole("separator", { name: /resize left sidebar/i });
+
+    Object.defineProperty(page, "getBoundingClientRect", {
+      configurable: true,
+      value: () =>
+        ({
+          top: 0,
+          bottom: 600,
+          left: 50,
+          right: 1050,
+          width: 1000,
+          height: 600,
+          x: 50,
+          y: 0,
+          toJSON: () => ({})
+        }) satisfies DOMRect
+    });
+
+    expect(page.style.getPropertyValue("--workspace-tabs-width")).toBe("190px");
+
+    fireEvent.pointerDown(resizer, {
+      clientX: 270,
+      pointerId: 1
+    });
+
+    await waitFor(() => {
+      expect(page).toHaveAttribute("data-tabs-resizing", "true");
+      expect(page.style.getPropertyValue("--workspace-tabs-width")).toBe("220px");
+      expect(resizer).toHaveAttribute("aria-valuenow", "220");
+    });
+
+    fireEvent.pointerMove(window, {
+      clientX: 390
+    });
+
+    await waitFor(() => {
+      expect(page.style.getPropertyValue("--workspace-tabs-width")).toBe("340px");
+    });
+
+    fireEvent.keyDown(resizer, {
+      key: "ArrowLeft"
+    });
+
+    expect(page.style.getPropertyValue("--workspace-tabs-width")).toBe("328px");
+
+    fireEvent.pointerUp(window);
+
+    await waitFor(() => {
+      expect(page).toHaveAttribute("data-tabs-resizing", "false");
+      expect(window.localStorage.getItem(workspaceTabsWidthStorageKey)).toBe("328");
+    });
+  });
+
   it("lets the reader adjust preview font and size from the preview header", async () => {
     window.localStorage.removeItem("markdownviewer.workspace.preview.font");
     window.localStorage.removeItem("markdownviewer.workspace.preview.fontSize");
+    window.localStorage.removeItem("markdownviewer.workspace.preview.lineHeight.v1");
     window.localStorage.removeItem("markdownviewer.workspace.preview.margin.v3");
     const user = userEvent.setup();
 
@@ -828,7 +980,9 @@ describe("WorkspaceShell interactions", () => {
     await user.click(screen.getByRole("menuitemradio", { name: /^serif/i }));
     await user.click(within(previewPanel).getByRole("button", { name: /increase preview font size/i }));
     await user.click(within(previewPanel).getByRole("button", { name: /increase preview font size/i }));
+    await user.click(within(previewPanel).getByRole("button", { name: /increase preview line height/i }));
     expect(previewRegion).toHaveStyle({
+      "--workspace-preview-line-height": "1.93",
       "--workspace-preview-inline-margin": "25%"
     });
 
@@ -837,10 +991,12 @@ describe("WorkspaceShell interactions", () => {
     expect(previewRegion).toHaveStyle({
       "--workspace-preview-font-family": "Georgia, 'Times New Roman', serif",
       "--workspace-preview-font-size": "17px",
+      "--workspace-preview-line-height": "1.93",
       "--workspace-preview-inline-margin": "22%"
     });
     expect(window.localStorage.getItem("markdownviewer.workspace.preview.font")).toBe("serif");
     expect(window.localStorage.getItem("markdownviewer.workspace.preview.fontSize")).toBe("17");
+    expect(window.localStorage.getItem("markdownviewer.workspace.preview.lineHeight.v1")).toBe("193");
     expect(window.localStorage.getItem("markdownviewer.workspace.preview.margin.v3")).toBe("6");
   });
 
@@ -1574,6 +1730,13 @@ describe("WorkspaceShell interactions", () => {
 
     expect(statusBar).toHaveAttribute("data-state", "loading");
     expect(status).toHaveTextContent("Converting slow.docx to Markdown...");
+
+    vi.useFakeTimers();
+    act(() => {
+      vi.advanceTimersByTime(3000);
+    });
+
+    expect(screen.getByText("Converting slow.docx to Markdown...")).toBeInTheDocument();
   });
 
   it("lets the user dismiss workspace status messages", async () => {
@@ -1586,6 +1749,26 @@ describe("WorkspaceShell interactions", () => {
     await user.click(screen.getByRole("button", { name: /dismiss notification/i }));
 
     expect(screen.queryByText("Converted brief.docx to Markdown.")).not.toBeInTheDocument();
+  });
+
+  it("automatically hides idle workspace status messages after three seconds", () => {
+    vi.useFakeTimers();
+
+    render(<WorkspaceShell markdown="# Existing draft" sourceInput="" initialStatusMessage="Loaded AGENTS.md." />);
+
+    expect(screen.getByText("Loaded AGENTS.md.")).toBeInTheDocument();
+
+    act(() => {
+      vi.advanceTimersByTime(2999);
+    });
+
+    expect(screen.getByText("Loaded AGENTS.md.")).toBeInTheDocument();
+
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+
+    expect(screen.queryByText("Loaded AGENTS.md.")).not.toBeInTheDocument();
   });
 
   it("opens the new tab file picker directly from the import dialog", async () => {

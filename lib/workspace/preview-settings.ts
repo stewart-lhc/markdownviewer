@@ -2,12 +2,16 @@ import type { WorkspacePreviewFont } from "@/components/workspace/workspace-prev
 
 export const workspacePreviewFontStorageKey = "markdownviewer.workspace.preview.font";
 export const workspacePreviewFontSizeStorageKey = "markdownviewer.workspace.preview.fontSize";
+export const workspacePreviewLineHeightStorageKey = "markdownviewer.workspace.preview.lineHeight.v1";
 export const workspacePreviewMarginStorageKey = "markdownviewer.workspace.preview.margin.v3";
 
 export const defaultPreviewFont: WorkspacePreviewFont = "system";
 export const defaultPreviewFontSize = 15;
 export const minPreviewFontSize = 13;
 export const maxPreviewFontSize = 21;
+export const defaultPreviewLineHeight = 188;
+export const minPreviewLineHeight = 135;
+export const maxPreviewLineHeight = 225;
 
 export const previewMarginLevels = [
   "4%",
@@ -30,6 +34,10 @@ export function clampPreviewFontSize(value: number) {
 
 export function clampPreviewMargin(value: number) {
   return Math.min(Math.max(Math.round(value), minPreviewMargin), maxPreviewMargin);
+}
+
+export function clampPreviewLineHeight(value: number) {
+  return Math.min(Math.max(Math.round(value), minPreviewLineHeight), maxPreviewLineHeight);
 }
 
 export function getPreviewMarginCss(level: number) {

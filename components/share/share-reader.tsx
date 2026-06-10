@@ -15,15 +15,20 @@ import type { Locale } from "@/lib/i18n/locales";
 import { extractHeadings } from "@/lib/markdown/extract-headings";
 import {
   clampPreviewFontSize,
+  clampPreviewLineHeight,
   clampPreviewMargin,
   defaultPreviewFont,
   defaultPreviewFontSize,
+  defaultPreviewLineHeight,
   defaultPreviewMargin,
   getPreviewMarginCss,
   maxPreviewFontSize,
+  maxPreviewLineHeight,
   maxPreviewMargin,
   minPreviewFontSize,
+  minPreviewLineHeight,
   minPreviewMargin,
+  workspacePreviewLineHeightStorageKey,
   workspacePreviewFontSizeStorageKey,
   workspacePreviewFontStorageKey,
   workspacePreviewMarginStorageKey
@@ -52,6 +57,7 @@ export function ShareReader({ documentTitle, locale, markdown }: ShareReaderProp
   const [theme, setTheme] = useState<WorkspaceTheme>(defaultWorkspaceTheme);
   const [previewFont, setPreviewFont] = useState<WorkspacePreviewFont>(defaultPreviewFont);
   const [previewFontSize, setPreviewFontSize] = useState(defaultPreviewFontSize);
+  const [previewLineHeight, setPreviewLineHeight] = useState(defaultPreviewLineHeight);
   const [previewMargin, setPreviewMargin] = useState(defaultPreviewMargin);
   const [tocOpen, setTocOpen] = useState(false);
   const headings = useMemo(() => extractHeadings(markdown), [markdown]);
@@ -59,6 +65,7 @@ export function ShareReader({ documentTitle, locale, markdown }: ShareReaderProp
   const previewReaderStyle = {
     "--workspace-preview-font-family": getWorkspacePreviewFontStack(previewFont),
     "--workspace-preview-font-size": `${previewFontSize}px`,
+    "--workspace-preview-line-height": `${previewLineHeight / 100}`,
     "--workspace-preview-inline-margin": getPreviewMarginCss(previewMargin)
   } as CSSProperties;
 
@@ -77,6 +84,9 @@ export function ShareReader({ documentTitle, locale, markdown }: ShareReaderProp
     }
 
     setPreviewFontSize(clampPreviewFontSize(readStoredNumber(workspacePreviewFontSizeStorageKey, defaultPreviewFontSize)));
+    setPreviewLineHeight(
+      clampPreviewLineHeight(readStoredNumber(workspacePreviewLineHeightStorageKey, defaultPreviewLineHeight))
+    );
     setPreviewMargin(clampPreviewMargin(readStoredNumber(workspacePreviewMarginStorageKey, defaultPreviewMargin)));
   }, []);
 
@@ -93,6 +103,10 @@ export function ShareReader({ documentTitle, locale, markdown }: ShareReaderProp
   useEffect(() => {
     window.localStorage.setItem(workspacePreviewFontSizeStorageKey, String(previewFontSize));
   }, [previewFontSize]);
+
+  useEffect(() => {
+    window.localStorage.setItem(workspacePreviewLineHeightStorageKey, String(previewLineHeight));
+  }, [previewLineHeight]);
 
   useEffect(() => {
     window.localStorage.setItem(workspacePreviewMarginStorageKey, String(previewMargin));
@@ -114,14 +128,18 @@ export function ShareReader({ documentTitle, locale, markdown }: ShareReaderProp
       <WorkspacePreviewTypographyControls
         font={previewFont}
         fontSize={previewFontSize}
+        lineHeight={previewLineHeight}
         margin={previewMargin}
+        maxLineHeight={maxPreviewLineHeight}
         maxMargin={maxPreviewMargin}
         maxFontSize={maxPreviewFontSize}
         messages={messages.preview}
+        minLineHeight={minPreviewLineHeight}
         minMargin={minPreviewMargin}
         minFontSize={minPreviewFontSize}
         onFontChange={setPreviewFont}
         onFontSizeChange={(nextFontSize) => setPreviewFontSize(clampPreviewFontSize(nextFontSize))}
+        onLineHeightChange={(nextLineHeight) => setPreviewLineHeight(clampPreviewLineHeight(nextLineHeight))}
         onMarginChange={(nextMargin) => setPreviewMargin(clampPreviewMargin(nextMargin))}
         showMarginControl={showMarginControl}
       />
