@@ -41,6 +41,7 @@ export type Messages = {
       ariaLabel: string;
       columns: Array<{ links: LandingLink[]; title: string }>;
       contactBody: string;
+      contactLinkLabel: string;
       contactTitle: string;
       copyright: string;
       description: string;
@@ -412,7 +413,8 @@ export const messages: Record<Locale, Messages> = {
             ]
           }
         ],
-        contactBody: "For product feedback, support, or legal requests, email",
+        contactBody: "For product feedback, support, or legal requests, open",
+        contactLinkLabel: "GitHub Issues",
         contactTitle: "Contact.",
         copyright: "© 2026 markdownviewer.run",
         privacyBody:
@@ -794,7 +796,8 @@ export const messages: Record<Locale, Messages> = {
             ]
           }
         ],
-        contactBody: "产品反馈、支持或法律请求，请发送邮件至",
+        contactBody: "产品反馈、支持或法律请求，请打开",
+        contactLinkLabel: "GitHub Issues",
         contactTitle: "联系。",
         copyright: "© 2026 markdownviewer.run",
         privacyBody:

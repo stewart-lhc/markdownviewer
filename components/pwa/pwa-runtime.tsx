@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const PwaInstallPrompt = dynamic(
@@ -15,16 +16,21 @@ function scheduleIdleTask(callback: () => void) {
   const requestIdleCallback = window.requestIdleCallback;
 
   if (typeof requestIdleCallback === "function") {
-    const idleId = requestIdleCallback(callback, { timeout: 3000 });
+    const idleId = requestIdleCallback(callback, { timeout: 6000 });
     return () => window.cancelIdleCallback(idleId);
   }
 
-  const timeoutId = globalThis.setTimeout(callback, 1500);
+  const timeoutId = globalThis.setTimeout(callback, 6000);
   return () => globalThis.clearTimeout(timeoutId);
+}
+
+function canShowInstallPrompt(pathname: string) {
+  return pathname.includes("/workspace") || pathname.includes("/share/");
 }
 
 export function PwaRuntime() {
   const [installPromptReady, setInstallPromptReady] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     if (!("serviceWorker" in navigator) || !window.isSecureContext) {
@@ -62,7 +68,15 @@ export function PwaRuntime() {
     };
   }, []);
 
-  useEffect(() => scheduleIdleTask(() => setInstallPromptReady(true)), []);
+  useEffect(() => {
+    setInstallPromptReady(false);
+
+    if (!canShowInstallPrompt(pathname)) {
+      return;
+    }
+
+    return scheduleIdleTask(() => setInstallPromptReady(true));
+  }, [pathname]);
 
   return installPromptReady ? <PwaInstallPrompt /> : null;
 }

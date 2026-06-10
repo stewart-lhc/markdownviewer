@@ -250,7 +250,7 @@ export function HomePageContent({ locale = defaultLocale }: HomePageContentProps
             </p>
             <p id="contact">
               <strong>{t.landing.footer.contactTitle}</strong> {t.landing.footer.contactBody}{" "}
-              <a href="mailto:hello@markdownviewer.run">hello@markdownviewer.run</a>.
+              <a href={`${githubRepositoryUrl}/issues`}>{t.landing.footer.contactLinkLabel}</a>.
             </p>
           </div>
           <div className="site-footer__bottom">
