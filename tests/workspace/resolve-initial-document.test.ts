@@ -16,6 +16,9 @@ describe("resolveInitialWorkspaceDocument", () => {
     expect(result.markdown).toMatch(/```mermaid/);
     expect(result.markdown).toMatch(/\$\$[\s\S]*\\int_0\^1 x\^2 dx[\s\S]*\$\$/);
     expect(result.markdown).toMatch(/!\[Workspace preview placeholder\]/);
+    expect(result.markdown).toMatch(/\/sample-markdown-preview\.svg/);
+    expect(result.markdown).not.toMatch(/hello@example\.com/);
+    expect(result.markdown).not.toMatch(/placehold\.co/);
     expect(result.markdown).toMatch(/<https:\/\/markdown\.live>/);
     expect(result.markdown).toMatch(/```html/);
     expect(result.markdown).toMatch(/\[\^1\]:/);

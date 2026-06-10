@@ -10,7 +10,7 @@ describe("workspace page", () => {
 
     render(page);
 
-    expect(screen.getByRole("tablist", { name: /open tabs/i })).toBeInTheDocument();
+    expect(screen.getByRole("complementary", { name: /open tabs/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /new tab/i })).toBeInTheDocument();
     expect(document.querySelector(".workspace-header-title")).not.toBeInTheDocument();
     expect(screen.getByTestId("workspace-grid")).toHaveAttribute("data-mode", "split");
@@ -38,7 +38,7 @@ describe("workspace page", () => {
 
     render(page);
 
-    expect(screen.getByRole("tablist", { name: /打开的标签/i })).toBeInTheDocument();
+    expect(screen.getByRole("complementary", { name: /打开的标签/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /新建标签/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /模板：纸张/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /增大预览留白/i })).toBeInTheDocument();

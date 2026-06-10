@@ -78,6 +78,7 @@ type WorkspaceShellProps = {
   markdown: string;
   mode?: WorkspaceMode;
   initialStatusMessage?: string;
+  initialEditorPresentationMode?: EditorPresentationMode;
   locale?: Locale;
   createShare?: (markdown: string, title?: string) => Promise<CreateShareResult>;
   loadSource?: (input: string) => Promise<LoadedMarkdownSource>;
@@ -637,6 +638,7 @@ export function WorkspaceShell({
   markdown,
   mode = "split",
   initialStatusMessage,
+  initialEditorPresentationMode = "rich",
   locale = defaultLocale,
   createShare = createShareViaApi,
   loadSource = loadMarkdownSourceViaApi,
@@ -654,7 +656,8 @@ export function WorkspaceShell({
   const [shareUrl, setShareUrl] = useState("");
   const [shareCopyState, setShareCopyState] = useState<ShareCopyState>("idle");
   const [activeImportMode, setActiveImportMode] = useState<SourcePanelMode>(deriveImportMode(sourceInput));
-  const [editorPresentationMode, setEditorPresentationMode] = useState<EditorPresentationMode>("rich");
+  const [editorPresentationMode, setEditorPresentationMode] =
+    useState<EditorPresentationMode>(initialEditorPresentationMode);
   const [compactWorkspace, setCompactWorkspace] = useState(false);
   const [previewFont, setPreviewFont] = useState<WorkspacePreviewFont>(defaultPreviewFont);
   const [previewFontSize, setPreviewFontSize] = useState(defaultPreviewFontSize);
@@ -2380,15 +2383,13 @@ export function WorkspaceShell({
             <div className="workspace-tabs-list-actions">
               {renderNewTabButton("workspace-new-tab-button--list")}
             </div>
-            <div aria-label={messages.tabs.railLabel} className="workspace-tabs-list" role="tablist">
+            <div aria-label={messages.tabs.railLabel} className="workspace-tabs-list">
               {tabItems.map((tab) => (
                 <div className="workspace-tab-row" data-active={tab.id === activeTabId} key={tab.id}>
                   <button
-                    aria-controls="workspace-active-tab-panel"
-                    aria-selected={tab.id === activeTabId}
+                    aria-current={tab.id === activeTabId ? "page" : undefined}
                     className="workspace-tab-button"
                     onClick={() => handleSelectTab(tab.id)}
-                    role="tab"
                     title={tab.title}
                     type="button"
                   >
@@ -2414,7 +2415,6 @@ export function WorkspaceShell({
         aria-label={documentTitle}
         className="workspace-shell-card"
         id="workspace-active-tab-panel"
-        role="tabpanel"
       >
         {statusMessage ? (
           <div
@@ -2540,7 +2540,7 @@ export function WorkspaceShell({
           </>
         ) : null}
         <input
-          aria-hidden="true"
+          aria-label={`${messages.tabs.newTab} ${messages.toolbar.file}`}
           className="sr-only"
           data-testid="new-tab-file-input"
           onChange={(event: ChangeEvent<HTMLInputElement>) => {
@@ -2652,7 +2652,7 @@ export function WorkspaceShell({
               </div>
               {compactWorkspace ? (
                 <>
-                  <div className="workspace-preview-bottom-bar" aria-hidden={!mobilePreviewControlsOpen}>
+                  <div className="workspace-preview-bottom-bar" hidden={!mobilePreviewControlsOpen}>
                     <div className="workspace-preview-bottom-controls">
                       <WorkspaceThemeSelector messages={messages.preview} onThemeChange={setTheme} theme={theme} />
                       <WorkspacePreviewTypographyControls

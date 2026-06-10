@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useEffect, useId, useMemo, useState } from "react";
+import { memo, useEffect, useId, useMemo, useRef, useState } from "react";
 
 type MermaidBlockProps = {
   chart: string;
@@ -18,11 +18,41 @@ function extractFlowLabels(chart: string) {
 export const MermaidBlock = memo(function MermaidBlock({ chart, sourcePosition, variant = "default" }: MermaidBlockProps) {
   const [svg, setSvg] = useState<string>();
   const [error, setError] = useState<string>();
+  const [shouldRender, setShouldRender] = useState(false);
   const chartId = useId().replace(/:/g, "-");
   const labels = useMemo(() => extractFlowLabels(chart), [chart]);
+  const frameRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (variant === "compact") {
+    if (variant === "compact" || shouldRender) {
+      return;
+    }
+
+    const frame = frameRef.current;
+
+    if (!frame || typeof IntersectionObserver === "undefined") {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setShouldRender(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "160px 0px" }
+    );
+
+    observer.observe(frame);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [shouldRender, variant]);
+
+  useEffect(() => {
+    if (variant === "compact" || !shouldRender) {
       return;
     }
 
@@ -55,7 +85,7 @@ export const MermaidBlock = memo(function MermaidBlock({ chart, sourcePosition, 
     return () => {
       cancelled = true;
     };
-  }, [chart, chartId, variant]);
+  }, [chart, chartId, shouldRender, variant]);
 
   if (variant === "compact") {
     return (
@@ -78,10 +108,18 @@ export const MermaidBlock = memo(function MermaidBlock({ chart, sourcePosition, 
   }
 
   return (
-    <div aria-label="Mermaid diagram" className="mermaid-frame" data-sourcepos={sourcePosition}>
+    <div aria-label="Mermaid diagram" className="mermaid-frame" data-sourcepos={sourcePosition} ref={frameRef}>
       <div className="mermaid-toolbar">
         <span>Mermaid diagram</span>
-        <span>{svg ? "rendered" : error ? "fallback" : "rendering"}</span>
+        {svg ? (
+          <span>rendered</span>
+        ) : error ? (
+          <span>fallback</span>
+        ) : (
+          <button className="code-copy" onClick={() => setShouldRender(true)} type="button">
+            {shouldRender ? "rendering" : "render"}
+          </button>
+        )}
       </div>
       {svg ? (
         <div className="mermaid-svg" dangerouslySetInnerHTML={{ __html: svg }} />

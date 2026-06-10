@@ -24,6 +24,11 @@ type CodeElementProps = {
   className?: string;
 };
 
+type ImageDimensions = {
+  height: number;
+  width: number;
+};
+
 type NodePosition = {
   end?: {
     column?: number;
@@ -80,6 +85,33 @@ const rehypePlugins: ComponentProps<typeof ReactMarkdown>["rehypePlugins"] = [
 ];
 
 const cjkPattern = /[\u3400-\u9fff\uf900-\ufaff]/;
+const sampleImageDimensions = new Map<string, ImageDimensions>([
+  ["/sample-markdown-preview.svg", { height: 360, width: 960 }],
+  ["/sample-linked-thumbnail.svg", { height: 180, width: 480 }]
+]);
+
+function getImageDimensions(src?: string): ImageDimensions | undefined {
+  if (!src) {
+    return undefined;
+  }
+
+  const sampleDimensions = sampleImageDimensions.get(src);
+
+  if (sampleDimensions) {
+    return sampleDimensions;
+  }
+
+  const placeholdMatch = src.match(/placehold\.co\/(\d+)x(\d+)(?:[/?#]|$)/i);
+
+  if (!placeholdMatch) {
+    return undefined;
+  }
+
+  return {
+    width: Number.parseInt(placeholdMatch[1] ?? "", 10),
+    height: Number.parseInt(placeholdMatch[2] ?? "", 10)
+  };
+}
 
 function serializeSourcePosition(position?: NodePosition) {
   const startLine = position?.start?.line;
@@ -186,7 +218,7 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
       code({ children, className }) {
         return <code className={className}>{children}</code>;
       },
-      a({ children, href, ...props }) {
+      a({ children, href, node: _node, ...props }) {
         return (
           <a
             {...props}
@@ -199,6 +231,35 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
           >
             {children}
           </a>
+        );
+      },
+      img({ alt, node: _node, src, ...props }) {
+        const dimensions = getImageDimensions(typeof src === "string" ? src : undefined);
+
+        return (
+          <img
+            {...props}
+            alt={alt ?? ""}
+            decoding="async"
+            height={dimensions?.height}
+            loading="lazy"
+            src={src}
+            width={dimensions?.width}
+          />
+        );
+      },
+      input({ checked, node: _node, type, ...props }) {
+        if (type !== "checkbox") {
+          return <input {...props} checked={checked} type={type} />;
+        }
+
+        return (
+          <input
+            {...props}
+            aria-label={checked ? "Completed task" : "Incomplete task"}
+            checked={checked}
+            type="checkbox"
+          />
         );
       }
     }),

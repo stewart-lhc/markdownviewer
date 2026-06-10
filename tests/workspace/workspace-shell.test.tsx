@@ -35,6 +35,29 @@ async function waitForRichEditorReady(richEditor: HTMLElement) {
   }, { timeout: 10000 });
 }
 
+function getWorkspaceTabButton(name: RegExp) {
+  const tabButton = Array.from(document.querySelectorAll<HTMLButtonElement>(".workspace-tab-button")).find((button) => {
+    const title = button.getAttribute("title") ?? "";
+    const text = button.textContent ?? "";
+
+    return name.test(title) || name.test(text);
+  });
+
+  if (!tabButton) {
+    throw new Error(`Unable to find workspace tab button matching ${name}`);
+  }
+
+  return tabButton;
+}
+
+async function findWorkspaceTabButton(name: RegExp) {
+  await waitFor(() => {
+    expect(getWorkspaceTabButton(name)).toBeInTheDocument();
+  });
+
+  return getWorkspaceTabButton(name);
+}
+
 type FakeFolderEntry = FakeDirectoryHandle | FakeFileHandle;
 
 class FakeFileHandle {
@@ -213,8 +236,8 @@ describe("WorkspaceShell interactions", () => {
   it("defaults to split mode, renders a syntax-visible rich editor, and updates the live preview while editing", async () => {
     render(<WorkspaceShell markdown="# First draft" sourceInput="" />);
 
-    expect(screen.getByRole("tablist", { name: /open tabs/i })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: /first draft/i })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("complementary", { name: /open tabs/i })).toBeInTheDocument();
+    expect(screen.getByTitle("First draft")).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("button", { name: /new tab/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /new tab/i }).closest(".workspace-tabs-list-actions")).not.toBeNull();
     expect(screen.getByLabelText(/markdownviewer home/i).closest(".workspace-header-tabs-control")).not.toBeNull();
@@ -297,7 +320,7 @@ describe("WorkspaceShell interactions", () => {
     const dialog = screen.getByRole("dialog", { name: /new tab/i });
     await user.click(within(dialog).getByRole("button", { name: /paste/i }));
 
-    expect(await screen.findByRole("tab", { name: /second draft/i })).toHaveAttribute("aria-selected", "true");
+    expect(await findWorkspaceTabButton(/second draft/i)).toHaveAttribute("aria-current", "page");
     expect(
       await within(screen.getByTestId("preview-panel")).findByRole("heading", {
         level: 1,
@@ -306,9 +329,9 @@ describe("WorkspaceShell interactions", () => {
     ).toBeInTheDocument();
     expect(screen.queryByRole("heading", { level: 1, name: "First draft" })).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole("tab", { name: /first draft/i }));
+    await user.click(getWorkspaceTabButton(/first draft/i));
 
-    expect(screen.getByRole("tab", { name: /first draft/i })).toHaveAttribute("aria-selected", "true");
+    expect(getWorkspaceTabButton(/first draft/i)).toHaveAttribute("aria-current", "page");
     expect(
       within(screen.getByTestId("preview-panel")).getByRole("heading", {
         level: 1,
@@ -316,9 +339,9 @@ describe("WorkspaceShell interactions", () => {
       })
     ).toBeInTheDocument();
 
-    await user.click(screen.getByRole("tab", { name: /second draft/i }));
+    await user.click(getWorkspaceTabButton(/second draft/i));
 
-    expect(screen.getByRole("tab", { name: /second draft/i })).toHaveAttribute("aria-selected", "true");
+    expect(getWorkspaceTabButton(/second draft/i)).toHaveAttribute("aria-current", "page");
   });
 
   it("imports a pasted URL into a new workspace tab", async () => {
@@ -345,10 +368,7 @@ describe("WorkspaceShell interactions", () => {
     await waitFor(() => {
       expect(loadSource).toHaveBeenCalledWith(pastedUrl);
     });
-    expect(screen.getByRole("tab", { name: /builderpulse 2026-06-09/i })).toHaveAttribute(
-      "aria-selected",
-      "true"
-    );
+    expect(getWorkspaceTabButton(/builderpulse 2026-06-09/i)).toHaveAttribute("aria-current", "page");
     expect(
       await within(screen.getByTestId("preview-panel")).findByRole("heading", {
         level: 1,
@@ -530,7 +550,7 @@ describe("WorkspaceShell interactions", () => {
     const header = container.querySelector(".workspace-header") as HTMLElement;
     expect(within(header).getByRole("button", { name: /expand tabs sidebar/i })).toBeInTheDocument();
     expect(within(header).getByLabelText(/markdownviewer home/i)).toBeInTheDocument();
-    expect(screen.queryByRole("tablist", { name: /open tabs/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("complementary", { name: /open tabs/i })).not.toBeInTheDocument();
 
     await waitFor(() => {
       expect(window.localStorage.getItem("markdownviewer.workspace.tabs.collapsed")).toBe("true");
@@ -538,7 +558,7 @@ describe("WorkspaceShell interactions", () => {
 
     await user.click(screen.getByRole("button", { name: /expand tabs sidebar/i }));
 
-    expect(screen.getByRole("tablist", { name: /open tabs/i })).toBeInTheDocument();
+    expect(screen.getByRole("complementary", { name: /open tabs/i })).toBeInTheDocument();
     await waitFor(() => {
       expect(window.localStorage.getItem("markdownviewer.workspace.tabs.collapsed")).toBe("false");
     });
@@ -591,8 +611,8 @@ describe("WorkspaceShell interactions", () => {
     });
 
     await user.click(screen.getByRole("button", { name: /expand tabs sidebar/i }));
-    expect(screen.getByRole("tab", { name: /mobile pasted tab/i })).toHaveAttribute("aria-selected", "true");
-    await user.click(screen.getByRole("tab", { name: /first tab/i }));
+    expect(getWorkspaceTabButton(/mobile pasted tab/i)).toHaveAttribute("aria-current", "page");
+    await user.click(getWorkspaceTabButton(/first tab/i));
 
     await waitFor(() => {
       expect(screen.queryByText("First tab", { selector: ".workspace-header-title" })).not.toBeInTheDocument();
@@ -680,10 +700,10 @@ describe("WorkspaceShell interactions", () => {
     render(<WorkspaceShell markdown="# Starter" sourceInput="" />);
 
     await waitFor(() => {
-      expect(screen.getByRole("tab", { name: /persisted beta/i })).toHaveAttribute("aria-selected", "true");
+      expect(getWorkspaceTabButton(/persisted beta/i)).toHaveAttribute("aria-current", "page");
     });
 
-    expect(screen.getByRole("tab", { name: /persisted alpha/i })).toBeInTheDocument();
+    expect(getWorkspaceTabButton(/persisted alpha/i)).toBeInTheDocument();
     expect(screen.getAllByText("example.com")).toHaveLength(2);
     expect(
       within(screen.getByTestId("preview-panel")).getByRole("heading", {
@@ -707,7 +727,7 @@ describe("WorkspaceShell interactions", () => {
     await user.click(screen.getByRole("button", { name: /new tab/i }));
     await user.click(within(screen.getByRole("dialog", { name: /new tab/i })).getByRole("button", { name: /paste/i }));
     await waitFor(() => {
-      expect(screen.getByRole("tab", { name: /untitled document/i })).toHaveAttribute("aria-selected", "true");
+      expect(getWorkspaceTabButton(/untitled document/i)).toHaveAttribute("aria-current", "page");
     });
     expect(await screen.findByText(/clipboard is empty/i)).toBeInTheDocument();
 
@@ -1462,9 +1482,9 @@ describe("WorkspaceShell interactions", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByRole("tab", { name: /dragged file/i })).toHaveAttribute("aria-selected", "true");
+      expect(getWorkspaceTabButton(/dragged file/i)).toHaveAttribute("aria-current", "page");
     });
-    expect(screen.getByRole("tab", { name: /existing draft/i })).toBeInTheDocument();
+    expect(getWorkspaceTabButton(/existing draft/i)).toBeInTheDocument();
     expect(page).toHaveAttribute("data-file-drag-active", "false");
   });
 
@@ -1492,7 +1512,7 @@ describe("WorkspaceShell interactions", () => {
       expect(mockedConvertDocumentToMarkdown).toHaveBeenCalledWith(expect.any(File));
     });
     await waitFor(() => {
-      expect(screen.getByRole("tab", { name: /converted upload/i })).toHaveAttribute("aria-selected", "true");
+      expect(getWorkspaceTabButton(/converted upload/i)).toHaveAttribute("aria-current", "page");
     });
     await waitFor(() => {
       expect(
@@ -1527,7 +1547,7 @@ describe("WorkspaceShell interactions", () => {
       expect(mockedConvertDocumentToMarkdown).toHaveBeenCalledWith(expect.any(File));
     });
     await waitFor(() => {
-      expect(screen.getByRole("tab", { name: /converted new tab/i })).toHaveAttribute("aria-selected", "true");
+      expect(getWorkspaceTabButton(/converted new tab/i)).toHaveAttribute("aria-current", "page");
     });
     await waitFor(() => {
       expect(
@@ -1614,7 +1634,7 @@ describe("WorkspaceShell interactions", () => {
 
     render(<WorkspaceShell markdown="# Starter" sourceInput="" />);
 
-    await user.click(screen.getByRole("tab", { name: /公司\.docx/i }));
+    await user.click(getWorkspaceTabButton(/公司\.docx/i));
 
     expect(screen.getByText("Switched to 公司.docx.")).toBeInTheDocument();
     expect(screen.queryByText(/%E5%85%AC/)).not.toBeInTheDocument();
@@ -1646,7 +1666,7 @@ describe("WorkspaceShell interactions", () => {
       expect(mockedConvertDocumentToMarkdown).toHaveBeenCalledWith(expect.any(File));
     });
     await waitFor(() => {
-      expect(screen.getByRole("tab", { name: /converted drop/i })).toHaveAttribute("aria-selected", "true");
+      expect(getWorkspaceTabButton(/converted drop/i)).toHaveAttribute("aria-current", "page");
     });
     await waitFor(() => {
       expect(
@@ -1675,10 +1695,7 @@ describe("WorkspaceShell interactions", () => {
     expect(mockedConvertDocumentToMarkdown).toHaveBeenCalledWith(expect.any(File));
 
     await waitFor(() => {
-      expect(screen.getByRole("tab", { name: /converted brief/i })).toHaveAttribute(
-        "aria-selected",
-        "true"
-      );
+      expect(getWorkspaceTabButton(/converted brief/i)).toHaveAttribute("aria-current", "page");
     });
     await waitFor(() => {
       expect(
@@ -1706,10 +1723,7 @@ describe("WorkspaceShell interactions", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByRole("tab", { name: /converted persisted/i })).toHaveAttribute(
-        "aria-selected",
-        "true"
-      );
+      expect(getWorkspaceTabButton(/converted persisted/i)).toHaveAttribute("aria-current", "page");
     });
 
     window.dispatchEvent(new Event("pagehide"));
@@ -1766,7 +1780,7 @@ describe("WorkspaceShell interactions", () => {
         ).toBeInTheDocument();
       });
 
-      expect(screen.getByRole("tab", { name: /homepage file/i })).toHaveAttribute("aria-selected", "true");
+      expect(getWorkspaceTabButton(/homepage file/i)).toHaveAttribute("aria-current", "page");
       expect(screen.queryByTestId("source-panel")).not.toBeInTheDocument();
       expect(window.localStorage.getItem(pendingWorkspaceImportKey)).toBeNull();
     } finally {
@@ -1805,7 +1819,7 @@ describe("WorkspaceShell interactions", () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByRole("tab", { name: /system file/i })).toBeInTheDocument();
+        expect(getWorkspaceTabButton(/system file/i)).toBeInTheDocument();
       });
 
       await waitFor(() => {
@@ -1815,7 +1829,7 @@ describe("WorkspaceShell interactions", () => {
             name: "Follow-up file"
           })
         ).toBeInTheDocument();
-        expect(screen.getByRole("tab", { name: /follow-up file/i })).toHaveAttribute("aria-selected", "true");
+        expect(getWorkspaceTabButton(/follow-up file/i)).toHaveAttribute("aria-current", "page");
         expect(screen.queryByTestId("source-panel")).not.toBeInTheDocument();
       });
     } finally {

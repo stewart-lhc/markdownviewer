@@ -8,7 +8,7 @@ This starter file is a broad reference for the markdown and preview features bui
 - [Internal jump](#tables-and-data) and [external link](https://commonmark.org)
 - Automatic URL preview: https://github.com
 - Angle-bracket autolink: <https://markdown.live>
-- Email autolink: <hello@example.com>
+- Contact example: hello [at] example dot com
 - Footnote reference[^1]
 
 > Markdown works best when the source stays readable first.
@@ -138,9 +138,9 @@ $$
 
 ## Media
 
-![Workspace preview placeholder](https://placehold.co/960x360/f4efe8/17171a?text=Markdown+Preview)
+![Workspace preview placeholder](/sample-markdown-preview.svg)
 
-[![Linked thumbnail](https://placehold.co/480x180/e8edf4/1f3552?text=Click+through)](https://example.com/media)
+[![Linked thumbnail](/sample-linked-thumbnail.svg)](https://example.com/media)
 
 ## Escapes
 

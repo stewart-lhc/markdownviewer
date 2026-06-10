@@ -75,4 +75,22 @@ describe("MarkdownRenderer", () => {
     expect(container.querySelector(".code-frame .hljs-keyword")).toBeInTheDocument();
     expect(container.querySelector(".code-frame .hljs-number")).toBeInTheDocument();
   });
+
+  it("adds stable dimensions to known sample images", () => {
+    render(<MarkdownRenderer markdown="![Workspace preview placeholder](/sample-markdown-preview.svg)" />);
+
+    const image = screen.getByRole("img", { name: "Workspace preview placeholder" });
+
+    expect(image).toHaveAttribute("width", "960");
+    expect(image).toHaveAttribute("height", "360");
+    expect(image).toHaveAttribute("loading", "lazy");
+    expect(image).toHaveAttribute("decoding", "async");
+  });
+
+  it("labels rendered task list checkboxes", () => {
+    render(<MarkdownRenderer markdown={"- [x] Done\n- [ ] Later"} />);
+
+    expect(screen.getByRole("checkbox", { name: "Completed task" })).toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: "Incomplete task" })).toBeInTheDocument();
+  });
 });

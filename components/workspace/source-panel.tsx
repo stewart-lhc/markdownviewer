@@ -12,18 +12,7 @@ import {
 import { applyMarkdownAction, type MarkdownEditorAction } from "@/lib/workspace/editor-actions";
 import type { WorkspaceMessages } from "@/lib/i18n/messages";
 import { getEditorActionShortcutLabel, getEditorShortcutCommand } from "@/lib/workspace/editor-shortcuts";
-import {
-  bindStackeditEditor,
-  ensureStackeditTrailingLf,
-  getBoundStackeditEditor,
-  getStackeditEditorFactory,
-  getStackeditPrism,
-  unbindStackeditEditor,
-  makeStackeditMarkdownGrammar,
-  normalizeStackeditContent,
-  parseStackeditSections,
-  type StackeditEditor
-} from "@/lib/workspace/stackedit-cledit";
+import type { StackeditEditor } from "@/lib/workspace/stackedit-cledit";
 
 export type SourcePanelMode = "paste" | "file" | "url";
 export type EditorPresentationMode = "rich" | "raw";
@@ -40,6 +29,8 @@ type SourcePanelProps = {
   onEditorScroll?: (element: HTMLTextAreaElement | HTMLDivElement) => void;
   onMarkdownChange: (value: string) => void;
 };
+
+type StackeditCleditModule = typeof import("@/lib/workspace/stackedit-cledit");
 
 const editorActions: Array<{
   action: MarkdownEditorAction;
@@ -103,6 +94,21 @@ const editorScrollSyncSuppressionKeys = new Set([
   "Home",
   "End"
 ]);
+
+let stackeditCleditModulePromise: Promise<StackeditCleditModule> | null = null;
+
+function loadStackeditCleditModule() {
+  stackeditCleditModulePromise ??= import("@/lib/workspace/stackedit-cledit");
+  return stackeditCleditModulePromise;
+}
+
+function ensureStackeditTrailingLf(markdown: string) {
+  return markdown.endsWith("\n") ? markdown : `${markdown}\n`;
+}
+
+function normalizeStackeditContent(markdown: string) {
+  return markdown.endsWith("\n") ? markdown.slice(0, -1) : markdown;
+}
 
 export function SourcePanel({
   editorPresentationMode,
@@ -267,12 +273,17 @@ export function SourcePanel({
     }
 
     initTimer = window.setTimeout(() => {
-      Promise.all([getStackeditEditorFactory(), getStackeditPrism()]).then(([cledit, Prism]) => {
+      void loadStackeditCleditModule().then(async (stackedit) => {
+        const [cledit, Prism] = await Promise.all([
+          stackedit.getStackeditEditorFactory(),
+          stackedit.getStackeditPrism()
+        ]);
+
         if (cancelled || !richEditorRef.current || richEditorRef.current !== surface) {
           return;
         }
 
-        const existingEditor = getBoundStackeditEditor(surface);
+        const existingEditor = stackedit.getBoundStackeditEditor(surface);
 
         if (existingEditor) {
           stackeditEditorRef.current = existingEditor;
@@ -282,7 +293,7 @@ export function SourcePanel({
           return;
         }
 
-        const grammar = makeStackeditMarkdownGrammar();
+        const grammar = stackedit.makeStackeditMarkdownGrammar();
         const editor = cledit(surface, surface, true);
 
         editor.on("contentChanged", (content: unknown) => {
@@ -300,10 +311,10 @@ export function SourcePanel({
         editor.init({
           content: ensureStackeditTrailingLf(latestMarkdownRef.current),
           sectionHighlighter: (section: { text: string }) => Prism.highlight(section.text, grammar, "markdown"),
-          sectionParser: parseStackeditSections
+          sectionParser: stackedit.parseStackeditSections
         });
         stackeditEditorRef.current = editor;
-        bindStackeditEditor(surface, editor);
+        stackedit.bindStackeditEditor(surface, editor);
         removeSelectionSync = setupSelectionSync(editor);
         editor.toggleEditable(true);
       });
@@ -318,7 +329,9 @@ export function SourcePanel({
 
       queueMicrotask(() => {
         if (!surface.isConnected) {
-          unbindStackeditEditor(surface);
+          void loadStackeditCleditModule().then((stackedit) => {
+            stackedit.unbindStackeditEditor(surface);
+          });
 
           if (stackeditEditorRef.current === currentEditor) {
             stackeditEditorRef.current = null;
