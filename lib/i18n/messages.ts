@@ -40,16 +40,9 @@ export type Messages = {
     footer: {
       ariaLabel: string;
       columns: Array<{ links: LandingLink[]; title: string }>;
-      contactBody: string;
-      contactLinkLabel: string;
-      contactTitle: string;
       copyright: string;
       description: string;
-      privacyBody: string;
-      privacyTitle: string;
       tagline: string;
-      termsBody: string;
-      termsTitle: string;
     };
     hero: {
       body: string;
@@ -409,28 +402,20 @@ export const messages: Record<Locale, Messages> = {
           {
             title: "Company",
             links: [
-              { label: "About us", href: "#about" },
-              { label: "Contact", href: "#contact" }
+              { label: "About us", href: "/about" },
+              { label: "Contact", href: "/contact" }
             ]
           },
           {
             title: "Legal",
             links: [
-              { label: "Terms of service", href: "#terms" },
-              { label: "Privacy policy", href: "#privacy" }
+              { label: "Terms of service", href: "/terms" },
+              { label: "Privacy policy", href: "/privacy" }
             ]
           }
         ],
-        contactBody: "For product feedback, support, or legal requests, open",
-        contactLinkLabel: "GitHub Issues",
-        contactTitle: "Contact.",
         copyright: "© 2026 markdownviewer.run",
-        privacyBody:
-          "Local files and pasted Markdown stay in your browser unless you load a remote URL, convert a document, or create a public share link. Creating a share link stores the Markdown so the shared page can open from its own URL.",
-        privacyTitle: "Privacy policy.",
-        tagline: "Online Markdown viewer for polished technical documents.",
-        termsBody: "Use the viewer responsibly and only open Markdown you have the right to access or process.",
-        termsTitle: "Terms of service."
+        tagline: "Online Markdown viewer for polished technical documents."
       }
     },
     workspace: {
@@ -799,28 +784,20 @@ export const messages: Record<Locale, Messages> = {
           {
             title: "公司",
             links: [
-              { label: "关于我们", href: "#about" },
-              { label: "联系", href: "#contact" }
+              { label: "关于我们", href: "/about" },
+              { label: "联系", href: "/contact" }
             ]
           },
           {
             title: "法律",
             links: [
-              { label: "服务条款", href: "#terms" },
-              { label: "隐私政策", href: "#privacy" }
+              { label: "服务条款", href: "/terms" },
+              { label: "隐私政策", href: "/privacy" }
             ]
           }
         ],
-        contactBody: "产品反馈、支持或法律请求，请打开",
-        contactLinkLabel: "GitHub Issues",
-        contactTitle: "联系。",
         copyright: "© 2026 markdownviewer.run",
-        privacyBody:
-          "除非你选择加载远程 URL、转换文档或创建公开分享链接，本地文件和粘贴的 Markdown 都会留在浏览器中处理。创建分享链接会存储 Markdown，以便分享页可以通过独立 URL 打开。",
-        privacyTitle: "隐私政策。",
-        tagline: "为精致技术文档打造的在线 Markdown 查看器。",
-        termsBody: "请负责任地使用查看器，并只打开你有权访问或处理的 Markdown。",
-        termsTitle: "服务条款。"
+        tagline: "为精致技术文档打造的在线 Markdown 查看器。"
       }
     },
     workspace: {

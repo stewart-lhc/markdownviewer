@@ -241,17 +241,7 @@ export function HomePageContent({ locale = defaultLocale }: HomePageContentProps
               </div>
             </nav>
           ) : null}
-          <div className="site-footer__legal">
-            <p id="terms">
-              <strong>{t.landing.footer.termsTitle}</strong> {t.landing.footer.termsBody}
-            </p>
-            <p id="privacy">
-              <strong>{t.landing.footer.privacyTitle}</strong> {t.landing.footer.privacyBody}
-            </p>
-            <p id="contact">
-              <strong>{t.landing.footer.contactTitle}</strong> {t.landing.footer.contactBody}{" "}
-              <a href={`${githubRepositoryUrl}/issues`}>{t.landing.footer.contactLinkLabel}</a>.
-            </p>
+          <div className="site-footer__friends-card">
             <div className="site-footer__friends" aria-label="Friendly links">
               <h2>{locale === defaultLocale ? "Friendly links" : "友情链接"}</h2>
               <div className="site-footer__launch-badges">

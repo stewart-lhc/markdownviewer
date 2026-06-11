@@ -1,10 +1,11 @@
 import type { MetadataRoute } from "next";
 import { seoLandingPages } from "@/lib/seo/landing-pages";
+import { siteInfoPages } from "@/lib/site-info-pages";
 
 const siteUrl = "https://markdownviewer.run";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const lastModified = new Date("2026-06-03");
+  const lastModified = new Date("2026-06-11");
   const homeAlternates = {
     languages: {
       en: siteUrl,
@@ -87,6 +88,31 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.7,
       alternates: pricingAlternates
     },
+    ...siteInfoPages.flatMap((page) => {
+      const alternates = {
+        languages: {
+          en: `${siteUrl}${page.path}`,
+          "zh-CN": `${siteUrl}${page.zhPath}`
+        }
+      };
+
+      return [
+        {
+          url: `${siteUrl}${page.path}`,
+          lastModified,
+          changeFrequency: "monthly" as const,
+          priority: 0.6,
+          alternates
+        },
+        {
+          url: `${siteUrl}${page.zhPath}`,
+          lastModified,
+          changeFrequency: "monthly" as const,
+          priority: 0.6,
+          alternates
+        }
+      ];
+    }),
     ...seoLandingPages.map((page) => ({
       url: `${siteUrl}${page.path}`,
       lastModified,

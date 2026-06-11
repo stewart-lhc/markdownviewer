@@ -69,12 +69,12 @@ describe("landing hero layout styles", () => {
     expect(css).toContain("display: none;");
   });
 
-  it("adds a formal landing footer with legal sections", () => {
+  it("adds a formal landing footer with workflow links and friendly links", () => {
     expect(css).toContain(".site-footer {");
     expect(css).toContain(".site-footer__nav {");
     expect(css).toContain(".site-footer__workflows {");
-    expect(css).toContain(".site-footer__legal {");
-    expect(css).toContain("grid-template-columns: repeat(4, minmax(0, 1fr));");
+    expect(css).toContain(".site-footer__friends-card {");
+    expect(css).not.toContain(".site-footer__legal {");
     expect(css).toContain(".site-footer__friends {");
     expect(css).toContain(".site-footer__friends .site-footer__launch-badges {");
     expect(css).toContain(".site-footer__bottom {");

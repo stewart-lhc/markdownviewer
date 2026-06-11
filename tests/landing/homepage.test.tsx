@@ -39,12 +39,14 @@ describe("homepage", () => {
     render(<HomePage />);
 
     expect(screen.getByRole("contentinfo")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /about us/i })).toHaveAttribute("href", "#about");
-    expect(screen.getByRole("link", { name: /terms of service/i })).toHaveAttribute("href", "#terms");
-    expect(screen.getByRole("link", { name: /privacy policy/i })).toHaveAttribute("href", "#privacy");
-    expect(screen.getByRole("link", { name: /contact/i })).toHaveAttribute("href", "#contact");
+    expect(screen.getByRole("link", { name: /about us/i })).toHaveAttribute("href", "/about");
+    expect(screen.getByRole("link", { name: /terms of service/i })).toHaveAttribute("href", "/terms");
+    expect(screen.getByRole("link", { name: /privacy policy/i })).toHaveAttribute("href", "/privacy");
+    expect(screen.getByRole("link", { name: /contact/i })).toHaveAttribute("href", "/contact");
     const friendlyLinks = screen.getByLabelText(/friendly links/i);
-    expect(friendlyLinks.closest(".site-footer__legal")).not.toBeNull();
+    expect(friendlyLinks.closest(".site-footer__friends-card")).not.toBeNull();
+    expect(screen.queryByText(/use the viewer responsibly/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/local files and pasted markdown stay/i)).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: /launched on tiny startups/i })).toHaveAttribute(
       "href",
       "https://www.tinystartups.com/startup/markdown-viewer"

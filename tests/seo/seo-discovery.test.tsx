@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import HomePage from "@/app/page";
 import sitemap from "@/app/sitemap";
 import { seoLandingPages } from "@/lib/seo/landing-pages";
+import { siteInfoPages } from "@/lib/site-info-pages";
 
 const siteUrl = "https://markdownviewer.run";
 
@@ -11,6 +12,11 @@ describe("seo discovery surfaces", () => {
 
     expect(urls).toContain(`${siteUrl}/pricing`);
     expect(urls).toContain(`${siteUrl}/zh-CN/pricing`);
+
+    for (const page of siteInfoPages) {
+      expect(urls).toContain(`${siteUrl}${page.path}`);
+      expect(urls).toContain(`${siteUrl}${page.zhPath}`);
+    }
 
     for (const page of seoLandingPages) {
       expect(urls).toContain(`${siteUrl}${page.path}`);

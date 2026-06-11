@@ -1353,7 +1353,6 @@ button {
 }
 
 .site-footer__brand p,
-.site-footer__legal p,
 .site-footer__bottom {
   margin: 0;
   color: var(--muted);
@@ -1418,21 +1417,18 @@ button {
   text-transform: uppercase;
 }
 
-.site-footer__column a,
-.site-footer__legal a {
+.site-footer__column a {
   color: var(--muted);
   transition: color 0.16s ease;
 }
 
-.site-footer__column a:hover,
-.site-footer__legal a:hover {
+.site-footer__column a:hover {
   color: var(--ink);
 }
 
-.site-footer__legal {
+.site-footer__friends-card {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 16px;
   padding: 18px;
   border-radius: 24px;
@@ -1454,10 +1450,6 @@ button {
   font-size: 0.72rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-}
-
-.site-footer__legal strong {
-  color: var(--ink);
 }
 
 .site-footer__bottom {
@@ -2614,6 +2606,60 @@ button {
   color: var(--muted);
   font-size: 1.05rem;
   line-height: 1.7;
+}
+
+.site-info-shell {
+  padding-bottom: 48px;
+}
+
+.site-info-hero {
+  max-width: 900px;
+}
+
+.site-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.site-info-card {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  min-height: 180px;
+}
+
+.site-info-card h2 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1.25rem;
+}
+
+.site-info-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.site-info-related {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  padding: 24px 0 0;
+  border-top: 1px solid var(--line);
+}
+
+.site-info-related a {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  transition: color 0.16s ease;
+}
+
+.site-info-related a:hover,
+.site-info-related a:focus-visible {
+  color: var(--ink);
 }
 
 .pricing-actions {
@@ -4862,7 +4908,8 @@ html[data-theme] .workspace-reader-body .markdown-body h4,
   .intent-grid,
   .faq-grid,
   .site-footer,
-  .site-footer__legal {
+  .site-footer__friends-card,
+  .site-info-grid {
     grid-template-columns: 1fr;
   }
 
