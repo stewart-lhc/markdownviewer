@@ -48,7 +48,7 @@ export async function POST(request: Request) {
       userAgent: request.headers.get("user-agent") || undefined
     });
 
-    if (!result.emailSent) {
+    if (result.status === "email_failed") {
       return NextResponse.json({
         email: result.email,
         emailSent: false,

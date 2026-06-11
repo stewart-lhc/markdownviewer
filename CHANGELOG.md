@@ -14,6 +14,7 @@ All notable changes to this project are documented in this file.
 
 - Updated Share Pro intent links from the share workflow to route into the waitlist page instead of sending users directly to the workspace.
 - Updated waitlist API responses so failed confirmation email delivery returns an error instead of a false success state.
+- Updated duplicate waitlist submissions so already verified emails stay verified and do not receive another confirmation email.
 
 ## 26.610 - 2026-06-10
 

@@ -190,8 +190,27 @@ type PendingWaitlistRecord = NormalizedWaitlistSubscriberInput & {
   createdAt: string;
 };
 
-async function savePendingWithCloudflareD1(input: PendingWaitlistRecord) {
+type SavePendingResult = {
+  status: WaitlistStatus;
+};
+
+async function savePendingWithCloudflareD1(input: PendingWaitlistRecord): Promise<SavePendingResult> {
   await ensureCloudflareD1Schema();
+  const existing = await queryCloudflareD1(
+    `
+      SELECT status
+      FROM waitlist_subscribers
+      WHERE email = ?
+      LIMIT 1
+    `,
+    [input.email]
+  );
+  const existingStatus = existing.result?.[0]?.results?.[0]?.status;
+
+  if (existingStatus === "verified") {
+    return { status: "verified" };
+  }
+
   await queryCloudflareD1(
     `
       INSERT INTO waitlist_subscribers (
@@ -233,9 +252,11 @@ async function savePendingWithCloudflareD1(input: PendingWaitlistRecord) {
       input.createdAt
     ]
   );
+
+  return { status: "pending" };
 }
 
-async function savePendingWithPostgres(input: PendingWaitlistRecord) {
+async function savePendingWithPostgres(input: PendingWaitlistRecord): Promise<SavePendingResult> {
   const sql = getPostgresClient();
 
   if (!sql) {
@@ -243,6 +264,17 @@ async function savePendingWithPostgres(input: PendingWaitlistRecord) {
   }
 
   await ensurePostgresSchema();
+  const existing = await sql`
+    SELECT status
+    FROM waitlist_subscribers
+    WHERE email = ${input.email}
+    LIMIT 1
+  ` as Array<{ status?: unknown }>;
+
+  if (existing[0]?.status === "verified") {
+    return { status: "verified" };
+  }
+
   await sql`
     INSERT INTO waitlist_subscribers (
       email,
@@ -284,6 +316,8 @@ async function savePendingWithPostgres(input: PendingWaitlistRecord) {
       confirmed_at = NULL,
       updated_at = excluded.updated_at
   `;
+
+  return { status: "pending" };
 }
 
 async function appendLocalWaitlistEvent(event: Record<string, unknown>) {
@@ -295,7 +329,34 @@ async function appendLocalWaitlistEvent(event: Record<string, unknown>) {
   );
 }
 
-async function savePendingWithLocalFile(input: PendingWaitlistRecord) {
+async function hasVerifiedLocalRecord(email: string) {
+  let text = "";
+
+  try {
+    text = await readFile(localWaitlistPath, "utf8");
+  } catch {
+    return false;
+  }
+
+  return text
+    .split(/\r?\n/)
+    .filter(Boolean)
+    .some((line) => {
+      try {
+        const record = JSON.parse(line) as { email?: unknown; status?: unknown; type?: unknown };
+
+        return record.email === email && record.status === "verified" && record.type === "waitlist_verified";
+      } catch {
+        return false;
+      }
+    });
+}
+
+async function savePendingWithLocalFile(input: PendingWaitlistRecord): Promise<SavePendingResult> {
+  if (await hasVerifiedLocalRecord(input.email)) {
+    return { status: "verified" };
+  }
+
   await appendLocalWaitlistEvent({
     confirmationTokenHash: input.confirmationTokenHash,
     createdAt: input.createdAt,
@@ -308,6 +369,8 @@ async function savePendingWithLocalFile(input: PendingWaitlistRecord) {
     type: "waitlist_pending",
     userAgent: input.userAgent
   });
+
+  return { status: "pending" };
 }
 
 async function markEmailSentWithCloudflareD1(email: string, status: Exclude<WaitlistStatus, "verified">, emailSentAt: string | null) {
@@ -527,17 +590,27 @@ export async function addWaitlistSubscriber(input: WaitlistSubscriberInput): Pro
   const token = createConfirmationToken();
   const confirmationTokenHash = hashConfirmationToken(token);
   let storage: WaitlistStorageProvider = "local-file";
+  let saved: SavePendingResult;
 
   if (getPostgresClient()) {
-    await savePendingWithPostgres({ ...normalizedInput, confirmationTokenHash, createdAt });
+    saved = await savePendingWithPostgres({ ...normalizedInput, confirmationTokenHash, createdAt });
     storage = "postgres";
   } else if (getCloudflareD1Config()) {
-    await savePendingWithCloudflareD1({ ...normalizedInput, confirmationTokenHash, createdAt });
+    saved = await savePendingWithCloudflareD1({ ...normalizedInput, confirmationTokenHash, createdAt });
     storage = "cloudflare-d1";
   } else if (isVercelRuntime()) {
     throw new Error("Waitlist storage is not configured.");
   } else {
-    await savePendingWithLocalFile({ ...normalizedInput, confirmationTokenHash, createdAt });
+    saved = await savePendingWithLocalFile({ ...normalizedInput, confirmationTokenHash, createdAt });
+  }
+
+  if (saved.status === "verified") {
+    return {
+      email,
+      emailSent: false,
+      status: "verified",
+      storage
+    };
   }
 
   const emailSent = await sendWaitlistConfirmation({ ...normalizedInput, baseUrl: input.baseUrl, token });

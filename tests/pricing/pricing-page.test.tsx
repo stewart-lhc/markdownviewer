@@ -53,6 +53,25 @@ describe("pricing page", () => {
     expect(await screen.findByText(/confirmation email sent/i)).toBeInTheDocument();
   });
 
+  it("shows an already verified message for duplicate verified submissions", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ emailSent: false, ok: true, status: "verified", storage: "postgres" })
+    });
+    Object.defineProperty(window, "fetch", {
+      configurable: true,
+      value: fetchMock
+    });
+
+    render(await PricingPage({ searchParams: Promise.resolve({}) }));
+
+    await user.type(screen.getAllByLabelText(/email/i)[0], "reader@example.com");
+    await user.click(screen.getByRole("button", { name: /join share pro waitlist/i }));
+
+    expect(await screen.findByText(/already on the verified waitlist/i)).toBeInTheDocument();
+  });
+
   it("shows confirmed waitlist state after clicking the email link", async () => {
     render(await PricingPage({ searchParams: Promise.resolve({ waitlist: "confirmed" }) }));
 

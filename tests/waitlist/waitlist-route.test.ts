@@ -113,6 +113,38 @@ describe("waitlist route", () => {
     });
   });
 
+  it("treats already verified duplicate submissions as a successful no-op", async () => {
+    waitlistMocks.addWaitlistSubscriber.mockResolvedValue({
+      email: "reader@example.com",
+      emailSent: false,
+      status: "verified",
+      storage: "postgres"
+    });
+
+    const response = await POST(
+      new Request("https://markdownviewer.run/api/waitlist", {
+        headers: {
+          "content-type": "application/json"
+        },
+        method: "POST",
+        body: JSON.stringify({
+          email: "reader@example.com",
+          interest: "share_pro"
+        })
+      })
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload).toEqual({
+      email: "reader@example.com",
+      emailSent: false,
+      ok: true,
+      status: "verified",
+      storage: "postgres"
+    });
+  });
+
   it("confirms a waitlist token and redirects back to pricing", async () => {
     waitlistMocks.confirmWaitlistSubscriber.mockResolvedValue({
       email: "reader@example.com",

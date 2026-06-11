@@ -191,7 +191,7 @@ Legacy compressed `md-...` links remain readable, but new shares use stored reco
 
 ### Waitlist Storage
 
-The `/pricing` page collects early-access interest for future controlled sharing and conversion automation. Waitlist submissions validate the email address, send a Resend confirmation email, and mark the subscriber as verified only after the confirmation link is opened.
+The `/pricing` page collects early-access interest for future controlled sharing and conversion automation. Waitlist submissions validate the email address, send a Resend confirmation email, and mark the subscriber as verified only after the confirmation link is opened. Duplicate submissions for an already verified email stay verified and do not send another confirmation email.
 
 Production deployments should provide `DATABASE_URL` or `POSTGRES_URL` for Neon/Postgres waitlist storage on Vercel. Cloudflare D1 is retained only as a migration/self-hosting compatibility fallback through `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_D1_DATABASE_ID`, and `CLOUDFLARE_API_TOKEN`. Local development falls back to `.data/waitlist/subscribers.jsonl` when no remote storage credentials are configured.
 

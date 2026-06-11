@@ -46,7 +46,11 @@ export function PricingWaitlistForm({ buttonLabel, interest, locale }: PricingWa
           source
         })
       });
-      const payload = (await response.json().catch(() => null)) as { emailSent?: boolean; error?: string } | null;
+      const payload = (await response.json().catch(() => null)) as {
+        emailSent?: boolean;
+        error?: string;
+        status?: "pending" | "email_failed" | "verified";
+      } | null;
 
       if (!response.ok) {
         throw new Error(payload?.error || "Failed to join the waitlist.");
@@ -55,10 +59,14 @@ export function PricingWaitlistForm({ buttonLabel, interest, locale }: PricingWa
       setFormState("success");
       setMessage(
         locale === "zh-CN"
-          ? payload?.emailSent
+          ? payload?.status === "verified"
+            ? "这个邮箱已经在 verified waitlist。"
+            : payload?.emailSent
             ? "确认邮件已发送，请点击邮件里的链接完成验证。"
             : "已加入 waitlist。邮件配置完成后我们会发送确认。"
-          : payload?.emailSent
+          : payload?.status === "verified"
+            ? "This email is already on the verified waitlist."
+            : payload?.emailSent
             ? "Confirmation email sent. Click the link in the email to verify your address."
             : "You are on the waitlist. Confirmation email will be sent after email is configured."
       );
