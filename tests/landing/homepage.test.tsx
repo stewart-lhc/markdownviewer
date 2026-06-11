@@ -15,6 +15,7 @@ describe("homepage", () => {
     expect(screen.getByLabelText(/markdown source url/i)).toHaveAttribute("name", "source");
     expect(screen.getByRole("button", { name: /^open$/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /updates/i })).toHaveAttribute("href", "/changelog");
+    expect(screen.getByRole("link", { name: /pricing/i })).toHaveAttribute("href", "/pricing");
     expect(container.querySelector(".topbar-actions .github-mark")).not.toBeNull();
     expect(container.querySelector(".topbar-actions > .ghost-link:last-child")).toHaveClass("ghost-link--primary");
     expect(screen.getByRole("heading", { level: 2, name: /recent features/i })).toBeInTheDocument();
@@ -42,14 +43,18 @@ describe("homepage", () => {
     expect(screen.getByRole("link", { name: /terms of service/i })).toHaveAttribute("href", "#terms");
     expect(screen.getByRole("link", { name: /privacy policy/i })).toHaveAttribute("href", "#privacy");
     expect(screen.getByRole("link", { name: /contact/i })).toHaveAttribute("href", "#contact");
+    const friendlyLinks = screen.getByLabelText(/friendly links/i);
+    expect(friendlyLinks.closest(".site-footer__legal")).not.toBeNull();
     expect(screen.getByRole("link", { name: /launched on tiny startups/i })).toHaveAttribute(
       "href",
       "https://www.tinystartups.com/startup/markdown-viewer"
     );
+    expect(within(friendlyLinks).getByRole("link", { name: /launched on tiny startups/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /launching soon on uneed/i })).toHaveAttribute(
       "href",
       "https://www.uneed.best/tool/markdown-viewer"
     );
+    expect(document.querySelector(".site-footer__bottom .site-footer__launch-badges")).toBeNull();
     expect(screen.getByAltText(/launching soon on uneed/i)).toHaveAttribute(
       "src",
       "https://www.uneed.best/EMBED3B.png"
@@ -64,6 +69,7 @@ describe("homepage", () => {
     expect(screen.getAllByRole("link", { name: /工作区/i })[0]).toHaveAttribute("href", "/zh-CN/workspace");
     expect(screen.getByRole("link", { name: "en" })).toHaveAttribute("href", "/");
     expect(screen.getAllByRole("link", { name: /更新/i })[0]).toHaveAttribute("href", "/zh-CN/changelog");
+    expect(screen.getByRole("link", { name: /定价/i })).toHaveAttribute("href", "/zh-CN/pricing");
     expect(screen.getByRole("button", { name: /^打开$/i })).toBeInTheDocument();
   });
 });

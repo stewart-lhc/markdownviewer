@@ -252,54 +252,57 @@ export function HomePageContent({ locale = defaultLocale }: HomePageContentProps
               <strong>{t.landing.footer.contactTitle}</strong> {t.landing.footer.contactBody}{" "}
               <a href={`${githubRepositoryUrl}/issues`}>{t.landing.footer.contactLinkLabel}</a>.
             </p>
+            <div className="site-footer__friends" aria-label="Friendly links">
+              <h2>{locale === defaultLocale ? "Friendly links" : "友情链接"}</h2>
+              <div className="site-footer__launch-badges">
+                <a
+                  className="site-footer__launch-badge"
+                  href="https://www.tinystartups.com/startup/markdown-viewer"
+                  target="_blank"
+                  rel="noopener"
+                  aria-label="Launched on Tiny Startups"
+                >
+                  <svg aria-hidden="true" focusable="false" width="56" height="56" viewBox="0 0 100 100">
+                    <defs>
+                      <linearGradient id="tiny-startups-gradient" x1=".1" y1="0" x2=".9" y2="1">
+                        <stop offset="0%" stopColor="#3525E6" />
+                        <stop offset="55%" stopColor="#D81FE0" />
+                        <stop offset="100%" stopColor="#22B8F0" />
+                      </linearGradient>
+                    </defs>
+                    <path
+                      d="M50 6C52 32 68 48 94 50C68 52 52 68 50 94C48 68 32 52 6 50C32 48 48 32 50 6Z"
+                      fill="url(#tiny-startups-gradient)"
+                    />
+                  </svg>
+                  <span className="site-footer__launch-text">
+                    <span className="site-footer__launch-kicker">Launched on</span>
+                    <span className="site-footer__launch-name">Tiny Startups</span>
+                    <span className="site-footer__launch-domain">tinystartups.com</span>
+                  </span>
+                </a>
+                <a
+                  className="site-footer__uneed-badge"
+                  href="https://www.uneed.best/tool/markdown-viewer"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  <img
+                    src="https://www.uneed.best/EMBED3B.png"
+                    alt="Launching Soon on Uneed"
+                    width="250"
+                    height="65"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </a>
+              </div>
+            </div>
           </div>
           <div className="site-footer__bottom">
             <div className="site-footer__bottom-copy">
               <span>{t.landing.footer.copyright}</span>
               <span>{t.landing.footer.tagline}</span>
-            </div>
-            <div className="site-footer__launch-badges">
-              <a
-                className="site-footer__launch-badge"
-                href="https://www.tinystartups.com/startup/markdown-viewer"
-                target="_blank"
-                rel="noopener"
-                aria-label="Launched on Tiny Startups"
-              >
-                <svg aria-hidden="true" focusable="false" width="56" height="56" viewBox="0 0 100 100">
-                  <defs>
-                    <linearGradient id="tiny-startups-gradient" x1=".1" y1="0" x2=".9" y2="1">
-                      <stop offset="0%" stopColor="#3525E6" />
-                      <stop offset="55%" stopColor="#D81FE0" />
-                      <stop offset="100%" stopColor="#22B8F0" />
-                    </linearGradient>
-                  </defs>
-                  <path
-                    d="M50 6C52 32 68 48 94 50C68 52 52 68 50 94C48 68 32 52 6 50C32 48 48 32 50 6Z"
-                    fill="url(#tiny-startups-gradient)"
-                  />
-                </svg>
-                <span className="site-footer__launch-text">
-                  <span className="site-footer__launch-kicker">Launched on</span>
-                  <span className="site-footer__launch-name">Tiny Startups</span>
-                  <span className="site-footer__launch-domain">tinystartups.com</span>
-                </span>
-              </a>
-              <a
-                className="site-footer__uneed-badge"
-                href="https://www.uneed.best/tool/markdown-viewer"
-                target="_blank"
-                rel="noopener"
-              >
-                <img
-                  src="https://www.uneed.best/EMBED3B.png"
-                  alt="Launching Soon on Uneed"
-                  width="250"
-                  height="65"
-                  loading="lazy"
-                  decoding="async"
-                />
-              </a>
             </div>
           </div>
         </footer>

@@ -1,16 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Palette } from "lucide-react";
 import type { WorkspaceMessages } from "@/lib/i18n/messages";
 import { workspaceThemeOptions, type WorkspaceTheme } from "@/lib/workspace/themes";
 
 type WorkspaceThemeSelectorProps = {
+  compact?: boolean;
   messages: WorkspaceMessages["preview"];
   onThemeChange: (theme: WorkspaceTheme) => void;
   theme: WorkspaceTheme;
 };
 
-export function WorkspaceThemeSelector({ messages, onThemeChange, theme }: WorkspaceThemeSelectorProps) {
+export function WorkspaceThemeSelector({ compact = false, messages, onThemeChange, theme }: WorkspaceThemeSelectorProps) {
   const [themeMenuOpen, setThemeMenuOpen] = useState(false);
   const themeMenuRef = useRef<HTMLDivElement | null>(null);
 
@@ -38,16 +40,23 @@ export function WorkspaceThemeSelector({ messages, onThemeChange, theme }: Works
       <button
         aria-expanded={themeMenuOpen}
         aria-haspopup="menu"
+        aria-label={messages.templateButton(messages.themes[theme].label)}
         className="toolbar-button"
         onClick={() => setThemeMenuOpen((open) => !open)}
         type="button"
       >
-        <span className="workspace-preview-template-label workspace-preview-template-label--full">
-          {messages.templateButton(messages.themes[theme].label)}
-        </span>
-        <span className="workspace-preview-template-label workspace-preview-template-label--compact">
-          {messages.themes[theme].label}
-        </span>
+        {compact ? (
+          <Palette aria-hidden="true" className="workspace-preview-control-icon" size={18} strokeWidth={2.2} />
+        ) : (
+          <>
+            <span className="workspace-preview-template-label workspace-preview-template-label--full">
+              {messages.templateButton(messages.themes[theme].label)}
+            </span>
+            <span className="workspace-preview-template-label workspace-preview-template-label--compact">
+              {messages.themes[theme].label}
+            </span>
+          </>
+        )}
       </button>
       {themeMenuOpen ? (
         <>

@@ -72,9 +72,9 @@ describe("workspace core canvas styles", () => {
   it("keeps the compact workspace header aligned and fixed on mobile", () => {
     expect(css).toContain("@media (max-width: 720px)");
     expect(css).toContain('"tabs spacer modes"');
-    expect(css).toContain('"tabs spacer modes overflow"');
+    expect(css).toContain('"tabs spacer modes share overflow"');
     expect(css).toContain("grid-template-columns: auto minmax(0, 1fr) 112px;");
-    expect(css).toContain("grid-template-columns: auto minmax(0, 1fr) 96px 44px !important;");
+    expect(css).toContain("grid-template-columns: auto minmax(0, 1fr) 96px 44px 44px !important;");
     expect(css).not.toContain('"tabs title modes"');
     expect(css).not.toContain('"title"');
     expect(css).toContain("grid-template-rows: 48px 44px;");
@@ -103,18 +103,22 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain(".toolbar-mobile-settings-strip .workspace-preview-type-controls {");
     expect(css).toContain(".toolbar-mobile-settings-strip .workspace-preview-font-list {");
     expect(css).toContain(".workspace-preview-bottom-bar {");
-    expect(css).toContain("grid-template-columns: minmax(0, 4fr) minmax(88px, 1.2fr);");
+    expect(css).toContain("display: block !important;");
     expect(css).toContain(".workspace-page .workspace-preview-bottom-bar {");
     expect(css).toContain(".workspace-page[data-preview-controls-open=\"true\"] .workspace-preview-bottom-bar {");
+    expect(css).toContain(".workspace-preview-mobile-share-button {");
+    expect(css).toContain("grid-area: share !important;");
     expect(css).toContain(".workspace-preview-bottom-toggle {");
     expect(css).toContain(".workspace-preview-bottom-toggle[aria-expanded=\"true\"] {");
-    expect(css).toContain("grid-template-columns: repeat(4, minmax(0, 1fr));");
+    expect(css).toContain("grid-template-columns: repeat(6, minmax(0, 1fr));");
     expect(css).toContain(".workspace-preview-bottom-bar .toolbar-overflow {");
     expect(css).toContain("justify-self: stretch !important;");
     expect(css).toContain(
       ".workspace-preview-bottom-bar .workspace-preview-size-control,\n  .workspace-preview-bottom-bar .workspace-preview-line-height-control {"
     );
     expect(css).toContain("display: contents !important;");
+    expect(css).toContain(".workspace-preview-control-icon {");
+    expect(css).toContain(".workspace-preview-step-icon {");
     expect(css).toContain(".workspace-preview-share-label-compact {");
   });
 

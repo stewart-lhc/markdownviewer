@@ -40,6 +40,13 @@ export function LandingTopbar({ currentPath, locale, messages }: LandingTopbarPr
           {messages.changelog}
         </a>
         <a
+          aria-current={isCurrentPath(currentPath, "/pricing") ? "page" : undefined}
+          className="ghost-link"
+          href={localizePath("/pricing", locale)}
+        >
+          {messages.pricing}
+        </a>
+        <a
           aria-current={isCurrentPath(currentPath, "/workspace") ? "page" : undefined}
           className="ghost-link ghost-link--primary"
           href={localizePath("/workspace", locale)}

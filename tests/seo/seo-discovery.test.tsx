@@ -9,6 +9,9 @@ describe("seo discovery surfaces", () => {
   it("adds every long-tail landing page to sitemap.xml", () => {
     const urls = sitemap().map((entry) => entry.url);
 
+    expect(urls).toContain(`${siteUrl}/pricing`);
+    expect(urls).toContain(`${siteUrl}/zh-CN/pricing`);
+
     for (const page of seoLandingPages) {
       expect(urls).toContain(`${siteUrl}${page.path}`);
     }

@@ -64,6 +64,7 @@ import {
 } from "@/components/workspace/workspace-preview-typography-controls";
 import { WorkspaceThemeSelector } from "@/components/workspace/workspace-theme-selector";
 import { WorkspaceToolbar } from "@/components/workspace/workspace-toolbar";
+import { trackProductEvent } from "@/lib/analytics/product-events";
 import { defaultLocale, localizePath, type Locale } from "@/lib/i18n/locales";
 import { getMessages, type WorkspaceMessages } from "@/lib/i18n/messages";
 import { extractHeadings } from "@/lib/markdown/extract-headings";
@@ -88,6 +89,7 @@ type WorkspaceTabRestoreStrategy = "restore" | "merge";
 type WorkspaceSourceKind = "draft" | "file-import" | "remote-url" | "folder-file" | "converted-file";
 type FolderSaveState = "idle" | "dirty" | "saving" | "saved" | "failed" | "conflict";
 type ShareCopyState = "idle" | "copied" | "failed";
+type ShareProIntent = "password" | "expiration" | "noindex" | "custom_slug";
 
 type WorkspaceTab = {
   createdAt: number;
@@ -2141,6 +2143,14 @@ export function WorkspaceShell({
     setStatusMessage(copied ? `${messages.status.linkCopied} ${shareUrl}` : shareUrl);
   }
 
+  function handleShareProIntent(intent: ShareProIntent) {
+    trackProductEvent("pro_feature_clicked", {
+      feature: intent,
+      product_area: "share",
+      source: "share_success"
+    });
+  }
+
   function getCurrentMarkdownLineForOffset(offset: number) {
     if (lineStartsCacheRef.current.markdown !== currentMarkdown) {
       lineStartsCacheRef.current = {
@@ -2525,9 +2535,28 @@ export function WorkspaceShell({
         ? locale === "zh-CN"
           ? "复制失败"
           : "Copy failed"
-        : locale === "zh-CN"
-          ? "复制链接"
-          : "Copy link";
+          : locale === "zh-CN"
+            ? "复制链接"
+            : "Copy link";
+  const pricingPath = localizePath("/pricing", locale);
+  const shareProIntents: Array<{ intent: ShareProIntent; label: string }> = [
+    {
+      intent: "password",
+      label: locale === "zh-CN" ? "添加密码" : "Add password"
+    },
+    {
+      intent: "expiration",
+      label: locale === "zh-CN" ? "设置过期时间" : "Set expiration"
+    },
+    {
+      intent: "noindex",
+      label: locale === "zh-CN" ? "阻止搜索索引" : "Block search indexing"
+    },
+    {
+      intent: "custom_slug",
+      label: locale === "zh-CN" ? "自定义链接" : "Custom slug"
+    }
+  ];
 
   return (
     <div
@@ -2586,6 +2615,17 @@ export function WorkspaceShell({
           onSourceChange={setCurrentSource}
           sourceValue={currentSource}
         />
+        {compactWorkspace && currentMode !== "editor" ? (
+          <button
+            aria-label={messages.toolbar.shareLink}
+            className="toolbar-button workspace-preview-mobile-share-button"
+            onClick={handleShare}
+            title={messages.toolbar.shareLink}
+            type="button"
+          >
+            <Share2 aria-hidden="true" size={18} strokeWidth={2.2} />
+          </button>
+        ) : null}
       </div>
       {!tabsCollapsed ? (
         folderRootHandle ? (
@@ -2729,6 +2769,28 @@ export function WorkspaceShell({
                 )}
                 <span>{shareCopyButtonLabel}</span>
               </button>
+              <div className="workspace-share-link__pro" aria-label={locale === "zh-CN" ? "Share Pro 功能" : "Share Pro features"}>
+                <div>
+                  <span>{locale === "zh-CN" ? "Share Pro 探针" : "Share Pro signals"}</span>
+                  <p>
+                    {locale === "zh-CN"
+                      ? "公开分享继续免费。点击这些受控分享能力可以告诉我们你需要什么。"
+                      : "Public sharing stays free. Tap a controlled sharing option to signal what you need next."}
+                  </p>
+                </div>
+                <div className="workspace-share-link__pro-grid">
+                  {shareProIntents.map((item) => (
+                    <a
+                      className="workspace-share-link__pro-action"
+                      href={`${pricingPath}?source=share_success&intent=${item.intent}`}
+                      key={item.intent}
+                      onClick={() => handleShareProIntent(item.intent)}
+                    >
+                      {item.label}
+                    </a>
+                  ))}
+                </div>
+              </div>
             </div>
           </>
         ) : null}
@@ -2901,8 +2963,9 @@ export function WorkspaceShell({
                 <>
                   <div className="workspace-preview-bottom-bar" hidden={!mobilePreviewControlsOpen}>
                     <div className="workspace-preview-bottom-controls">
-                      <WorkspaceThemeSelector messages={messages.preview} onThemeChange={setTheme} theme={theme} />
+                      <WorkspaceThemeSelector compact messages={messages.preview} onThemeChange={setTheme} theme={theme} />
                       <WorkspacePreviewTypographyControls
+                        compact
                         font={previewFont}
                         fontSize={previewFontSize}
                         lineHeight={previewLineHeight}
@@ -2923,13 +2986,6 @@ export function WorkspaceShell({
                         showMarginControl={false}
                       />
                     </div>
-                    <button className="toolbar-button workspace-preview-share-button" onClick={handleShare} type="button">
-                      <Share2 aria-hidden="true" size={16} strokeWidth={2} />
-                      <span className="workspace-preview-share-label-full">{messages.toolbar.shareLink}</span>
-                      <span className="workspace-preview-share-label-compact">
-                        {locale === "zh-CN" ? "分享" : "Share"}
-                      </span>
-                    </button>
                   </div>
                   <button
                     aria-expanded={mobilePreviewControlsOpen}

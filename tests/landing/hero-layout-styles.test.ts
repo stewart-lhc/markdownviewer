@@ -74,6 +74,9 @@ describe("landing hero layout styles", () => {
     expect(css).toContain(".site-footer__nav {");
     expect(css).toContain(".site-footer__workflows {");
     expect(css).toContain(".site-footer__legal {");
+    expect(css).toContain("grid-template-columns: repeat(4, minmax(0, 1fr));");
+    expect(css).toContain(".site-footer__friends {");
+    expect(css).toContain(".site-footer__friends .site-footer__launch-badges {");
     expect(css).toContain(".site-footer__bottom {");
     expect(css).toContain(".site-footer__launch-badges {");
     expect(css).toContain(".site-footer__launch-badge {");
@@ -89,6 +92,12 @@ describe("landing hero layout styles", () => {
     expect(topbarRule).toContain("width: 100%;");
     expect(topbarRule).toContain("margin: 0 0 18px;");
     expect(topbarRule).toContain("padding: 10px max(16px, calc((100% - 1200px) / 2));");
+    expect(css).toContain("margin: 0 0 12px;");
+    expect(css).toContain("padding: 5px 8px;");
+    expect(css).toContain(".topbar .brand-mark {");
+    expect(css).toContain("min-height: 34px;");
+    expect(css).toContain(".topbar .ghost-link--primary {");
+    expect(css).toContain("min-width: 96px;");
     expect(css).toContain(".update-grid {");
     expect(css).toContain(".changelog-hero {");
     expect(css).toContain(".release-card {");

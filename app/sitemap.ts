@@ -23,6 +23,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       "zh-CN": `${siteUrl}/zh-CN/changelog`
     }
   };
+  const pricingAlternates = {
+    languages: {
+      en: `${siteUrl}/pricing`,
+      "zh-CN": `${siteUrl}/zh-CN/pricing`
+    }
+  };
 
   return [
     {
@@ -66,6 +72,20 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 0.7,
       alternates: changelogAlternates
+    },
+    {
+      url: `${siteUrl}/pricing`,
+      lastModified,
+      changeFrequency: "weekly",
+      priority: 0.7,
+      alternates: pricingAlternates
+    },
+    {
+      url: `${siteUrl}/zh-CN/pricing`,
+      lastModified,
+      changeFrequency: "weekly",
+      priority: 0.7,
+      alternates: pricingAlternates
     },
     ...seoLandingPages.map((page) => ({
       url: `${siteUrl}${page.path}`,

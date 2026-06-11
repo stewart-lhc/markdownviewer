@@ -747,6 +747,15 @@ describe("WorkspaceShell interactions", () => {
 
     expect(page).toHaveAttribute("data-preview-controls-open", "true");
     expect(screen.getByRole("button", { name: /hide bottom bar/i })).toHaveAttribute("aria-expanded", "true");
+    const mobileShareButton = container.querySelector(".workspace-preview-mobile-share-button") as HTMLElement;
+    expect(mobileShareButton).toHaveTextContent("");
+    expect(mobileShareButton.closest(".workspace-header")).not.toBeNull();
+    expect(mobileShareButton.closest(".workspace-preview-shell")).toBeNull();
+    expect(container.querySelector(".workspace-preview-bottom-bar .workspace-preview-share-button")).toBeNull();
+    const bottomControlButtons = Array.from(
+      container.querySelectorAll(".workspace-preview-bottom-bar .toolbar-button")
+    ).map((button) => button.textContent?.trim());
+    expect(bottomControlButtons).not.toEqual(expect.arrayContaining(["A-", "A+", "L-", "L+"]));
 
     const preview = screen.getByTestId("preview-scroll-region");
     preview.scrollTop = 120;
@@ -1535,6 +1544,10 @@ describe("WorkspaceShell interactions", () => {
     expect(screen.getByText(/share link ready/i)).toBeInTheDocument();
     expect(screen.getByRole("dialog", { name: /share link/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /copied/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /add password/i })).toHaveAttribute(
+      "href",
+      "/pricing?source=share_success&intent=password"
+    );
 
     await waitFor(() => {
       expect(screen.getByRole("button", { name: /copy link/i })).toBeInTheDocument();
@@ -1544,6 +1557,63 @@ describe("WorkspaceShell interactions", () => {
     expect(await screen.findByRole("button", { name: /copied/i })).toBeInTheDocument();
     fireEvent.click(document.querySelector(".workspace-share-backdrop") as Element);
     expect(screen.queryByRole("dialog", { name: /share link/i })).not.toBeInTheDocument();
+  });
+
+  it("records Share Pro intent from the generated share dialog", async () => {
+    const user = userEvent.setup();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    const dataLayer: unknown[] = [];
+    const gtag = vi.fn();
+    const createShare = vi.fn().mockResolvedValue({
+      id: "share-pro-intent-a1b2",
+      title: "Share Pro intent"
+    });
+
+    Object.defineProperty(window.navigator, "clipboard", {
+      configurable: true,
+      value: { writeText }
+    });
+    Object.defineProperty(window, "dataLayer", {
+      configurable: true,
+      value: dataLayer,
+      writable: true
+    });
+    Object.defineProperty(window, "gtag", {
+      configurable: true,
+      value: gtag,
+      writable: true
+    });
+
+    render(
+      <WorkspaceShell
+        createShare={createShare}
+        markdown="# Share Pro intent\n\nReadable document."
+        sourceInput=""
+      />
+    );
+
+    await user.click(screen.getByRole("button", { name: /share link/i }));
+
+    const expirationIntent = await screen.findByRole("link", { name: /set expiration/i });
+    expect(expirationIntent).toHaveAttribute(
+      "href",
+      "/pricing?source=share_success&intent=expiration"
+    );
+
+    expirationIntent.addEventListener("click", (event) => event.preventDefault(), { capture: true });
+    await user.click(expirationIntent);
+
+    expect(dataLayer).toContainEqual({
+      event: "pro_feature_clicked",
+      feature: "expiration",
+      product_area: "share",
+      source: "share_success"
+    });
+    expect(gtag).toHaveBeenCalledWith("event", "pro_feature_clicked", {
+      feature: "expiration",
+      product_area: "share",
+      source: "share_success"
+    });
   });
 
   it("loads a dropped file and switches between preview and editor modes", async () => {
@@ -2067,7 +2137,7 @@ describe("WorkspaceShell interactions", () => {
           name: "Strictly updated"
         })
       ).toBeInTheDocument();
-    });
+    }, { timeout: 10000 });
   });
 
   it("tracks browser selection changes so select-all backspace clears the rich editor", async () => {

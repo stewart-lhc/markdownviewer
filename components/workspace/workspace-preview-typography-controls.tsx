@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { ALargeSmall, AlignVerticalSpaceAround, Minus, Plus, Type, type LucideIcon } from "lucide-react";
 import type { WorkspaceMessages } from "@/lib/i18n/messages";
 
 export type WorkspacePreviewFont =
@@ -19,6 +20,7 @@ export type WorkspacePreviewFont =
   | "palatino";
 
 type WorkspacePreviewTypographyControlsProps = {
+  compact?: boolean;
   font: WorkspacePreviewFont;
   fontSize: number;
   lineHeight: number;
@@ -118,6 +120,7 @@ export function getWorkspacePreviewFontStack(font: WorkspacePreviewFont) {
 }
 
 export function WorkspacePreviewTypographyControls({
+  compact = false,
   font,
   fontSize,
   lineHeight,
@@ -169,7 +172,11 @@ export function WorkspacePreviewTypographyControls({
           onClick={() => setFontMenuOpen((open) => !open)}
           type="button"
         >
-          {selectedFontLabel}
+          {compact ? (
+            <Type aria-hidden="true" className="workspace-preview-control-icon" size={18} strokeWidth={2.2} />
+          ) : (
+            selectedFontLabel
+          )}
         </button>
         {fontMenuOpen ? (
           <>
@@ -208,7 +215,7 @@ export function WorkspacePreviewTypographyControls({
           onClick={() => onFontSizeChange(fontSize - 1)}
           type="button"
         >
-          A-
+          {compact ? <PreviewStepIcon Icon={ALargeSmall} sign="minus" /> : "A-"}
         </button>
         <output aria-label={messages.fontSize} className="workspace-preview-size-value sr-only">
           {fontSize}px
@@ -220,7 +227,7 @@ export function WorkspacePreviewTypographyControls({
           onClick={() => onFontSizeChange(fontSize + 1)}
           type="button"
         >
-          A+
+          {compact ? <PreviewStepIcon Icon={ALargeSmall} sign="plus" /> : "A+"}
         </button>
       </div>
       <div className="workspace-preview-line-height-control">
@@ -231,7 +238,7 @@ export function WorkspacePreviewTypographyControls({
           onClick={() => onLineHeightChange(lineHeight - 5)}
           type="button"
         >
-          L-
+          {compact ? <PreviewStepIcon Icon={AlignVerticalSpaceAround} sign="minus" /> : "L-"}
         </button>
         <output aria-label={messages.lineHeight} className="workspace-preview-line-height-value sr-only">
           {(lineHeight / 100).toFixed(2)}
@@ -243,7 +250,7 @@ export function WorkspacePreviewTypographyControls({
           onClick={() => onLineHeightChange(lineHeight + 5)}
           type="button"
         >
-          L+
+          {compact ? <PreviewStepIcon Icon={AlignVerticalSpaceAround} sign="plus" /> : "L+"}
         </button>
       </div>
       {showMarginControl ? (
@@ -277,4 +284,21 @@ export function WorkspacePreviewTypographyControls({
 
 function getWorkspacePreviewFontLabel(font: WorkspacePreviewFont) {
   return workspacePreviewFontOptions.find((option) => option.id === font)?.label ?? workspacePreviewFontOptions[0].label;
+}
+
+function PreviewStepIcon({
+  Icon,
+  sign
+}: {
+  Icon: LucideIcon;
+  sign: "minus" | "plus";
+}) {
+  const SignIcon = sign === "plus" ? Plus : Minus;
+
+  return (
+    <span className="workspace-preview-step-icon" aria-hidden="true">
+      <Icon className="workspace-preview-control-icon" size={17} strokeWidth={2.2} />
+      <SignIcon className="workspace-preview-step-sign" size={11} strokeWidth={2.6} />
+    </span>
+  );
 }

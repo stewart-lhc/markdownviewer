@@ -74,6 +74,7 @@ export type Messages = {
     nav: {
       changelog: string;
       github: string;
+      pricing: string;
       primary: string;
       workspace: string;
     };
@@ -259,6 +260,7 @@ export const messages: Record<Locale, Messages> = {
       nav: {
         changelog: "Updates",
         github: "GitHub",
+        pricing: "Pricing",
         primary: "Primary",
         workspace: "Workspace"
       },
@@ -673,6 +675,7 @@ export const messages: Record<Locale, Messages> = {
       nav: {
         changelog: "更新",
         github: "GitHub",
+        pricing: "定价",
         primary: "主导航",
         workspace: "工作区"
       },

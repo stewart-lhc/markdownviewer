@@ -10,3 +10,5 @@ node_modules
 test-results/
 .data/
 .next-dev-*.log
+.next-dev-*.out
+.next-dev-*.err
