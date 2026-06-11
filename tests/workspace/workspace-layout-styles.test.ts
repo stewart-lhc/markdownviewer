@@ -125,6 +125,19 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain(".workspace-preview-share-label-compact {");
   });
 
+  it("keeps shared-document headers on the same site navigation heights", () => {
+    expect(css).toContain(".share-header {");
+    expect(css).toContain("grid-template-rows: var(--site-nav-height) minmax(0, 1fr);");
+    expect(css).toContain("height: var(--site-nav-height);");
+    expect(css).toContain("min-height: var(--site-nav-height);");
+    expect(css).toContain(".share-header .ghost-link {");
+    expect(css).toContain("min-height: var(--site-nav-control-height);");
+    expect(css).toContain("grid-template-rows: var(--site-nav-mobile-height) minmax(0, 1fr);");
+    expect(css).toContain("height: var(--site-nav-mobile-height);");
+    expect(css).toContain("min-height: var(--site-nav-mobile-height);");
+    expect(css).toContain("min-height: var(--site-nav-mobile-control-height);");
+  });
+
   it("keeps rich mode as a single editable styled surface instead of a textarea overlay", () => {
     expect(css).toContain(".workspace-editor-shell {");
     expect(css).toContain("height: 0;");
