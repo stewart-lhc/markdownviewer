@@ -11,7 +11,7 @@
 
 [Live Markdown Viewer](https://markdownviewer.run/) - [Open the Workspace](https://markdownviewer.run/workspace) - [Changelog](https://markdownviewer.run/changelog) - [Star the Project](https://github.com/stewart-lhc/markdownviewer)
 
-Current product update: **26.610**. Current package release: **v0.2.0**. See [CHANGELOG.md](CHANGELOG.md) and the live [Changelog](https://markdownviewer.run/changelog) for release notes and update history.
+Current product update: **26.611**. Current package release: **v0.2.0**. See [CHANGELOG.md](CHANGELOG.md) and the live [Changelog](https://markdownviewer.run/changelog) for release notes and update history.
 
 </div>
 
@@ -49,6 +49,7 @@ It is designed to be more than a plain textarea preview. Markdownviewer gives RE
 - **Local Folder Workspace** - open a local docs folder in supported desktop browsers, browse Markdown files, follow relative links, and save changes back to disk.
 - **Persistent workspace tabs** - keep multiple Markdown documents open with independent source labels and restored tab state.
 - **Stored share links** - generate canonical `/share/{id}` pages through `/api/share`, backed by Vercel Blob in production and a local file-store fallback in development.
+- **Early-access waitlists** - collect verified email interest for future Share Pro and Converter API workflows without putting the free workspace behind a paywall.
 - **Full share-page reader** - shared documents keep the logo, table of contents, typography controls, themes, font size controls, preview margin controls, and open-in-workspace behavior.
 - **Installable PWA** - install Markdownviewer from supported browsers, use the mobile install prompt, and open `.md` files with it on compatible desktop Chromium browsers.
 - **Export** - export polished HTML or print/PDF from the preview workspace.
@@ -61,6 +62,7 @@ It is designed to be more than a plain textarea preview. Markdownviewer gives RE
 
 | Version | Date | Product update |
 | --- | --- | --- |
+| **26.611** | 2026-06-11 | Added early-access waitlist capture with email confirmation, a `/pricing` waitlist page, Resend delivery, and Neon/Postgres production storage with D1 and local development fallbacks. |
 | **26.610** | 2026-06-10 | Refined the desktop workspace with per-tab preview scroll restoration, new tabs that start at the top, a resizable tab sidebar, a cleaner Paste/Blank/File/Folder new-tab dialog, consistent editor toolbar icons, preview line-height controls, auto-dismissing status messages, and theme-aware contents scrollbars. |
 | **26.609** | 2026-06-09 | Refined the mobile workspace reader with auto-hiding top chrome, a default-hidden preview bottom bar, and a mobile PWA install prompt with native install support plus add-to-home-screen guidance. |
 | **26.604** | 2026-06-04 | Added server-stored share links, canonical `/share/{id}` pages, Vercel Blob production storage, local development fallback storage, full preview-reader controls on share pages, the restored share-page logo, and working M- / M+ preview margin controls. |
@@ -186,6 +188,12 @@ New share links are created through `/api/share` and open at canonical `/share/{
 Production deployments should provide `BLOB_READ_WRITE_TOKEN` for Vercel Blob storage. Local development uses a file-store fallback under the project workspace so share behavior can still be tested without cloud credentials.
 
 Legacy compressed `md-...` links remain readable, but new shares use stored records by default.
+
+### Waitlist Storage
+
+The `/pricing` page collects early-access interest for future controlled sharing and conversion automation. Waitlist submissions validate the email address, send a Resend confirmation email, and mark the subscriber as verified only after the confirmation link is opened.
+
+Production deployments should provide `DATABASE_URL` or `POSTGRES_URL` for Neon/Postgres waitlist storage on Vercel. Cloudflare D1 is retained only as a migration/self-hosting compatibility fallback through `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_D1_DATABASE_ID`, and `CLOUDFLARE_API_TOKEN`. Local development falls back to `.data/waitlist/subscribers.jsonl` when no remote storage credentials are configured.
 
 ### Project Structure
 

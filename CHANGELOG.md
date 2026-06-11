@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented in this file.
 
+## 26.611 - 2026-06-11
+
+### Added
+
+- Added a `/pricing` early-access waitlist page for Share Pro and Converter API interest without putting the free workspace behind a paywall.
+- Added waitlist email validation, Resend confirmation email delivery, and confirmation-link handling before marking an address as verified.
+- Added Neon/Postgres waitlist storage through `DATABASE_URL` or `POSTGRES_URL`, with Cloudflare D1 and local JSONL storage retained as fallbacks.
+
+### Changed
+
+- Updated Share Pro intent links from the share workflow to route into the waitlist page instead of sending users directly to the workspace.
+- Updated waitlist API responses so failed confirmation email delivery returns an error instead of a false success state.
+
 ## 26.610 - 2026-06-10
 
 ### Added

@@ -1,5 +1,6 @@
 import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { neon } from "@neondatabase/serverless";
 import path from "node:path";
 
 export type WaitlistInterest = "share_pro" | "converter_api";
@@ -14,7 +15,7 @@ export type WaitlistSubscriberInput = {
   userAgent?: string;
 };
 
-export type WaitlistStorageProvider = "cloudflare-d1" | "local-file";
+export type WaitlistStorageProvider = "postgres" | "cloudflare-d1" | "local-file";
 
 export type WaitlistSubscriberResult = {
   email: string;
@@ -39,6 +40,7 @@ type CloudflareD1QueryResult = {
 
 const localWaitlistDirectory = path.join(process.cwd(), ".data", "waitlist");
 const localWaitlistPath = path.join(localWaitlistDirectory, "subscribers.jsonl");
+let postgresClient: ReturnType<typeof neon> | null = null;
 
 function isVercelRuntime() {
   return Boolean(process.env.VERCEL);
@@ -62,6 +64,21 @@ function getCloudflareD1Config() {
   }
 
   return { accountId, apiToken, databaseId };
+}
+
+function getPostgresDatabaseUrl() {
+  return process.env.DATABASE_URL || process.env.POSTGRES_URL || null;
+}
+
+function getPostgresClient() {
+  const databaseUrl = getPostgresDatabaseUrl();
+
+  if (!databaseUrl) {
+    return null;
+  }
+
+  postgresClient ??= neon(databaseUrl);
+  return postgresClient;
 }
 
 function hashConfirmationToken(token: string) {
@@ -134,6 +151,31 @@ async function ensureCloudflareD1Schema() {
   await queryCloudflareD1(`ALTER TABLE waitlist_subscribers ADD COLUMN confirmed_at TEXT`).catch(() => undefined);
 }
 
+async function ensurePostgresSchema() {
+  const sql = getPostgresClient();
+
+  if (!sql) {
+    throw new Error("Postgres waitlist storage is not configured.");
+  }
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS waitlist_subscribers (
+      email TEXT PRIMARY KEY,
+      interest TEXT NOT NULL,
+      source TEXT,
+      intent TEXT,
+      locale TEXT,
+      user_agent TEXT,
+      status TEXT NOT NULL DEFAULT 'pending',
+      confirmation_token_hash TEXT,
+      email_sent_at TIMESTAMPTZ,
+      confirmed_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL,
+      updated_at TIMESTAMPTZ NOT NULL
+    )
+  `;
+}
+
 type NormalizedWaitlistSubscriberInput = {
   email: string;
   interest: WaitlistInterest;
@@ -193,6 +235,57 @@ async function savePendingWithCloudflareD1(input: PendingWaitlistRecord) {
   );
 }
 
+async function savePendingWithPostgres(input: PendingWaitlistRecord) {
+  const sql = getPostgresClient();
+
+  if (!sql) {
+    throw new Error("Postgres waitlist storage is not configured.");
+  }
+
+  await ensurePostgresSchema();
+  await sql`
+    INSERT INTO waitlist_subscribers (
+      email,
+      interest,
+      source,
+      intent,
+      locale,
+      user_agent,
+      status,
+      confirmation_token_hash,
+      email_sent_at,
+      confirmed_at,
+      created_at,
+      updated_at
+    )
+    VALUES (
+      ${input.email},
+      ${input.interest},
+      ${input.source},
+      ${input.intent},
+      ${input.locale},
+      ${input.userAgent},
+      'pending',
+      ${input.confirmationTokenHash},
+      NULL,
+      NULL,
+      ${input.createdAt},
+      ${input.createdAt}
+    )
+    ON CONFLICT (email) DO UPDATE SET
+      interest = excluded.interest,
+      source = excluded.source,
+      intent = excluded.intent,
+      locale = excluded.locale,
+      user_agent = excluded.user_agent,
+      status = 'pending',
+      confirmation_token_hash = excluded.confirmation_token_hash,
+      email_sent_at = NULL,
+      confirmed_at = NULL,
+      updated_at = excluded.updated_at
+  `;
+}
+
 async function appendLocalWaitlistEvent(event: Record<string, unknown>) {
   await mkdir(localWaitlistDirectory, { recursive: true });
   await writeFile(
@@ -227,6 +320,23 @@ async function markEmailSentWithCloudflareD1(email: string, status: Exclude<Wait
     `,
     [status, emailSentAt, new Date().toISOString(), email]
   );
+}
+
+async function markEmailSentWithPostgres(email: string, status: Exclude<WaitlistStatus, "verified">, emailSentAt: string | null) {
+  const sql = getPostgresClient();
+
+  if (!sql) {
+    throw new Error("Postgres waitlist storage is not configured.");
+  }
+
+  await ensurePostgresSchema();
+  await sql`
+    UPDATE waitlist_subscribers
+    SET status = ${status},
+        email_sent_at = ${emailSentAt},
+        updated_at = ${new Date().toISOString()}
+    WHERE email = ${email}
+  `;
 }
 
 async function markEmailSentWithLocalFile(email: string, status: Exclude<WaitlistStatus, "verified">, emailSentAt: string | null) {
@@ -297,6 +407,38 @@ async function confirmWithCloudflareD1(tokenHash: string) {
     `,
     [confirmedAt, confirmedAt, email]
   );
+
+  return email;
+}
+
+async function confirmWithPostgres(tokenHash: string) {
+  const sql = getPostgresClient();
+
+  if (!sql) {
+    throw new Error("Postgres waitlist storage is not configured.");
+  }
+
+  await ensurePostgresSchema();
+  const rows = await sql`
+    SELECT email
+    FROM waitlist_subscribers
+    WHERE confirmation_token_hash = ${tokenHash}
+    LIMIT 1
+  ` as Array<{ email?: unknown }>;
+  const email = rows[0]?.email;
+
+  if (typeof email !== "string") {
+    return null;
+  }
+
+  const confirmedAt = new Date().toISOString();
+  await sql`
+    UPDATE waitlist_subscribers
+    SET status = 'verified',
+        confirmed_at = ${confirmedAt},
+        updated_at = ${confirmedAt}
+    WHERE email = ${email}
+  `;
 
   return email;
 }
@@ -386,7 +528,10 @@ export async function addWaitlistSubscriber(input: WaitlistSubscriberInput): Pro
   const confirmationTokenHash = hashConfirmationToken(token);
   let storage: WaitlistStorageProvider = "local-file";
 
-  if (getCloudflareD1Config()) {
+  if (getPostgresClient()) {
+    await savePendingWithPostgres({ ...normalizedInput, confirmationTokenHash, createdAt });
+    storage = "postgres";
+  } else if (getCloudflareD1Config()) {
     await savePendingWithCloudflareD1({ ...normalizedInput, confirmationTokenHash, createdAt });
     storage = "cloudflare-d1";
   } else if (isVercelRuntime()) {
@@ -397,7 +542,9 @@ export async function addWaitlistSubscriber(input: WaitlistSubscriberInput): Pro
 
   const emailSent = await sendWaitlistConfirmation({ ...normalizedInput, baseUrl: input.baseUrl, token });
 
-  if (storage === "cloudflare-d1") {
+  if (storage === "postgres") {
+    await markEmailSentWithPostgres(email, emailSent ? "pending" : "email_failed", emailSent ? new Date().toISOString() : null);
+  } else if (storage === "cloudflare-d1") {
     await markEmailSentWithCloudflareD1(email, emailSent ? "pending" : "email_failed", emailSent ? new Date().toISOString() : null);
   } else {
     await markEmailSentWithLocalFile(email, emailSent ? "pending" : "email_failed", emailSent ? new Date().toISOString() : null);
@@ -422,7 +569,10 @@ export async function confirmWaitlistSubscriber(token: string): Promise<Waitlist
   let storage: WaitlistStorageProvider = "local-file";
   let email: string | null;
 
-  if (getCloudflareD1Config()) {
+  if (getPostgresClient()) {
+    email = await confirmWithPostgres(tokenHash);
+    storage = "postgres";
+  } else if (getCloudflareD1Config()) {
     email = await confirmWithCloudflareD1(tokenHash);
     storage = "cloudflare-d1";
   } else if (isVercelRuntime()) {

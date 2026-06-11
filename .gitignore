@@ -4,6 +4,7 @@ node_modules
 .env*.local
 *.tsbuildinfo
 .codex/
+.codex-remote-attachments/
 .codex-temp/
 .playwright-mcp/
 .codex-*.png

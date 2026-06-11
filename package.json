@@ -29,6 +29,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.1.0",
     "@vercel/blob": "^2.4.0",
     "cledit": "^1.2.0",
     "katex": "^0.16.25",
