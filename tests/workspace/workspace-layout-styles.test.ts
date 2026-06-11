@@ -74,10 +74,11 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain('"tabs spacer modes"');
     expect(css).toContain('"tabs spacer modes share overflow"');
     expect(css).toContain("grid-template-columns: auto minmax(0, 1fr) 112px;");
-    expect(css).toContain("grid-template-columns: auto minmax(0, 1fr) 96px 44px 44px !important;");
+    expect(css).toContain("grid-template-columns: auto minmax(0, 1fr) 88px 38px 38px !important;");
     expect(css).not.toContain('"tabs title modes"');
     expect(css).not.toContain('"title"');
     expect(css).toContain("grid-template-rows: 48px 44px;");
+    expect(css).toContain("grid-template-rows: 42px !important;");
     expect(css).toContain("position: fixed;");
     expect(css).toContain("top: 0 !important;");
     expect(css).toContain("left: 0 !important;");
@@ -90,7 +91,7 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain(".workspace-menu-backdrop {");
     expect(css).toContain("backdrop-filter: none;");
     expect(css).toContain(".workspace-header-tabs-control {");
-    expect(css).toContain("width: 40px;");
+    expect(css).toContain("width: 36px !important;");
     expect(css).toContain(".workspace-share-link {");
     expect(css).toContain("transform: translate(-50%, -50%);");
     expect(css).toContain(".workspace-share-link__header {");

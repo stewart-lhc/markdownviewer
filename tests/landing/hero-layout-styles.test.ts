@@ -84,6 +84,16 @@ describe("landing hero layout styles", () => {
     expect(css).not.toContain(".workflow-link-bar {");
   });
 
+  it("keeps site info headings and actions within the mobile viewport", () => {
+    expect(css).toContain(".site-info-hero h1 {");
+    expect(css).toContain("max-width: min(100%, 13ch);");
+    expect(css).toContain("overflow-wrap: anywhere;");
+    expect(css).toContain(".site-info-hero .hero-actions {");
+    expect(css).toContain("grid-template-columns: 1fr;");
+    expect(css).toContain(".site-info-hero .button-primary,\n  .site-info-hero .button-secondary {");
+    expect(css).toContain("width: 100%;");
+  });
+
   it("keeps the landing navigation sticky and styles the changelog sections", () => {
     const topbarRule = getRule(".topbar");
 

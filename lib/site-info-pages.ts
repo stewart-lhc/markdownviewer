@@ -39,7 +39,7 @@ export const siteInfoPages = [
         description:
           "Learn about markdownviewer.run, an independent online Markdown viewer for README files, technical notes, AI output, diagrams, math, and document conversion.",
         eyebrow: "About",
-        h1: "About markdownviewer.run",
+        h1: "About Markdownviewer",
         intro:
           "markdownviewer.run is an independent Markdown viewing and editing workspace built for people who need to read, clean up, convert, and share Markdown without setting up a docs stack.",
         sections: [
@@ -65,7 +65,7 @@ export const siteInfoPages = [
         description:
           "了解 markdownviewer.run：一个由个人开发者维护的在线 Markdown 查看器，适合 README、技术笔记、AI 输出、图表、数学公式和文档转换。",
         eyebrow: "关于",
-        h1: "关于 markdownviewer.run",
+        h1: "关于 Markdownviewer",
         intro:
           "markdownviewer.run 是一个独立的 Markdown 阅读和编辑工作区，面向需要读取、整理、转换和分享 Markdown，但不想搭建文档系统的用户。",
         sections: [
@@ -98,7 +98,7 @@ export const siteInfoPages = [
         description:
           "Contact the independent developer behind markdownviewer.run for product feedback, support questions, or legal requests.",
         eyebrow: "Contact",
-        h1: "Contact markdownviewer.run",
+        h1: "Contact",
         intro:
           "For product feedback, support questions, bug reports, or legal requests, contact the independent developer maintaining markdownviewer.run.",
         sections: [
@@ -123,7 +123,7 @@ export const siteInfoPages = [
         description:
           "联系 markdownviewer.run 的个人开发者，处理产品反馈、支持问题、bug 报告或法律请求。",
         eyebrow: "联系",
-        h1: "联系 markdownviewer.run",
+        h1: "联系",
         intro:
           "如果你有产品反馈、支持问题、bug 报告或法律请求，可以联系维护 markdownviewer.run 的个人开发者。",
         sections: [
