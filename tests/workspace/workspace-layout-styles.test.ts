@@ -113,12 +113,12 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain("grid-area: share !important;");
     expect(css).toContain(".workspace-preview-bottom-toggle {");
     expect(css).toContain(".workspace-preview-bottom-toggle[aria-expanded=\"true\"] {");
-    expect(css).toContain(".workspace-page[data-preview-controls-open=\"true\"] .workspace-toc {");
-    expect(css).toContain("bottom: calc(142px + env(safe-area-inset-bottom, 0px));");
+    expect(css).toContain("top: 50%;\n    right: max(12px, env(safe-area-inset-right, 0px));\n    bottom: auto;");
     expect(css).toContain("z-index: 74;");
     expect(css).toContain("width: min(300px, calc(100vw - 84px));");
-    expect(css).toContain("max-height: min(56vh, 420px);");
-    expect(css).toContain('.workspace-toc[data-open="false"] .workspace-toc-panel {\n    transform: translateX(8px);');
+    expect(css).toContain("max-height: min(64vh, 480px);");
+    expect(css).not.toContain(".workspace-page[data-preview-controls-open=\"true\"] .workspace-toc {");
+    expect(css).toContain('.workspace-toc[data-open="false"] .workspace-toc-panel {\n    transform: translate(8px, -50%);');
     expect(css).toContain("grid-template-columns: repeat(6, minmax(0, 1fr));");
     expect(css).toContain(".workspace-preview-bottom-bar .toolbar-overflow {");
     expect(css).toContain("justify-self: stretch !important;");
