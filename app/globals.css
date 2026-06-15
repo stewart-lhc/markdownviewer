@@ -6113,6 +6113,48 @@ html[data-theme] .workspace-reader-body .markdown-body h4,
     color: var(--toolbar-button-active-ink);
   }
 
+  .workspace-toc {
+    top: auto;
+    right: max(12px, env(safe-area-inset-right, 0px));
+    bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+    z-index: 74;
+    transform: none;
+    transition: bottom 0.22s ease;
+  }
+
+  .workspace-page[data-preview-controls-open="true"] .workspace-toc {
+    bottom: calc(142px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .workspace-toc-trigger {
+    width: 48px;
+    height: 48px;
+    border: 1px solid var(--toolbar-button-border);
+    border-radius: 16px;
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--toolbar-button-bg) 90%, white 8%), var(--toolbar-button-bg));
+    box-shadow:
+      0 14px 30px rgba(0, 0, 0, 0.22),
+      inset 0 1px 0 var(--workspace-card-border);
+    color: var(--toolbar-button-ink);
+  }
+
+  .workspace-toc-panel {
+    top: auto;
+    right: calc(100% + 10px);
+    bottom: 0;
+    width: min(300px, calc(100vw - 84px));
+    max-height: min(56vh, 420px);
+  }
+
+  .workspace-toc[data-open="false"] .workspace-toc-panel {
+    transform: translateX(8px);
+  }
+
+  .workspace-toc[data-open="true"] .workspace-toc-panel {
+    transform: translateX(0);
+  }
+
   .workspace-share-link {
     width: min(520px, calc(100vw - 28px));
     padding: 16px;
