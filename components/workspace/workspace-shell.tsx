@@ -67,7 +67,7 @@ import { WorkspaceToolbar } from "@/components/workspace/workspace-toolbar";
 import { trackProductEvent } from "@/lib/analytics/product-events";
 import { defaultLocale, localizePath, type Locale } from "@/lib/i18n/locales";
 import { getMessages, type WorkspaceMessages } from "@/lib/i18n/messages";
-import { extractHeadings } from "@/lib/markdown/extract-headings";
+import { extractHeadings, type ExtractedHeading } from "@/lib/markdown/extract-headings";
 import { parsePendingWorkspaceImport, pendingWorkspaceImportKey } from "@/lib/workspace/pending-import";
 import { defaultWorkspaceTheme, isWorkspaceTheme, type WorkspaceTheme } from "@/lib/workspace/themes";
 
@@ -659,6 +659,41 @@ function findPreviewSourcePositionTarget(targets: PreviewSourcePositionTarget[],
   return anchor ?? nearestBefore ?? firstAfter;
 }
 
+function readRenderedPreviewHeadings(preview: HTMLElement | null): ExtractedHeading[] {
+  if (!preview) {
+    return [];
+  }
+
+  return Array.from(preview.querySelectorAll<HTMLHeadingElement>("h1[id], h2[id], h3[id], h4[id], h5[id], h6[id]"))
+    .map((heading) => {
+      const depth = Number.parseInt(heading.tagName.slice(1), 10);
+      const text = heading.textContent?.trim() ?? "";
+
+      if (!heading.id || !text || !Number.isFinite(depth)) {
+        return null;
+      }
+
+      return {
+        depth,
+        id: heading.id,
+        text
+      };
+    })
+    .filter((heading): heading is ExtractedHeading => Boolean(heading));
+}
+
+function areHeadingsEqual(first: ExtractedHeading[], second: ExtractedHeading[]) {
+  if (first.length !== second.length) {
+    return false;
+  }
+
+  return first.every((heading, index) => {
+    const other = second[index];
+
+    return other && heading.depth === other.depth && heading.id === other.id && heading.text === other.text;
+  });
+}
+
 export function WorkspaceShell({
   sourceInput,
   markdown,
@@ -752,7 +787,9 @@ export function WorkspaceShell({
   const pendingFolderHashRef = useRef<string | undefined>(undefined);
   const lastStoredDraftRef = useRef<string | null>(null);
   const previewMarkdown = useDeferredValue(currentMarkdown);
-  const headings = useMemo(() => extractHeadings(previewMarkdown), [previewMarkdown]);
+  const markdownHeadings = useMemo(() => extractHeadings(previewMarkdown), [previewMarkdown]);
+  const [renderedHeadings, setRenderedHeadings] = useState<ExtractedHeading[]>([]);
+  const headings = markdownHeadings.length > 0 ? markdownHeadings : renderedHeadings;
   const hasHeadings = headings.length > 0;
   const documentTitle = useMemo(
     () => deriveDocumentTitle(previewMarkdown, currentSource, headings, messages),
@@ -902,6 +939,17 @@ export function WorkspaceShell({
       query.removeEventListener("change", syncCompactWorkspace);
     };
   }, []);
+
+  useLayoutEffect(() => {
+    if (currentMode === "editor" || markdownHeadings.length > 0) {
+      setRenderedHeadings((current) => (current.length > 0 ? [] : current));
+      return;
+    }
+
+    const nextHeadings = readRenderedPreviewHeadings(previewRef.current);
+
+    setRenderedHeadings((current) => (areHeadingsEqual(current, nextHeadings) ? current : nextHeadings));
+  }, [currentMode, markdownHeadings.length, previewMarkdown]);
 
   useEffect(() => {
     latestMarkdownRef.current = currentMarkdown;

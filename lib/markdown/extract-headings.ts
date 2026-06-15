@@ -12,8 +12,8 @@ export function extractHeadings(markdown: string): ExtractedHeading[] {
   const slugger = new GithubSlugger();
 
   for (let index = 0; index < lines.length; index += 1) {
-    const line = lines[index];
-    const atxMatch = line.match(/^(#{1,6})\s+(.+?)(?:\s+#+\s*)?$/);
+    const line = index === 0 ? lines[index].replace(/^\uFEFF/, "") : lines[index];
+    const atxMatch = line.match(/^[ \t]{0,3}(#{1,6})[ \t]+(.+?)(?:[ \t]+#+[ \t]*)?$/);
 
     if (atxMatch) {
       const text = atxMatch[2].trim();
@@ -28,7 +28,7 @@ export function extractHeadings(markdown: string): ExtractedHeading[] {
 
     const nextLine = lines[index + 1];
     const setextMatch =
-      line.trim() && nextLine ? nextLine.match(/^(=+|-+)\s*$/) : null;
+      line.trim() && nextLine ? nextLine.match(/^[ \t]{0,3}(=+|-+)[ \t]*$/) : null;
 
     if (!setextMatch) {
       continue;
