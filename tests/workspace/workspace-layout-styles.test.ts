@@ -195,6 +195,7 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain("color-scheme: var(--workspace-scrollbar-color-scheme);");
     expect(css).toContain("forced-color-adjust: none;");
     expect(css).toContain("scrollbar-color: var(--workspace-scrollbar-thumb) var(--workspace-scrollbar-track);");
+    expect(css).toContain("overscroll-behavior: contain;");
     expect(css).toContain(".workspace-toc-panel::-webkit-scrollbar {");
     expect(css).toContain(".workspace-toc-panel::-webkit-scrollbar-thumb {");
     expect(css).toContain(".workspace-toc-panel::-webkit-scrollbar-thumb:hover {");

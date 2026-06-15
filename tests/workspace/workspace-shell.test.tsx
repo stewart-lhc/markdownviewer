@@ -2363,7 +2363,7 @@ describe("WorkspaceShell interactions", () => {
     expect(screen.queryByRole("complementary", { name: /contents/i })).not.toBeInTheDocument();
   });
 
-  it("forwards contents panel wheel scrolling to the preview region", async () => {
+  it("keeps contents panel wheel scrolling out of the preview region", async () => {
     const user = userEvent.setup();
 
     render(<WorkspaceShell markdown={"# Title\n\n## Alpha\n\n## Beta"} sourceInput="" />);
@@ -2372,9 +2372,18 @@ describe("WorkspaceShell interactions", () => {
     preview.scrollTop = 160;
 
     await user.click(screen.getByRole("button", { name: /contents/i }));
-    fireEvent.wheel(screen.getByRole("complementary", { name: /contents/i }), { deltaY: 120 });
+    const panel = screen.getByRole("complementary", { name: /contents/i });
 
-    expect(preview.scrollTop).toBe(280);
+    Object.defineProperties(panel, {
+      clientHeight: { configurable: true, value: 120 },
+      scrollHeight: { configurable: true, value: 360 },
+      scrollTop: { configurable: true, value: 0, writable: true }
+    });
+
+    const eventResult = fireEvent.wheel(panel, { deltaY: 120 });
+
+    expect(eventResult).toBe(true);
+    expect(preview.scrollTop).toBe(160);
   });
 
   it("scrolls the preview region directly when a contents entry is selected", async () => {

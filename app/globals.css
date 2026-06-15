@@ -4186,6 +4186,7 @@ html[data-theme="night"] .workspace-editor-surface--stackedit .token.md-token--l
   width: min(260px, calc(100vw - 116px));
   max-height: min(70vh, 520px);
   overflow: auto;
+  overscroll-behavior: contain;
   padding: 12px;
   border-radius: 16px;
   border: 1px solid var(--toc-panel-border);

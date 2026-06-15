@@ -90,17 +90,21 @@ export function OutlinePanel({ headings, documentTitle, messages, onNavigate, on
   }
 
   function handlePanelWheel(event: ReactWheelEvent<HTMLElement>) {
-    const preview = document.querySelector<HTMLDivElement>("[data-testid='preview-scroll-region']");
+    const panel = event.currentTarget;
 
-    if (!preview || event.deltaY === 0) {
+    event.stopPropagation();
+
+    if (event.deltaY === 0) {
       return;
     }
 
-    const deltaMultiplier = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? preview.clientHeight : 1;
+    const maxScrollTop = Math.max(0, panel.scrollHeight - panel.clientHeight);
+    const canScrollUp = panel.scrollTop > 0;
+    const canScrollDown = panel.scrollTop < maxScrollTop;
 
-    event.preventDefault();
-    event.stopPropagation();
-    preview.scrollTop += event.deltaY * deltaMultiplier;
+    if ((event.deltaY < 0 && !canScrollUp) || (event.deltaY > 0 && !canScrollDown)) {
+      event.preventDefault();
+    }
   }
 
   return (
