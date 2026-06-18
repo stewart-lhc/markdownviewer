@@ -4327,6 +4327,11 @@ button {
   contain-intrinsic-size: auto 180px;
 }
 
+.workspace-reader-body .markdown-body > .mermaid-frame {
+  content-visibility: visible;
+  contain-intrinsic-size: none;
+}
+
 .immersive-reader-overlay {
   position: fixed;
   inset: 0;

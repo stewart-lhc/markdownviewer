@@ -6,6 +6,7 @@ import {
   type DragEvent as ReactDragEvent,
   type KeyboardEvent as ReactKeyboardEvent,
   type PointerEvent as ReactPointerEvent,
+  useCallback,
   useDeferredValue,
   useEffect,
   useLayoutEffect,
@@ -880,6 +881,12 @@ export function WorkspaceShell({
   const latestSourceRef = useRef(currentSource);
   const pendingFolderHashRef = useRef<string | undefined>(undefined);
   const lastStoredDraftRef = useRef<string | null>(null);
+  const openFolderFileRef = useRef<((path: string, hash?: string) => Promise<boolean>) | null>(null);
+  const previewLinkContextRef = useRef({
+    activeFolderPath: undefined as string | undefined,
+    folderFiles: [] as FolderFileEntry[],
+    folderMessages: messages.folder
+  });
   const previewMarkdown = useDeferredValue(currentMarkdown);
   const markdownHeadings = useMemo(() => extractHeadings(previewMarkdown), [previewMarkdown]);
   const [renderedHeadings, setRenderedHeadings] = useState<ExtractedHeading[]>([]);
@@ -895,6 +902,11 @@ export function WorkspaceShell({
   const activeTabFolderPath = activeTab?.sourceKind === "folder-file" ? activeTab.folderFilePath : undefined;
   const activeSourceFolderPath = folderRootHandle ? readFolderPathFromSourceInput(currentSource) : undefined;
   const activeFolderPath = activeTabFolderPath ?? activeSourceFolderPath;
+  previewLinkContextRef.current = {
+    activeFolderPath,
+    folderFiles,
+    folderMessages: messages.folder
+  };
   const selectedFolderDirectory = activeFolderPath ? getFolderPathDirectory(activeFolderPath) : "/";
   const activeFolderEntry = activeFolderPath
     ? folderFiles.find((file) => file.path === activeFolderPath)
@@ -1845,6 +1857,8 @@ export function WorkspaceShell({
     }
   }
 
+  openFolderFileRef.current = openFolderFile;
+
   async function handleNewFolderFile() {
     if (!folderRootHandle || folderPermission !== "granted") {
       setStatusMessage(messages.folder.reconnectNeeded);
@@ -2687,25 +2701,31 @@ export function WorkspaceShell({
     }
   }
 
-  function handlePreviewLinkClick(href: string) {
-    if (!activeFolderPath) {
+  const handlePreviewLinkClick = useCallback((href: string) => {
+    const {
+      activeFolderPath: latestActiveFolderPath,
+      folderFiles: latestFolderFiles,
+      folderMessages
+    } = previewLinkContextRef.current;
+
+    if (!latestActiveFolderPath) {
       return false;
     }
 
-    const resolved = resolveMarkdownLink(activeFolderPath, normalizePreviewMarkdownHref(href));
+    const resolved = resolveMarkdownLink(latestActiveFolderPath, normalizePreviewMarkdownHref(href));
 
     if (!resolved) {
       return false;
     }
 
-    if (!getFolderEntry(resolved.path)) {
-      setStatusMessage(messages.folder.fileMissing(resolved.path));
+    if (!latestFolderFiles.some((file) => file.path === resolved.path)) {
+      setStatusMessage(folderMessages.fileMissing(resolved.path));
       return true;
     }
 
-    void openFolderFile(resolved.path, resolved.hash);
+    void openFolderFileRef.current?.(resolved.path, resolved.hash);
     return true;
-  }
+  }, []);
 
   function renderTabsToggleButton() {
     return (

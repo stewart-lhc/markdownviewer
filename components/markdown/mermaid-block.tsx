@@ -24,6 +24,8 @@ type MermaidApi = {
 };
 
 const mermaidRenderTimeoutMs = 8000;
+const maxMermaidRenderCacheEntries = 40;
+const mermaidRenderCache = new Map<string, MermaidRenderResult>();
 
 function extractFlowLabels(chart: string) {
   const matches = [...chart.matchAll(/\[(.+?)\]/g)];
@@ -58,6 +60,22 @@ function normalizeMermaidRenderResult(result: MermaidRenderResult | string | voi
   }
 
   return undefined;
+}
+
+function getMermaidRenderCacheKey(chart: string, sourcePosition?: string) {
+  return `${sourcePosition ?? "unknown"}\n${chart}`;
+}
+
+function cacheMermaidRenderResult(key: string, result: MermaidRenderResult) {
+  if (!mermaidRenderCache.has(key) && mermaidRenderCache.size >= maxMermaidRenderCacheEntries) {
+    const oldestKey = mermaidRenderCache.keys().next().value;
+
+    if (oldestKey) {
+      mermaidRenderCache.delete(oldestKey);
+    }
+  }
+
+  mermaidRenderCache.set(key, result);
 }
 
 function renderMermaidChart(mermaid: MermaidApi, id: string, chart: string) {
@@ -134,14 +152,16 @@ function renderMermaidChart(mermaid: MermaidApi, id: string, chart: string) {
 }
 
 export const MermaidBlock = memo(function MermaidBlock({ chart, sourcePosition, variant = "default" }: MermaidBlockProps) {
-  const [svg, setSvg] = useState<string>();
+  const cacheKey = getMermaidRenderCacheKey(chart, sourcePosition);
+  const cachedResult = variant === "default" ? mermaidRenderCache.get(cacheKey) : undefined;
+  const [svg, setSvg] = useState<string | undefined>(cachedResult?.svg);
   const [error, setError] = useState<string>();
-  const [shouldRender, setShouldRender] = useState(false);
+  const [shouldRender, setShouldRender] = useState(Boolean(cachedResult));
   const chartId = useId().replace(/:/g, "-");
   const labels = useMemo(() => extractFlowLabels(chart), [chart]);
   const frameRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<HTMLDivElement>(null);
-  const bindFunctionsRef = useRef<MermaidRenderResult["bindFunctions"]>(undefined);
+  const bindFunctionsRef = useRef<MermaidRenderResult["bindFunctions"]>(cachedResult?.bindFunctions);
 
   useEffect(() => {
     if (variant === "compact" || shouldRender) {
@@ -180,6 +200,15 @@ export const MermaidBlock = memo(function MermaidBlock({ chart, sourcePosition, 
 
     async function renderChart() {
       try {
+        const cachedResult = mermaidRenderCache.get(cacheKey);
+
+        if (cachedResult) {
+          bindFunctionsRef.current = cachedResult.bindFunctions;
+          setSvg(cachedResult.svg);
+          setError(undefined);
+          return;
+        }
+
         const mermaid = (await import("mermaid")).default as MermaidApi;
         mermaid.initialize({
           startOnLoad: false,
@@ -190,6 +219,7 @@ export const MermaidBlock = memo(function MermaidBlock({ chart, sourcePosition, 
         const result = await renderMermaidChart(mermaid, `mermaid-${chartId}`, chart);
 
         if (!cancelled) {
+          cacheMermaidRenderResult(cacheKey, result);
           bindFunctionsRef.current = result.bindFunctions;
           setSvg(result.svg);
           setError(undefined);
@@ -206,7 +236,7 @@ export const MermaidBlock = memo(function MermaidBlock({ chart, sourcePosition, 
     return () => {
       cancelled = true;
     };
-  }, [chart, chartId, shouldRender, variant]);
+  }, [cacheKey, chart, chartId, shouldRender, variant]);
 
   useEffect(() => {
     if (!svg || !svgRef.current || !bindFunctionsRef.current) {

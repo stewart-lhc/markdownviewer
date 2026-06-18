@@ -126,6 +126,33 @@ describe("MarkdownRenderer", () => {
     expect(bindFunctions).toHaveBeenCalledWith(container.querySelector(".mermaid-svg"));
   });
 
+  it("keeps a rendered mermaid diagram available across preview remounts", async () => {
+    const user = userEvent.setup();
+    const markdown = "```mermaid\ngraph TD\n  CacheStart[Cache start] --> CacheEnd[Cache end]\n```";
+    mermaidMock.render.mockImplementation((_id, _chart, callback) => {
+      callback('<svg data-testid="cached-mermaid" viewBox="0 0 100 40"><text>Cached</text></svg>');
+      return undefined;
+    });
+
+    const firstRender = render(<MarkdownRenderer markdown={markdown} />);
+
+    await user.click(screen.getByRole("button", { name: /^render$/i }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("cached-mermaid")).toBeInTheDocument();
+    });
+    expect(mermaidMock.render).toHaveBeenCalledTimes(1);
+
+    firstRender.unmount();
+    mermaidMock.render.mockClear();
+    render(<MarkdownRenderer markdown={markdown} />);
+
+    expect(screen.getByText(/rendered/i)).toBeInTheDocument();
+    expect(screen.getByTestId("cached-mermaid")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^render$/i })).not.toBeInTheDocument();
+    expect(mermaidMock.render).not.toHaveBeenCalled();
+  });
+
   it("keeps syntax-highlighted markup inside fenced code blocks", () => {
     const { container } = render(
       <MarkdownRenderer
