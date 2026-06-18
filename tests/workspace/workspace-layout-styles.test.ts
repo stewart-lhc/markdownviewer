@@ -72,9 +72,16 @@ describe("workspace core canvas styles", () => {
   it("keeps the compact workspace header aligned and fixed on mobile", () => {
     expect(css).toContain("@media (max-width: 720px)");
     expect(css).not.toContain('"tabs spacer modes"');
-    expect(css).toContain('"tabs spacer modes share overflow"');
+    expect(css).toContain('"tabs spacer modes read share overflow"');
     expect(css).not.toContain("grid-template-columns: auto minmax(0, 1fr) 112px;");
-    expect(css).toContain("grid-template-columns: auto minmax(0, 1fr) 88px 36px 36px !important;");
+    expect(css).toContain("grid-template-columns: auto minmax(0, 1fr) 88px 36px 36px 36px !important;");
+    expect(css).toContain(".workspace-preview-mobile-immersive-button,");
+    expect(css).toContain("grid-area: read !important;");
+    expect(css).toContain(".workspace-preview-mobile-share-button {");
+    expect(css).toContain("grid-area: share !important;");
+    expect(css).toContain('.workspace-page[data-mobile-share-visible="false"] .workspace-header {');
+    expect(css).toContain('grid-template-areas: "tabs spacer modes overflow" !important;');
+    expect(css).toContain("grid-template-columns: auto minmax(0, 1fr) 88px 36px !important;");
     expect(css).not.toContain('"tabs title modes"');
     expect(css).not.toContain('"title"');
     expect(css).not.toContain("grid-template-rows: 48px 44px;");
@@ -88,6 +95,14 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain(".workspace-page[data-mobile-header-visible=\"false\"] .workspace-header {");
     expect(css).toContain("transform: translateY(calc(-100% - env(safe-area-inset-top, 0px)));");
     expect(css).toContain("padding: var(--site-nav-mobile-height) 0 calc(12px + env(safe-area-inset-bottom, 0px)) !important;");
+    expect(css).toContain("top: calc(var(--site-nav-mobile-height) + 6px);");
+    expect(css).toContain("height: auto;");
+    expect(css).toContain("max-height: min(calc(100svh - var(--site-nav-mobile-height) - 18px), 520px);");
+    expect(css).toContain('.workspace-tabs-rail[data-open="false"] {');
+    expect(css).toContain("transform: translateX(-18px) scale(0.98);");
+    expect(css).toContain('.workspace-tabs-rail[data-open="true"] {');
+    expect(css).toContain('.workspace-page[data-tabs-collapsed="false"] .workspace-header {');
+    expect(css).toContain("z-index: 92 !important;");
     expect(css).toContain(".workspace-tabs-backdrop {");
     expect(css).toContain("backdrop-filter: blur(8px) saturate(0.9);");
     expect(css).toContain(".workspace-menu-backdrop {");
@@ -128,10 +143,12 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain("display: contents !important;");
     expect(css).toContain(".workspace-preview-control-icon {");
     expect(css).toContain(".workspace-preview-step-icon {");
-    expect(css).toContain(".workspace-preview-share-label-compact {");
+    expect(css).toContain('.workspace-preview-template[data-compact="true"] > .toolbar-button,');
   });
 
   it("keeps shared-document headers on the same site navigation heights", () => {
+    expect(css).toContain("--site-nav-height: 52px;");
+    expect(css).toContain("--site-nav-control-height: 36px;");
     expect(css).toContain(".share-header {");
     expect(css).toContain("grid-template-rows: var(--site-nav-height) minmax(0, 1fr);");
     expect(css).toContain("height: var(--site-nav-height);");
@@ -184,6 +201,14 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain('.workspace-grid[data-mode="preview"] .workspace-reader-body {');
     expect(css).toContain("padding-inline: var(--workspace-preview-inline-margin);");
     expect(css).toContain("html[data-theme] .workspace-reader-body .markdown-body h1,");
+    expect(css).toContain(".immersive-reader-overlay {");
+    expect(css).toContain(".immersive-reader-progress {");
+    expect(css).toContain("height: 2px;");
+    expect(css).toContain('.immersive-reader-overlay[data-controls-visible="true"] .immersive-reader-chrome,');
+    expect(css).toContain(".immersive-reader-scroll {");
+    expect(css).toContain("height: 100dvh;");
+    expect(css).toContain(".immersive-reader-document {");
+    expect(css).toContain("max-width: min(76ch, 100%);");
   });
 
   it("uses theme-aware workspace scrollbars for editor and preview panes", () => {
@@ -250,5 +275,18 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain("display: block;");
     expect(css).toContain("max-width: 100%;");
     expect(css).toContain("height: auto;");
+  });
+
+  it("keeps wide markdown tables horizontally scrollable on phones", () => {
+    expect(css).toContain(".markdown-table-scroll {");
+    expect(css).toContain("overflow-x: auto;");
+    expect(css).toContain("scrollbar-gutter: stable;");
+    expect(css).toContain(".markdown-table-scroll > table {");
+    expect(css).toContain("width: max-content;");
+    expect(css).toContain("min-width: 100%;");
+    expect(css).toContain(".workspace-reader-body .markdown-table-scroll > table {");
+    expect(css).toContain("min-width: max(100%, 420px);");
+    expect(css).toContain("min-width: clamp(104px, 32vw, 148px);");
+    expect(css).toContain("word-break: normal;");
   });
 });

@@ -6,6 +6,8 @@ const pwaCss = readFileSync("D:/GitHub/markdownviewer/components/pwa/pwa-install
 
 describe("workspace theme styles", () => {
   it("defines a multi-template reader palette with dedicated theme tokens", () => {
+    expect(css).toContain("@media (prefers-color-scheme: dark)");
+    expect(css).toContain(":root:not([data-theme])");
     expect(css).toContain('html[data-theme="primer"]');
     expect(css).toContain('html[data-theme="manuscript"]');
     expect(css).toContain('html[data-theme="sepia"]');

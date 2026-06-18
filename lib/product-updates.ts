@@ -15,6 +15,97 @@ export type ProductUpdate = {
 
 export const productUpdates: ProductUpdate[] = [
   {
+    version: "26.617",
+    date: "2026-06-17",
+    en: {
+      title: "Share growth, theme polish, screenshots, and mobile navigation",
+      summary:
+        "Markdownviewer shipped the share growth loop, local recent activity, public-site theme controls, real feature screenshots, and a cleaned-up mobile breadcrumbs menu in one June 17 update.",
+      highlights: [
+        "Share pages now offer Open in workspace, Edit a copy, and Use as template actions.",
+        "The workspace and homepage now surface local Recent and Continue activity for shares, share copies/templates, and converted documents.",
+        "Added System, Light, and Dark controls for the public site and fixed the washed-gray dark mode palette.",
+        "Expanded the mobile and tablet live preview sample and replaced decorative feature cards with real product screenshots.",
+        "Rebuilt the PWA file opening and stored sharing/export feature screenshots without the Next.js development overlay.",
+        "Kept Workspace directly to the left of the mobile breadcrumbs trigger.",
+        "Changed the breadcrumbs panel to an opaque full-width mobile sheet with equal-width controls.",
+        "Reordered the menu to Pricing, Updates, and GitHub with visible GitHub text.",
+        "Placed language and System/Light/Dark theme controls on one equal-width settings row.",
+        "Added a book-style immersive reading overlay from workspace preview and share reader surfaces.",
+        "Added tests for recent activity, feature screenshot assets, theme switching, and mobile breadcrumbs behavior."
+      ]
+    },
+    "zh-CN": {
+      title: "分享增长、主题修复、真实截图和移动端导航",
+      summary: "Markdownviewer 将分享增长闭环、本地最近记录、公开站点主题控制、真实功能截图和移动端 breadcrumbs 菜单修复合并为 6 月 17 日的一次更新。",
+      highlights: [
+        "分享页新增在工作区打开、编辑副本、作为模板使用三个动作。",
+        "workspace 和首页现在会显示本地 Recent / Continue 记录，覆盖分享、分享副本/模板和转换文档。",
+        "公开站点新增 System、Light、Dark 控制，并修复灰蒙蒙的深色模式配色。",
+        "放大移动端和平板首页 live preview sample，并用真实产品截图替换装饰性功能图。",
+        "重新生成 PWA file opening 和 Stored sharing/export 功能截图，去掉 Next.js development overlay。",
+        "Workspace 保持紧挨在移动端 breadcrumbs 触发按钮左边。",
+        "breadcrumbs 面板改为移动端全宽实体背景，所有控制等宽铺满。",
+        "菜单顺序调整为 Pricing、Updates、GitHub，并给 GitHub 加上可见文字。",
+        "语言切换和 System/Light/Dark 主题控制放在同一行并等宽排列。",
+        "workspace 预览和分享页新增书本式沉浸阅读层，只保留正文、排版、导航和细进度条。",
+        "新增最近记录、功能截图资产、主题切换和移动端 breadcrumbs 行为测试。"
+      ]
+    }
+  },
+  {
+    version: "26.612",
+    date: "2026-06-12",
+    en: {
+      title: "System-aware site theming and workspace template memory",
+      summary:
+        "Markdownviewer now follows the user's system light/dark preference on public pages and remembers separate workspace templates for light and dark reading modes.",
+      highlights: [
+        "Added automatic light/dark site theming from the user's system color-scheme preference.",
+        "Added separate workspace template memory for the most recent light template and the most recent dark template.",
+        "Workspace startup now selects the saved light or dark template that matches the current system color scheme.",
+        "Kept legacy workspace template storage keys compatible for returning users."
+      ]
+    },
+    "zh-CN": {
+      title: "跟随系统的站点主题和 workspace 模板记忆",
+      summary: "Markdownviewer 现在会让公开页面跟随用户系统的亮/暗偏好，并为 workspace 的亮色和暗色阅读模式分别记住最近模板。",
+      highlights: [
+        "新增跟随系统 color-scheme 的自动亮/暗站点主题。",
+        "为最近使用的亮色模板和暗色模板分别保存 workspace 模板记忆。",
+        "workspace 启动时会选择与当前系统色彩偏好匹配的已保存模板。",
+        "保留旧版 workspace 模板存储键，避免影响回访用户。"
+      ]
+    }
+  },
+  {
+    version: "26.611",
+    date: "2026-06-11",
+    en: {
+      title: "Early-access waitlist and verified email capture",
+      summary:
+        "Markdownviewer added a pricing waitlist for future Share Pro and Converter API workflows while keeping the free workspace open.",
+      highlights: [
+        "Added a /pricing early-access waitlist page for Share Pro and Converter API interest.",
+        "Added waitlist email validation, Resend confirmation email delivery, and confirmation-link handling before verification.",
+        "Added Neon/Postgres waitlist storage through DATABASE_URL or POSTGRES_URL in production.",
+        "Kept Cloudflare D1 and local JSONL storage as compatibility and development fallbacks.",
+        "Updated Share Pro intent links from the share workflow to route into the waitlist page."
+      ]
+    },
+    "zh-CN": {
+      title: "早期访问 waitlist 和邮箱确认",
+      summary: "Markdownviewer 为未来的 Share Pro 和 Converter API 工作流加入定价页 waitlist，同时保持免费 workspace 开放。",
+      highlights: [
+        "新增 `/pricing` 早期访问 waitlist，用于收集 Share Pro 和 Converter API 兴趣。",
+        "新增邮箱校验、Resend 确认邮件和确认链接处理，确认后才标记为 verified。",
+        "生产环境新增通过 DATABASE_URL 或 POSTGRES_URL 使用 Neon/Postgres 存储 waitlist。",
+        "保留 Cloudflare D1 和本地 JSONL 存储作为兼容和开发 fallback。",
+        "分享工作流里的 Share Pro 意向入口现在会进入 waitlist 页面。"
+      ]
+    }
+  },
+  {
     version: "26.610",
     date: "2026-06-10",
     en: {

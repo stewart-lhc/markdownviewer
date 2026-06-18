@@ -12,8 +12,26 @@ type ResolvedWorkspaceDocument = {
   statusMessage?: string;
 };
 
+type ShareWorkspaceAction = "open" | "copy" | "template";
+
 function takeFirst(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
+}
+
+function resolveShareWorkspaceAction(value: string | undefined): ShareWorkspaceAction {
+  return value === "copy" || value === "template" || value === "open" ? value : "open";
+}
+
+function getShareStatusMessage(action: ShareWorkspaceAction, messages: ReturnType<typeof getMessages>["workspace"]) {
+  if (action === "copy") {
+    return messages.status.sharedCopyReady;
+  }
+
+  if (action === "template") {
+    return messages.status.sharedTemplateReady;
+  }
+
+  return messages.status.sharedOpenReady;
 }
 
 export async function resolveInitialWorkspaceDocument(
@@ -23,6 +41,7 @@ export async function resolveInitialWorkspaceDocument(
 ): Promise<ResolvedWorkspaceDocument> {
   const messages = getMessages(locale).workspace;
   const shareValue = takeFirst(searchParams.share);
+  const shareAction = resolveShareWorkspaceAction(takeFirst(searchParams.shareAction));
   const sourceValue = takeFirst(searchParams.source);
 
   if (shareValue) {
@@ -38,7 +57,8 @@ export async function resolveInitialWorkspaceDocument(
 
     return {
       markdown: sharedDocument.markdown,
-      sourceInput: ""
+      sourceInput: `share:${shareValue}:${shareAction}`,
+      statusMessage: getShareStatusMessage(shareAction, messages)
     };
   }
 

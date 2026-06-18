@@ -2,6 +2,48 @@
 
 All notable changes to this project are documented in this file.
 
+## 26.617 - 2026-06-17
+
+### Added
+
+- Added share-page workspace actions for opening a shared document, editing a local copy, and using a share as a template.
+- Added local Recent/Continue panels on the homepage and workspace, backed by browser local storage.
+- Added recent activity records for created shares, share copies/templates, and converted documents.
+- Added share reader CTA tracking, workspace share-source tracking, and `share_created` events.
+- Added a public-site color mode switcher with System, Light, and Dark controls in the landing navigation.
+- Added real product screenshots for the homepage feature cards under `public/feature-screenshots/`.
+- Added feature screenshot asset coverage for the corrected production WebP files.
+- Added mobile breadcrumbs behavior coverage and CSS guards for the compact navigation layout.
+- Added a book-style immersive reading overlay from workspace preview and share reader surfaces.
+
+### Changed
+
+- Expanded the homepage live preview sample height on tablet and mobile so it stays useful instead of collapsing into a short strip.
+- Collapsed the mobile landing top-bar secondary actions into a breadcrumbs menu.
+- Kept `Workspace` directly to the left of the mobile breadcrumbs trigger as the only standalone mobile top-bar action.
+- Rebuilt the mobile breadcrumbs panel as an opaque, full-width menu with equal-width controls.
+- Reordered mobile breadcrumbs menu links to `Pricing`, `Updates`, and `GitHub`, with visible GitHub text.
+- Placed the language switcher and System/Light/Dark theme controls on one equal-width settings row.
+- Updated README, the repository changelog, and the live changelog data as a single date-based update.
+
+### Fixed
+
+- Fixed the public-site dark mode palette so dark mode remains dark without the washed-gray low-contrast appearance.
+- Replaced decorative/fake feature-card imagery with screenshots captured from the real homepage, workspace, share reader, install prompt, editor, and rendered Markdown surfaces.
+- Rebuilt the `PWA file opening` feature screenshot from a production workspace capture without the Next.js development issue badge.
+- Rebuilt the `Stored sharing and export` feature screenshot from a production share-reader capture without the Next.js development issue badge.
+
+## 26.612 - 2026-06-12
+
+### Added
+
+- Added automatic light/dark site theming from the user's system color-scheme preference.
+- Added separate workspace template memory for the user's most recent light template and most recent dark template.
+
+### Changed
+
+- Changed workspace startup to pick the saved light or dark template that matches the current system color scheme, while preserving the legacy template storage keys for compatibility.
+
 ## 26.611 - 2026-06-11
 
 ### Added

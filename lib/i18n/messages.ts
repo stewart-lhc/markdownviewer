@@ -89,10 +89,13 @@ export type Messages = {
     softwareKeywords: string;
   };
   share: {
+    editCopy: string;
     metadataDescription: string;
     metadataTitle: string;
     metadataTitleWithDocument: (title: string) => string;
     openInWorkspace: string;
+    readerCtaLabel: string;
+    useTemplate: string;
   };
   workspace: {
     document: {
@@ -138,9 +141,20 @@ export type Messages = {
     header: {
       home: string;
     };
+    recent: {
+      kind: {
+        convertedDocument: string;
+        shareCopy: string;
+        shareCreated: string;
+        shareTemplate: string;
+      };
+      remove: string;
+      title: string;
+    };
     preview: {
       close: string;
       closeContents: string;
+      closeImmersiveReader: string;
       contents: string;
       decreaseFont: string;
       decreaseLineHeight: string;
@@ -148,6 +162,8 @@ export type Messages = {
       font: string;
       fontOptions: Record<string, string>;
       fontSize: string;
+      immersiveReader: string;
+      immersiveSettings: string;
       increaseFont: string;
       increaseLineHeight: string;
       increaseMargin: string;
@@ -177,7 +193,10 @@ export type Messages = {
       pasted: string;
       readFileFailed: string;
       shareFailed: string;
+      sharedCopyReady: string;
       sharedMissing: string;
+      sharedOpenReady: string;
+      sharedTemplateReady: string;
       switchedTo: (title: string) => string;
       urlRequired: string;
     };
@@ -266,7 +285,7 @@ export const messages: Record<Locale, Messages> = {
       },
       hero: {
         body:
-          "Open Markdown like it deserves. Paste Markdown, convert common documents, open local files or folders, import GitHub, Gist, and raw URLs, install it as a PWA, and publish stored share links with the same polished reader controls.",
+          "Paste, convert, open, and share Markdown in a polished workspace built for technical documents.",
         dropFile: "Drop a file",
         eyebrow: "Markdown without the utility-site look",
         loadedFile: (fileName) => `Loaded ${fileName}.`,
@@ -441,7 +460,10 @@ export const messages: Record<Locale, Messages> = {
         pasted: "Pasted Markdown.",
         readFileFailed: "Failed to read the selected file.",
         shareFailed: "Failed to create share link.",
+        sharedCopyReady: "Opened an editable copy of this shared Markdown.",
         sharedMissing: "Shared document not found.",
+        sharedOpenReady: "Opened shared Markdown in the workspace.",
+        sharedTemplateReady: "Opened this shared Markdown as a template.",
         switchedTo: (title) => `Switched to ${title}.`,
         urlRequired: "Enter a Markdown URL first."
       },
@@ -459,6 +481,16 @@ export const messages: Record<Locale, Messages> = {
       },
       header: {
         home: "Markdownviewer home"
+      },
+      recent: {
+        kind: {
+          convertedDocument: "Converted",
+          shareCopy: "Share copy",
+          shareCreated: "Share created",
+          shareTemplate: "Template"
+        },
+        remove: "Remove",
+        title: "Continue"
       },
       toolbar: {
         blank: "Blank",
@@ -536,6 +568,7 @@ export const messages: Record<Locale, Messages> = {
       preview: {
         close: "Close",
         closeContents: "Close contents",
+        closeImmersiveReader: "Close immersive reading",
         contents: "Contents",
         decreaseFont: "Decrease preview font size",
         decreaseLineHeight: "Decrease preview line height",
@@ -557,6 +590,8 @@ export const messages: Record<Locale, Messages> = {
           system: "System"
         },
         fontSize: "Preview font size",
+        immersiveReader: "Immersive reading",
+        immersiveSettings: "Reading settings",
         increaseFont: "Increase preview font size",
         increaseLineHeight: "Increase preview line height",
         increaseMargin: "Increase preview margin",
@@ -582,10 +617,13 @@ export const messages: Record<Locale, Messages> = {
       }
     },
     share: {
+      editCopy: "Edit a copy",
       metadataDescription: "A shared Markdown preview rendered by markdownviewer.run.",
       metadataTitle: "Shared Markdown",
       metadataTitleWithDocument: (title) => `${title} - Shared Markdown`,
-      openInWorkspace: "Open in workspace"
+      openInWorkspace: "Open in workspace",
+      readerCtaLabel: "Continue in workspace",
+      useTemplate: "Use as template"
     },
     schema: {
       softwareDescription:
@@ -673,7 +711,7 @@ export const messages: Record<Locale, Messages> = {
       },
       hero: {
         body:
-          "用更体面的方式打开 Markdown。你可以粘贴 Markdown、把常见文档转成 Markdown、打开本地文件或文件夹，把 GitHub、Gist、原始 URL 送进工作区，也可以安装为 PWA，并生成带完整阅读控制的正式分享链接。",
+          "在一个适合技术文档的精致工作区里，粘贴、转换、打开并分享 Markdown。",
         dropFile: "选择文件",
         eyebrow: "不止是工具站的 Markdown 体验",
         loadedFile: (fileName) => `已加载 ${fileName}。`,
@@ -823,7 +861,10 @@ export const messages: Record<Locale, Messages> = {
         pasted: "已粘贴 Markdown。",
         readFileFailed: "读取所选文件失败。",
         shareFailed: "生成分享链接失败。",
+        sharedCopyReady: "已打开分享副本，可安全编辑。",
         sharedMissing: "未找到分享文档。",
+        sharedOpenReady: "已在工作区打开分享文档。",
+        sharedTemplateReady: "已将分享文档作为模板打开。",
         switchedTo: (title) => `已切换到 ${title}。`,
         urlRequired: "请先输入 Markdown URL。"
       },
@@ -841,6 +882,16 @@ export const messages: Record<Locale, Messages> = {
       },
       header: {
         home: "Markdownviewer 首页"
+      },
+      recent: {
+        kind: {
+          convertedDocument: "已转换",
+          shareCopy: "分享副本",
+          shareCreated: "已分享",
+          shareTemplate: "模板"
+        },
+        remove: "移除",
+        title: "继续"
       },
       toolbar: {
         blank: "空白",
@@ -918,6 +969,7 @@ export const messages: Record<Locale, Messages> = {
       preview: {
         close: "关闭",
         closeContents: "关闭目录",
+        closeImmersiveReader: "关闭沉浸式阅读",
         contents: "目录",
         decreaseFont: "减小预览字体",
         decreaseLineHeight: "减小预览行距",
@@ -939,6 +991,8 @@ export const messages: Record<Locale, Messages> = {
           system: "系统"
         },
         fontSize: "预览字号",
+        immersiveReader: "沉浸式阅读",
+        immersiveSettings: "阅读设置",
         increaseFont: "增大预览字体",
         increaseLineHeight: "增大预览行距",
         increaseMargin: "增大预览留白",
@@ -964,10 +1018,13 @@ export const messages: Record<Locale, Messages> = {
       }
     },
     share: {
+      editCopy: "编辑副本",
       metadataDescription: "由 markdownviewer.run 渲染的分享 Markdown 预览。",
       metadataTitle: "分享的 Markdown",
       metadataTitleWithDocument: (title) => `${title} - 分享的 Markdown`,
-      openInWorkspace: "在工作区打开"
+      openInWorkspace: "在工作区打开",
+      readerCtaLabel: "继续到工作区",
+      useTemplate: "作为模板使用"
     },
     schema: {
       softwareDescription:

@@ -52,7 +52,7 @@ export async function WorkspacePageContent({ locale, searchParams }: WorkspacePa
     <main lang={locale}>
       <WorkspaceShell
         initialStatusMessage={initialDocument.statusMessage}
-        initialEditorPresentationMode="raw"
+        initialEditorPresentationMode="rich"
         locale={locale}
         markdown={initialDocument.markdown}
         sourceInput={initialDocument.sourceInput}

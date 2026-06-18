@@ -1,7 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ALargeSmall, AlignVerticalSpaceAround, Minus, Plus, Type, type LucideIcon } from "lucide-react";
+import {
+  ALargeSmall,
+  AlignHorizontalSpaceAround,
+  AlignVerticalSpaceAround,
+  Minus,
+  Plus,
+  Type,
+  type LucideIcon
+} from "lucide-react";
 import type { WorkspaceMessages } from "@/lib/i18n/messages";
 
 export type WorkspacePreviewFont =
@@ -162,7 +170,12 @@ export function WorkspacePreviewTypographyControls({
   }
 
   return (
-    <div className="workspace-preview-type-controls" role="group" aria-label={messages.typography}>
+    <div
+      className="workspace-preview-type-controls"
+      data-compact={compact ? "true" : undefined}
+      role="group"
+      aria-label={messages.typography}
+    >
       <div className="workspace-preview-font-menu" ref={fontMenuRef}>
         <button
           aria-expanded={fontMenuOpen}
@@ -262,7 +275,7 @@ export function WorkspacePreviewTypographyControls({
             onClick={() => onMarginChange(margin - 1)}
             type="button"
           >
-            M-
+            {compact ? <PreviewStepIcon Icon={AlignHorizontalSpaceAround} sign="minus" /> : "M-"}
           </button>
           <output aria-label={messages.margin} className="workspace-preview-margin-value sr-only">
             {margin + 1}
@@ -274,7 +287,7 @@ export function WorkspacePreviewTypographyControls({
             onClick={() => onMarginChange(margin + 1)}
             type="button"
           >
-            M+
+            {compact ? <PreviewStepIcon Icon={AlignHorizontalSpaceAround} sign="plus" /> : "M+"}
           </button>
         </div>
       ) : null}

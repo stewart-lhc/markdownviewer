@@ -9,6 +9,20 @@ const siteDescription =
   "Free online Markdown viewer with live preview for README.md, GitHub Flavored Markdown, Mermaid diagrams, KaTeX math, code blocks, and raw URLs.";
 const googleSiteVerification = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION;
 const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+const siteThemeInitScript = `
+try {
+  var mode = window.localStorage.getItem("markdownviewer.site.colorMode");
+  if (mode === "dark") {
+    document.documentElement.dataset.theme = "night";
+    document.documentElement.dataset.siteThemeMode = "dark";
+  } else if (mode === "light") {
+    document.documentElement.dataset.theme = "paper";
+    document.documentElement.dataset.siteThemeMode = "light";
+  } else {
+    document.documentElement.dataset.siteThemeMode = "system";
+  }
+} catch (error) {}
+`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -77,7 +91,10 @@ type RootLayoutProps = {
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: siteThemeInitScript }} />
+      </head>
       <body>
         {children}
         <PwaRuntime />

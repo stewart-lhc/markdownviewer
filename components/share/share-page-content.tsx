@@ -40,6 +40,11 @@ export async function SharePageContent({ locale, params }: SharePageContentProps
   const { id } = await params;
   const document = await getSharedDocument(id);
   const t = getMessages(locale);
+  const encodedShareId = encodeURIComponent(id);
+  const workspacePath = localizePath("/workspace", locale);
+  const openWorkspaceHref = `${workspacePath}?share=${encodedShareId}&shareAction=open`;
+  const editCopyHref = `${workspacePath}?share=${encodedShareId}&shareAction=copy`;
+  const useTemplateHref = `${workspacePath}?share=${encodedShareId}&shareAction=template`;
 
   if (!document) {
     notFound();
@@ -56,11 +61,19 @@ export async function SharePageContent({ locale, params }: SharePageContentProps
             href={localizePath("/", locale)}
             title="Markdownviewer"
           />
-          <a className="ghost-link" href={`${localizePath("/workspace", locale)}?share=${encodeURIComponent(id)}`}>
+          <a className="ghost-link" href={openWorkspaceHref}>
             {t.share.openInWorkspace}
           </a>
         </div>
-        <ShareReader documentTitle={document.title} locale={locale} markdown={document.markdown} />
+        <ShareReader
+          documentTitle={document.title}
+          editCopyHref={editCopyHref}
+          locale={locale}
+          markdown={document.markdown}
+          openWorkspaceHref={openWorkspaceHref}
+          shareId={id}
+          useTemplateHref={useTemplateHref}
+        />
       </div>
     </main>
   );

@@ -10,6 +10,8 @@ export type WorkspaceTheme =
   | "evergreen"
   | "terminal";
 
+export type WorkspaceColorScheme = "light" | "dark";
+
 type ExportThemeTokens = {
   accent: string;
   background: string;
@@ -35,7 +37,18 @@ type ExportThemeTokens = {
   text: string;
 };
 
-export const defaultWorkspaceTheme: WorkspaceTheme = "paper";
+export const defaultLightWorkspaceTheme: WorkspaceTheme = "paper";
+export const defaultDarkWorkspaceTheme: WorkspaceTheme = "night";
+export const defaultWorkspaceTheme: WorkspaceTheme = defaultLightWorkspaceTheme;
+
+export const workspaceThemeStorageKeys = {
+  light: "markdownviewer.workspace.template.light",
+  dark: "markdownviewer.workspace.template.dark",
+  template: "markdownviewer.workspace.template",
+  theme: "markdownviewer.workspace.theme"
+} as const;
+
+const darkWorkspaceThemes = new Set<WorkspaceTheme>(["night", "graphite", "evergreen", "terminal"]);
 
 export const workspaceThemeOptions: Array<{
   description: string;
@@ -345,4 +358,38 @@ export function getWorkspaceThemeOption(theme: WorkspaceTheme) {
 
 export function isWorkspaceTheme(value: string | null | undefined): value is WorkspaceTheme {
   return workspaceThemeOptions.some((option) => option.id === value);
+}
+
+export function getWorkspaceThemeColorScheme(theme: WorkspaceTheme): WorkspaceColorScheme {
+  return darkWorkspaceThemes.has(theme) ? "dark" : "light";
+}
+
+type ResolvePreferredWorkspaceThemeOptions = {
+  legacyTheme?: string | null;
+  storedDarkTheme?: string | null;
+  storedLightTheme?: string | null;
+  systemColorScheme: WorkspaceColorScheme;
+};
+
+function themeMatchesColorScheme(theme: string | null | undefined, colorScheme: WorkspaceColorScheme): theme is WorkspaceTheme {
+  return isWorkspaceTheme(theme) && getWorkspaceThemeColorScheme(theme) === colorScheme;
+}
+
+export function resolvePreferredWorkspaceTheme({
+  legacyTheme,
+  storedDarkTheme,
+  storedLightTheme,
+  systemColorScheme
+}: ResolvePreferredWorkspaceThemeOptions) {
+  const storedTheme = systemColorScheme === "dark" ? storedDarkTheme : storedLightTheme;
+
+  if (themeMatchesColorScheme(storedTheme, systemColorScheme)) {
+    return storedTheme;
+  }
+
+  if (themeMatchesColorScheme(legacyTheme, systemColorScheme)) {
+    return legacyTheme;
+  }
+
+  return systemColorScheme === "dark" ? defaultDarkWorkspaceTheme : defaultLightWorkspaceTheme;
 }

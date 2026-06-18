@@ -7,6 +7,11 @@ import { getBoundStackeditEditor } from "@/lib/workspace/stackedit-cledit";
 import { serializeRichEditorSurface } from "@/lib/workspace/rich-editor-surface";
 import { pendingWorkspaceImportKey } from "@/lib/workspace/pending-import";
 import { convertDocumentToMarkdown } from "@/lib/workspace/convert-document";
+import {
+  createShareRecentActivityItem,
+  recentActivityStorageKey,
+  writeRecentActivity
+} from "@/lib/workspace/recent-activity";
 
 vi.mock("@/lib/workspace/convert-document", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/workspace/convert-document")>();
@@ -20,7 +25,17 @@ vi.mock("@/lib/workspace/convert-document", async (importOriginal) => {
 const workspaceTabsStorageKey = "markdownviewer.workspace.tabs.v1";
 const workspaceModeStorageKey = "markdownviewer.workspace.mode";
 const workspaceTabsWidthStorageKey = "markdownviewer.workspace.tabs.width";
+const workspaceLightTemplateStorageKey = "markdownviewer.workspace.template.light";
+const workspaceDarkTemplateStorageKey = "markdownviewer.workspace.template.dark";
 const mockedConvertDocumentToMarkdown = vi.mocked(convertDocumentToMarkdown);
+
+function readStoredRecentActivityItems() {
+  const payload = JSON.parse(window.localStorage.getItem(recentActivityStorageKey) ?? "{}") as {
+    items?: unknown[];
+  };
+
+  return payload.items ?? [];
+}
 
 function getStackeditEditor(richEditor: HTMLElement) {
   const editor = getBoundStackeditEditor(richEditor);
@@ -219,6 +234,27 @@ function mockCompactWorkspace() {
   return mediaQuery;
 }
 
+function mockSystemColorScheme(scheme: "light" | "dark") {
+  Object.defineProperty(window, "matchMedia", {
+    configurable: true,
+    value: vi.fn((query: string) => ({
+      matches:
+        query === "(prefers-color-scheme: dark)"
+          ? scheme === "dark"
+          : query === "(prefers-color-scheme: light)"
+            ? scheme === "light"
+            : false,
+      media: query,
+      onchange: null,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      dispatchEvent: vi.fn()
+    }))
+  });
+}
+
 afterEach(() => {
   Reflect.deleteProperty(window, "showDirectoryPicker");
   Reflect.deleteProperty(window, "matchMedia");
@@ -251,10 +287,13 @@ describe("WorkspaceShell interactions", () => {
     expect(screen.getByTestId("workspace-grid")).toHaveAttribute("data-mode", "split");
     expect(sourcePanel).toBeInTheDocument();
     expect(screen.getByTestId("preview-panel")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /template: paper/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /template: paper/i }).closest(".toolbar")).toBeNull();
+    const templateButton = screen.getByRole("button", { name: /template: paper/i });
+
+    expect(templateButton).toBeInTheDocument();
+    expect(templateButton.closest(".toolbar")).toBeNull();
+    expect(templateButton.querySelector(".workspace-preview-control-icon")).toBeNull();
     expect(
-      screen.getByRole("button", { name: /template: paper/i }).closest(".workspace-pane-header--preview")
+      templateButton.closest(".workspace-pane-header--preview")
     ).not.toBeNull();
     expect(
       within(screen.getByTestId("preview-panel")).getByLabelText(/^preview font$/i).closest(".workspace-pane-header--preview")
@@ -262,6 +301,16 @@ describe("WorkspaceShell interactions", () => {
     expect(
       within(screen.getByTestId("preview-panel")).getByRole("button", { name: /increase preview font size/i })
     ).toBeInTheDocument();
+    expect(
+      within(screen.getByTestId("preview-panel"))
+        .getByRole("button", { name: /increase preview font size/i })
+        .querySelector(".workspace-preview-step-icon")
+    ).toBeNull();
+    expect(
+      within(screen.getByTestId("preview-panel"))
+        .getByRole("button", { name: /share link/i })
+        .querySelector(".workspace-preview-share-label-full")
+    ).not.toBeNull();
     expect(screen.queryByRole("button", { name: /^url$/i })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /contents/i }).closest(".workspace-toc")).not.toBeNull();
     expect(
@@ -322,6 +371,29 @@ describe("WorkspaceShell interactions", () => {
 
     await waitFor(() => {
       expect(window.localStorage.getItem(workspaceModeStorageKey)).toBe("preview");
+    });
+  });
+
+  it("restores the last dark template for a dark system and remembers light selections separately", async () => {
+    const user = userEvent.setup();
+    mockSystemColorScheme("dark");
+    window.localStorage.setItem(workspaceLightTemplateStorageKey, "primer");
+    window.localStorage.setItem(workspaceDarkTemplateStorageKey, "terminal");
+
+    render(<WorkspaceShell markdown="# Stored theme" sourceInput="" />);
+
+    await waitFor(() => {
+      expect(document.documentElement).toHaveAttribute("data-theme", "terminal");
+      expect(screen.getByRole("button", { name: /template: terminal/i })).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole("button", { name: /template: terminal/i }));
+    await user.click(screen.getByRole("menuitemradio", { name: /primer/i }));
+
+    await waitFor(() => {
+      expect(document.documentElement).toHaveAttribute("data-theme", "primer");
+      expect(window.localStorage.getItem(workspaceLightTemplateStorageKey)).toBe("primer");
+      expect(window.localStorage.getItem(workspaceDarkTemplateStorageKey)).toBe("terminal");
     });
   });
 
@@ -665,9 +737,20 @@ describe("WorkspaceShell interactions", () => {
     await waitFor(() => {
       expect(page).toHaveAttribute("data-tabs-collapsed", "true");
     });
+    expect(screen.queryByRole("complementary", { name: /open tabs/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /expand tabs sidebar/i })).toHaveAttribute("data-icon", "open");
+    expect(container.querySelector(".workspace-tabs-rail")).toHaveAttribute("aria-hidden", "true");
+    expect(container.querySelector(".workspace-tabs-rail")).toHaveAttribute("data-open", "false");
 
     await user.click(screen.getByRole("button", { name: /expand tabs sidebar/i }));
     expect(page).toHaveAttribute("data-tabs-collapsed", "false");
+    expect(
+      within(container.querySelector(".workspace-header") as HTMLElement).getByRole("button", {
+        name: /collapse tabs sidebar/i
+      })
+    ).toHaveAttribute("data-icon", "close");
+    expect(screen.getByRole("complementary", { name: /open tabs/i })).toHaveAttribute("data-open", "true");
+    expect(screen.getByRole("complementary", { name: /open tabs/i })).not.toHaveAttribute("aria-hidden");
 
     const backdrop = container.querySelector(".workspace-tabs-backdrop");
     expect(backdrop).not.toBeNull();
@@ -679,6 +762,11 @@ describe("WorkspaceShell interactions", () => {
 
     await user.click(screen.getByRole("button", { name: /expand tabs sidebar/i }));
     expect(page).toHaveAttribute("data-tabs-collapsed", "false");
+    expect(
+      within(container.querySelector(".workspace-header") as HTMLElement).getByRole("button", {
+        name: /collapse tabs sidebar/i
+      })
+    ).toHaveAttribute("data-icon", "close");
 
     await user.click(screen.getByRole("button", { name: /new tab/i }));
     expect(screen.getByRole("dialog", { name: /new tab/i })).toBeInTheDocument();
@@ -729,6 +817,27 @@ describe("WorkspaceShell interactions", () => {
     await waitFor(() => {
       expect(page).toHaveAttribute("data-mobile-header-visible", "true");
     });
+  });
+
+  it("collapses the mobile share slot while the editor mode has no share button", async () => {
+    const user = userEvent.setup();
+
+    mockCompactWorkspace();
+
+    const { container } = render(<WorkspaceShell markdown="# Mobile editor" mode="editor" sourceInput="" />);
+    const page = container.querySelector(".workspace-page");
+
+    await waitFor(() => {
+      expect(page).toHaveAttribute("data-mobile-share-visible", "false");
+    });
+    expect(container.querySelector(".workspace-preview-mobile-share-button")).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: /preview/i }));
+
+    await waitFor(() => {
+      expect(page).toHaveAttribute("data-mobile-share-visible", "true");
+    });
+    expect(container.querySelector(".workspace-preview-mobile-share-button")).not.toBeNull();
   });
 
   it("keeps the mobile bottom bar hidden until the floating button opens it", async () => {
@@ -1007,6 +1116,25 @@ describe("WorkspaceShell interactions", () => {
     expect(window.localStorage.getItem("markdownviewer.workspace.preview.fontSize")).toBe("17");
     expect(window.localStorage.getItem("markdownviewer.workspace.preview.lineHeight.v1")).toBe("193");
     expect(window.localStorage.getItem("markdownviewer.workspace.preview.margin.v3")).toBe("6");
+  });
+
+  it("opens a book-style immersive reader from the preview surface", async () => {
+    const user = userEvent.setup();
+
+    render(<WorkspaceShell markdown="# Book Mode\n\nReadable preview text.\n\n## Next chapter\n\nMore text." sourceInput="" />);
+
+    await user.click(screen.getByRole("button", { name: /immersive reading/i }));
+
+    const dialog = screen.getByRole("dialog", { name: /immersive reading/i });
+
+    expect(within(dialog).getByRole("heading", { level: 1, name: /book mode/i })).toBeInTheDocument();
+    expect(within(dialog).getByTestId("immersive-reader-progress")).toBeInTheDocument();
+    expect(within(dialog).queryByRole("button", { name: /share link/i })).not.toBeInTheDocument();
+    expect(within(dialog).queryByText(/continue in workspace/i)).not.toBeInTheDocument();
+
+    await user.click(within(dialog).getByRole("button", { name: /close immersive reading/i }));
+
+    expect(screen.queryByRole("dialog", { name: /immersive reading/i })).not.toBeInTheDocument();
   });
 
   it("marks the preview reader with the current locale for locale-specific typography", () => {
@@ -1459,6 +1587,7 @@ describe("WorkspaceShell interactions", () => {
     const revokeObjectURL = vi.fn();
     const writeText = vi.fn().mockResolvedValue(undefined);
     const print = vi.fn();
+    const dataLayer: unknown[] = [];
     const createShare = vi.fn().mockResolvedValue({
       id: "imported-from-url-ab12cd34",
       title: "Imported from URL"
@@ -1479,6 +1608,11 @@ describe("WorkspaceShell interactions", () => {
     Object.defineProperty(window, "print", {
       configurable: true,
       value: print
+    });
+    Object.defineProperty(window, "dataLayer", {
+      configurable: true,
+      value: dataLayer,
+      writable: true
     });
 
     render(
@@ -1538,6 +1672,26 @@ describe("WorkspaceShell interactions", () => {
     await waitFor(() => {
       expect(writeText).toHaveBeenCalledWith(expect.stringMatching(/\/share\/imported-from-url-ab12cd34$/));
     });
+    await waitFor(() => {
+      expect(dataLayer).toContainEqual({
+        event: "share_created",
+        document_title: "Imported from URL",
+        share_id: "imported-from-url-ab12cd34",
+        source_input: "https://example.com/readme.md",
+        source_kind: "remote-url"
+      });
+    });
+    expect(readStoredRecentActivityItems()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          href: "/share/imported-from-url-ab12cd34",
+          id: "share-created:imported-from-url-ab12cd34",
+          kind: "share-created",
+          sourceInput: "https://example.com/readme.md",
+          title: "Imported from URL"
+        })
+      ])
+    );
 
     const generatedShareLink = screen.getByRole("link", { name: /open generated share link/i });
     expect(generatedShareLink).toHaveAttribute("href", expect.stringMatching(/\/share\/imported-from-url-ab12cd34$/));
@@ -1614,6 +1768,90 @@ describe("WorkspaceShell interactions", () => {
       product_area: "share",
       source: "share_success"
     });
+  });
+
+  it("records shared documents opened as editable copies", async () => {
+    const dataLayer: unknown[] = [];
+
+    Object.defineProperty(window, "dataLayer", {
+      configurable: true,
+      value: dataLayer,
+      writable: true
+    });
+
+    render(<WorkspaceShell markdown="# Shared Copy\n\nEditable." sourceInput="share:reader-copy:copy" />);
+
+    await waitFor(() => {
+      expect(dataLayer).toContainEqual({
+        event: "workspace_share_source_opened",
+        share_action: "copy",
+        share_id: "reader-copy"
+      });
+    });
+    expect(readStoredRecentActivityItems()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          href: "/workspace?share=reader-copy&shareAction=copy",
+          id: "share-copy:reader-copy",
+          kind: "share-copy",
+          sourceInput: "share:reader-copy:copy",
+          title: "Shared Copy"
+        })
+      ])
+    );
+  });
+
+  it("records shared documents opened as templates", async () => {
+    const dataLayer: unknown[] = [];
+
+    Object.defineProperty(window, "dataLayer", {
+      configurable: true,
+      value: dataLayer,
+      writable: true
+    });
+
+    render(<WorkspaceShell markdown="# Shared Template\n\nReusable." sourceInput="share:reader-template:template" />);
+
+    await waitFor(() => {
+      expect(dataLayer).toContainEqual({
+        event: "workspace_share_source_opened",
+        share_action: "template",
+        share_id: "reader-template"
+      });
+    });
+    expect(readStoredRecentActivityItems()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          href: "/workspace?share=reader-template&shareAction=template",
+          id: "share-template:reader-template",
+          kind: "share-template",
+          sourceInput: "share:reader-template:template",
+          title: "Shared Template"
+        })
+      ])
+    );
+  });
+
+  it("renders a workspace continue panel from local recent activity", async () => {
+    writeRecentActivity(
+      [
+        createShareRecentActivityItem({
+          shareId: "recent-share",
+          title: "Recent Share",
+          href: "/share/recent-share",
+          now: 100
+        })
+      ],
+      window.localStorage
+    );
+
+    render(<WorkspaceShell markdown="" sourceInput="" />);
+
+    expect(await screen.findByTestId("workspace-recent-panel")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /recent share/i })).toHaveAttribute(
+      "href",
+      "/share/recent-share"
+    );
   });
 
   it("loads a dropped file and switches between preview and editor modes", async () => {
@@ -1958,6 +2196,16 @@ describe("WorkspaceShell interactions", () => {
     expect(screen.queryByTestId("source-panel")).not.toBeInTheDocument();
     expect(screen.getAllByText("brief.docx").length).toBeGreaterThan(0);
     expect(screen.getByText("Converted brief.docx to Markdown.")).toBeInTheDocument();
+    expect(readStoredRecentActivityItems()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "converted:converted:brief.docx",
+          kind: "converted-document",
+          sourceInput: "converted:brief.docx",
+          title: "Converted Brief"
+        })
+      ])
+    );
   });
 
   it("persists converted document tabs in browser workspace storage", async () => {
@@ -2302,6 +2550,32 @@ describe("WorkspaceShell interactions", () => {
     expect(within(sourcePanel).getByText("world", { selector: ".md-token--strong-text" })).toBeInTheDocument();
   });
 
+  it("defaults back to rich editing when switching into editor or split modes", async () => {
+    const user = userEvent.setup();
+
+    render(<WorkspaceShell initialEditorPresentationMode="raw" markdown="# Rich default" mode="preview" sourceInput="" />);
+
+    expect(screen.getByTestId("workspace-grid")).toHaveAttribute("data-mode", "preview");
+    expect(screen.queryByTestId("source-panel")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /editor/i }));
+
+    expect(screen.getByTestId("workspace-grid")).toHaveAttribute("data-mode", "editor");
+    expect(screen.getByTestId("source-panel")).toHaveAttribute("data-editor-view", "rich");
+    expect(screen.getByTestId("editor-rich-surface")).toBeInTheDocument();
+    expect(screen.queryByLabelText(/markdown editor/i, { selector: "textarea" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /raw/i }));
+    expect(screen.getByTestId("source-panel")).toHaveAttribute("data-editor-view", "raw");
+
+    await user.click(screen.getByRole("button", { name: /preview/i }));
+    await user.click(screen.getByRole("button", { name: /split/i }));
+
+    expect(screen.getByTestId("workspace-grid")).toHaveAttribute("data-mode", "split");
+    expect(screen.getByTestId("source-panel")).toHaveAttribute("data-editor-view", "rich");
+    expect(screen.getByTestId("editor-rich-surface")).toBeInTheDocument();
+  });
+
   it("renders styled markdown inside the rich editor while keeping punctuation visible", async () => {
     render(<WorkspaceShell markdown={"# Title\n\n**Bold** and *italic*"} sourceInput="" />);
 
@@ -2361,6 +2635,21 @@ describe("WorkspaceShell interactions", () => {
 
     await user.click(screen.getByRole("button", { name: /close contents/i }));
     expect(screen.queryByRole("complementary", { name: /contents/i })).not.toBeInTheDocument();
+  });
+
+  it("closes the contents panel when the user taps outside it", async () => {
+    const user = userEvent.setup();
+
+    render(<WorkspaceShell markdown={"# Title\n\n## Alpha\n\n## Beta"} sourceInput="" />);
+
+    await user.click(screen.getByRole("button", { name: /contents/i }));
+    expect(screen.getByRole("complementary", { name: /contents/i })).toBeInTheDocument();
+
+    fireEvent.pointerDown(document.body);
+
+    await waitFor(() => {
+      expect(screen.queryByRole("complementary", { name: /contents/i })).not.toBeInTheDocument();
+    });
   });
 
   it("keeps contents panel wheel scrolling out of the preview region", async () => {

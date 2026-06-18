@@ -7,19 +7,35 @@ describe("changelog page", () => {
     render(<ChangelogPage />);
 
     expect(screen.getByRole("heading", { level: 1, name: /markdownviewer changelog/i })).toBeInTheDocument();
+    expect(screen.getByText("26.617")).toBeInTheDocument();
+    expect(screen.getByText(/share growth, theme polish, screenshots, and mobile navigation/i)).toBeInTheDocument();
+    expect(screen.queryByText("26.617.5")).not.toBeInTheDocument();
+    expect(screen.queryByText("26.617.4")).not.toBeInTheDocument();
+    expect(screen.queryByText("26.617.3")).not.toBeInTheDocument();
+    expect(screen.queryByText("26.617.2")).not.toBeInTheDocument();
+    expect(screen.getByText("26.612")).toBeInTheDocument();
+    expect(screen.getByText("26.611")).toBeInTheDocument();
     expect(screen.getByText("26.531")).toBeInTheDocument();
     expect(screen.getByText("26.530")).toBeInTheDocument();
     expect(screen.getByText("26.529")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /workspace/i })).toHaveAttribute("href", "/workspace");
-    expect(screen.getByRole("link", { name: "中" })).toHaveAttribute("href", "/zh-CN/changelog");
+    expect(screen.getAllByRole("link", { name: "中" }).some((link) => link.getAttribute("href") === "/zh-CN/changelog")).toBe(true);
   });
 
   it("renders the Chinese changelog route with localized navigation", () => {
     render(<ChineseChangelogPage />);
 
     expect(screen.getByRole("heading", { level: 1, name: /markdownviewer 更新日志/i })).toBeInTheDocument();
+    expect(screen.getByText("26.617")).toBeInTheDocument();
+    expect(screen.getByText(/分享增长、主题修复、真实截图和移动端导航/i)).toBeInTheDocument();
+    expect(screen.queryByText("26.617.5")).not.toBeInTheDocument();
+    expect(screen.queryByText("26.617.4")).not.toBeInTheDocument();
+    expect(screen.queryByText("26.617.3")).not.toBeInTheDocument();
+    expect(screen.queryByText("26.617.2")).not.toBeInTheDocument();
+    expect(screen.getByText("26.612")).toBeInTheDocument();
+    expect(screen.getByText("26.611")).toBeInTheDocument();
     expect(screen.getByText("26.531")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "en" })).toHaveAttribute("href", "/changelog");
+    expect(screen.getAllByRole("link", { name: "en" }).some((link) => link.getAttribute("href") === "/changelog")).toBe(true);
     expect(screen.getByRole("link", { name: /工作区/i })).toHaveAttribute("href", "/zh-CN/workspace");
   });
 });

@@ -19,6 +19,7 @@ import {
   FileText,
   FileUp,
   FolderOpen,
+  BookOpen,
   PanelLeftClose,
   PanelLeftOpen,
   Share2,
@@ -48,7 +49,9 @@ import { scanMarkdownFolder, type FolderFileEntry } from "@/lib/workspace/folder
 import { loadMarkdownSourceViaApi, LoadedMarkdownSource } from "@/lib/workspace/load-markdown-source";
 import { detectSourceType } from "@/lib/workspace/source-parser";
 import { MarkdownRenderer } from "@/components/markdown/markdown-renderer";
+import { ImmersiveReaderOverlay } from "@/components/workspace/immersive-reader-overlay";
 import { OutlinePanel } from "@/components/workspace/outline-panel";
+import { RecentActivityPanel } from "@/components/workspace/recent-activity-panel";
 import { EditorPresentationMode, SourcePanel, SourcePanelMode } from "@/components/workspace/source-panel";
 import {
   convertDocumentToMarkdown,
@@ -69,7 +72,21 @@ import { defaultLocale, localizePath, type Locale } from "@/lib/i18n/locales";
 import { getMessages, type WorkspaceMessages } from "@/lib/i18n/messages";
 import { extractHeadings, type ExtractedHeading } from "@/lib/markdown/extract-headings";
 import { parsePendingWorkspaceImport, pendingWorkspaceImportKey } from "@/lib/workspace/pending-import";
-import { defaultWorkspaceTheme, isWorkspaceTheme, type WorkspaceTheme } from "@/lib/workspace/themes";
+import {
+  createConvertedRecentActivityItem,
+  createShareCopyRecentActivityItem,
+  createShareRecentActivityItem,
+  createShareTemplateRecentActivityItem,
+  upsertRecentActivity
+} from "@/lib/workspace/recent-activity";
+import {
+  getWorkspaceThemeColorScheme,
+  isWorkspaceTheme,
+  resolvePreferredWorkspaceTheme,
+  workspaceThemeStorageKeys,
+  type WorkspaceColorScheme,
+  type WorkspaceTheme
+} from "@/lib/workspace/themes";
 
 type WorkspaceMode = "preview" | "split" | "editor";
 
@@ -90,6 +107,12 @@ type WorkspaceSourceKind = "draft" | "file-import" | "remote-url" | "folder-file
 type FolderSaveState = "idle" | "dirty" | "saving" | "saved" | "failed" | "conflict";
 type ShareCopyState = "idle" | "copied" | "failed";
 type ShareProIntent = "password" | "expiration" | "noindex" | "custom_slug";
+type ShareSourceAction = "open" | "copy" | "template";
+
+type ParsedShareSourceInput = {
+  action: ShareSourceAction;
+  shareId: string;
+};
 
 type WorkspaceTab = {
   createdAt: number;
@@ -280,6 +303,23 @@ function deriveDocumentTitle(
   const firstLine = markdown.split("\n").find((line) => line.trim().length > 0);
 
   return firstLine ? firstLine.replace(/^#+\s*/, "").trim() : messages.document.untitled;
+}
+
+function deriveRecentActivityTitle(markdown: string, sourceInput: string, messages: WorkspaceMessages) {
+  const normalizedMarkdown = markdown.replace(/\\n/g, "\n");
+  const headingMatch = normalizedMarkdown.match(/^[ \t]{0,3}#{1,6}[ \t]+(.+?)(?:[ \t]+#+[ \t]*)?$/m);
+
+  if (headingMatch?.[1]?.trim()) {
+    return headingMatch[1].trim();
+  }
+
+  const firstLine = normalizedMarkdown.split(/\r?\n/).find((line) => line.trim().length > 0);
+
+  if (firstLine) {
+    return firstLine.replace(/^#+\s*/, "").trim();
+  }
+
+  return deriveDocumentTitle(normalizedMarkdown, sourceInput, extractHeadings(normalizedMarkdown), messages);
 }
 
 function createWorkspaceTabId() {
@@ -527,6 +567,39 @@ function describeSource(sourceInput: string) {
   }
 }
 
+function parseShareSourceInput(sourceInput: string): ParsedShareSourceInput | null {
+  const match = sourceInput.match(/^share:(.+):(open|copy|template)$/);
+
+  if (!match) {
+    return null;
+  }
+
+  return {
+    shareId: match[1],
+    action: match[2] as ShareSourceAction
+  };
+}
+
+function getShareWorkspaceHref(shareId: string, action: ShareSourceAction, locale: Locale) {
+  return `${localizePath("/workspace", locale)}?share=${encodeURIComponent(shareId)}&shareAction=${action}`;
+}
+
+function getAnalyticsSourceKind(sourceInput: string, sourceKind?: WorkspaceSourceKind) {
+  if (sourceKind) {
+    return sourceKind;
+  }
+
+  if (!sourceInput) {
+    return "draft";
+  }
+
+  if (sourceInput.startsWith("share:")) {
+    return "share";
+  }
+
+  return detectSourceType(sourceInput);
+}
+
 function deriveImportMode(sourceInput: string): SourcePanelMode {
   if (sourceInput.startsWith("file:") || sourceInput.startsWith("folder:")) {
     return "file";
@@ -694,6 +767,16 @@ function areHeadingsEqual(first: ExtractedHeading[], second: ExtractedHeading[])
   });
 }
 
+function getSystemWorkspaceColorScheme(): WorkspaceColorScheme {
+  if (typeof window.matchMedia !== "function") {
+    return "light";
+  }
+
+  const darkPreference = window.matchMedia("(prefers-color-scheme: dark)");
+
+  return darkPreference.media === "(prefers-color-scheme: dark)" && darkPreference.matches ? "dark" : "light";
+}
+
 export function WorkspaceShell({
   sourceInput,
   markdown,
@@ -711,7 +794,8 @@ export function WorkspaceShell({
   const [currentMarkdown, setCurrentMarkdown] = useState(markdown);
   const [currentSource, setCurrentSource] = useState(sourceInput);
   const [currentMode, setCurrentMode] = useState<WorkspaceMode>(mode);
-  const [theme, setTheme] = useState<WorkspaceTheme>(defaultWorkspaceTheme);
+  const [theme, setTheme] = useState<WorkspaceTheme>(() => resolvePreferredWorkspaceTheme({ systemColorScheme: "light" }));
+  const [themeStorageReady, setThemeStorageReady] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | undefined>(initialStatusMessage);
   const [documentConversionPending, setDocumentConversionPending] = useState(false);
   const [shareUrl, setShareUrl] = useState("");
@@ -731,6 +815,7 @@ export function WorkspaceShell({
   const [tabsCollapsed, setTabsCollapsed] = useState(false);
   const [mobileHeaderVisible, setMobileHeaderVisible] = useState(true);
   const [mobilePreviewControlsOpen, setMobilePreviewControlsOpen] = useState(false);
+  const [immersiveReaderOpen, setImmersiveReaderOpen] = useState(false);
   const [tabsStorageReady, setTabsStorageReady] = useState(false);
   const [tocOpen, setTocOpen] = useState(false);
   const [folderRootHandle, setFolderRootHandle] = useState<FileSystemDirectoryHandle | null>(null);
@@ -756,6 +841,15 @@ export function WorkspaceShell({
   const lastEditorSelectionStartRef = useRef(0);
   const suppressPreviewScrollSyncRef = useRef(false);
   const lastMobilePreviewScrollTopRef = useRef(0);
+  const processedShareSourceRef = useRef("");
+
+  function handleWorkspaceModeChange(nextMode: WorkspaceMode) {
+    setCurrentMode(nextMode);
+
+    if (nextMode === "editor" || nextMode === "split") {
+      setEditorPresentationMode("rich");
+    }
+  }
 
   function showShareCopyState(state: ShareCopyState) {
     window.clearTimeout(shareCopyResetTimeoutRef.current);
@@ -829,6 +923,7 @@ export function WorkspaceShell({
   const workspacePageStyle = {
     "--workspace-tabs-width": `${tabsWidth}px`
   } as CSSProperties;
+  const showMobileShareButton = compactWorkspace && currentMode !== "editor";
   const previewReaderStyle = {
     "--workspace-preview-font-family": getWorkspacePreviewFontStack(previewFont),
     "--workspace-preview-font-size": `${previewFontSize}px`,
@@ -958,6 +1053,41 @@ export function WorkspaceShell({
   useEffect(() => {
     latestSourceRef.current = currentSource;
   }, [currentSource]);
+
+  useEffect(() => {
+    const shareSource = parseShareSourceInput(currentSource);
+
+    if (!shareSource || processedShareSourceRef.current === currentSource) {
+      return;
+    }
+
+    processedShareSourceRef.current = currentSource;
+
+    trackProductEvent("workspace_share_source_opened", {
+      share_action: shareSource.action,
+      share_id: shareSource.shareId
+    });
+
+    if (shareSource.action === "copy") {
+      upsertRecentActivity(
+        createShareCopyRecentActivityItem({
+          shareId: shareSource.shareId,
+          title: deriveRecentActivityTitle(currentMarkdown, currentSource, messages),
+          href: getShareWorkspaceHref(shareSource.shareId, "copy", locale)
+        })
+      );
+    }
+
+    if (shareSource.action === "template") {
+      upsertRecentActivity(
+        createShareTemplateRecentActivityItem({
+          shareId: shareSource.shareId,
+          title: deriveRecentActivityTitle(currentMarkdown, currentSource, messages),
+          href: getShareWorkspaceHref(shareSource.shareId, "template", locale)
+        })
+      );
+    }
+  }, [currentMarkdown, currentSource, locale, messages]);
 
   useEffect(() => {
     setShareUrl("");
@@ -1117,9 +1247,11 @@ export function WorkspaceShell({
   }, [markdown]);
 
   useEffect(() => {
-    const storedTheme =
-      window.localStorage.getItem("markdownviewer.workspace.template") ??
-      window.localStorage.getItem("markdownviewer.workspace.theme");
+    const storedLightTheme = window.localStorage.getItem(workspaceThemeStorageKeys.light);
+    const storedDarkTheme = window.localStorage.getItem(workspaceThemeStorageKeys.dark);
+    const legacyTheme =
+      window.localStorage.getItem(workspaceThemeStorageKeys.template) ??
+      window.localStorage.getItem(workspaceThemeStorageKeys.theme);
     const storedMode = window.localStorage.getItem(workspaceModeStorageKey);
     const storedSplitPercent = Number.parseFloat(window.localStorage.getItem(workspaceSplitStorageKey) ?? "");
     const storedTabsWidth = Number.parseFloat(window.localStorage.getItem(workspaceTabsWidthStorageKey) ?? "");
@@ -1131,9 +1263,24 @@ export function WorkspaceShell({
     );
     const storedPreviewMargin = Number.parseFloat(window.localStorage.getItem(workspacePreviewMarginStorageKey) ?? "");
 
-    if (isWorkspaceTheme(storedTheme)) {
-      setTheme(storedTheme);
+    const validLegacyTheme = isWorkspaceTheme(legacyTheme) ? legacyTheme : null;
+    const legacyColorScheme = validLegacyTheme ? getWorkspaceThemeColorScheme(validLegacyTheme) : null;
+
+    if (validLegacyTheme && legacyColorScheme === "light" && !storedLightTheme) {
+      window.localStorage.setItem(workspaceThemeStorageKeys.light, validLegacyTheme);
+    } else if (validLegacyTheme && legacyColorScheme === "dark" && !storedDarkTheme) {
+      window.localStorage.setItem(workspaceThemeStorageKeys.dark, validLegacyTheme);
     }
+
+    setTheme(
+      resolvePreferredWorkspaceTheme({
+        legacyTheme: validLegacyTheme,
+        storedDarkTheme,
+        storedLightTheme,
+        systemColorScheme: getSystemWorkspaceColorScheme()
+      })
+    );
+    setThemeStorageReady(true);
 
     if (Number.isFinite(storedSplitPercent)) {
       setSplitEditorPercent(clampSplitPercent(storedSplitPercent));
@@ -1255,10 +1402,18 @@ export function WorkspaceShell({
   }, [documentConversionPending, statusMessage]);
 
   useEffect(() => {
+    if (!themeStorageReady) {
+      return;
+    }
+
     document.documentElement.dataset.theme = theme;
-    window.localStorage.setItem("markdownviewer.workspace.template", theme);
-    window.localStorage.setItem("markdownviewer.workspace.theme", theme);
-  }, [theme]);
+    window.localStorage.setItem(
+      getWorkspaceThemeColorScheme(theme) === "dark" ? workspaceThemeStorageKeys.dark : workspaceThemeStorageKeys.light,
+      theme
+    );
+    window.localStorage.setItem(workspaceThemeStorageKeys.template, theme);
+    window.localStorage.setItem(workspaceThemeStorageKeys.theme, theme);
+  }, [theme, themeStorageReady]);
 
   useEffect(() => {
     if (restoredStoredTabsRef.current) {
@@ -1802,10 +1957,18 @@ export function WorkspaceShell({
     try {
       const result = await convertDocumentToMarkdown(file);
       const sourceName = decodeFileName(result.sourceName);
-      const nextTab = createExplicitImportTab(result.markdown, `converted:${sourceName}`, {
+      const nextSourceInput = `converted:${sourceName}`;
+      const nextTitle = deriveRecentActivityTitle(result.markdown, nextSourceInput, messages);
+      const nextTab = createExplicitImportTab(result.markdown, nextSourceInput, {
         sourceKind: "converted-file"
       });
 
+      upsertRecentActivity(
+        createConvertedRecentActivityItem({
+          sourceInput: nextSourceInput,
+          title: nextTitle
+        })
+      );
       activateWorkspaceTab(nextTab, "file", messages.status.convertedFile(sourceName));
     } finally {
       setDocumentConversionPending(false);
@@ -1827,7 +1990,7 @@ export function WorkspaceShell({
 
     setNewTabDialogOpen(false);
     activateWorkspaceTab(nextTab, "paste", messages.status.newTab);
-    setCurrentMode("editor");
+    handleWorkspaceModeChange("editor");
   }
 
   async function handleNewTabPaste() {
@@ -1868,7 +2031,7 @@ export function WorkspaceShell({
       );
 
       if (!pasted) {
-        setCurrentMode("editor");
+        handleWorkspaceModeChange("editor");
       }
     } catch {
       const nextTab = createExplicitImportTab("", "", {
@@ -1876,7 +2039,7 @@ export function WorkspaceShell({
       });
 
       activateWorkspaceTab(nextTab, "paste", messages.status.pastePermission);
-      setCurrentMode("editor");
+      handleWorkspaceModeChange("editor");
     }
   }
 
@@ -2137,7 +2300,7 @@ export function WorkspaceShell({
           hasExplicitImportChoice: true,
           sourceKind: "draft"
         });
-        setCurrentMode("editor");
+        handleWorkspaceModeChange("editor");
         setStatusMessage(messages.status.emptyClipboard);
       }
     } catch {
@@ -2145,7 +2308,7 @@ export function WorkspaceShell({
         hasExplicitImportChoice: true,
         sourceKind: "draft"
       });
-      setCurrentMode("editor");
+      handleWorkspaceModeChange("editor");
       setStatusMessage(messages.status.pastePermission);
     }
   }
@@ -2170,7 +2333,23 @@ export function WorkspaceShell({
     try {
       const share = await createShare(currentMarkdown, headings[0]?.text);
       const shareUrl = `${window.location.origin}${localizePath(`/share/${share.id}`, locale)}`;
+      const shareHref = localizePath(`/share/${share.id}`, locale);
       setShareUrl(shareUrl);
+
+      trackProductEvent("share_created", {
+        document_title: share.title || deriveRecentActivityTitle(currentMarkdown, currentSource, messages),
+        share_id: share.id,
+        source_input: currentSource,
+        source_kind: getAnalyticsSourceKind(currentSource, activeTab?.sourceKind)
+      });
+      upsertRecentActivity(
+        createShareRecentActivityItem({
+          shareId: share.id,
+          title: share.title || deriveRecentActivityTitle(currentMarkdown, currentSource, messages),
+          href: shareHref,
+          sourceInput: currentSource
+        })
+      );
 
       const copied = await copyShareUrlToClipboard(shareUrl);
       showShareCopyState(copied ? "copied" : "failed");
@@ -2535,12 +2714,18 @@ export function WorkspaceShell({
         aria-label={tabsCollapsed ? messages.tabs.expand : messages.tabs.collapse}
         className="workspace-tabs-toggle-button"
         data-collapsed={tabsCollapsed}
-        onClick={() => setTabsCollapsed((current) => !current)}
+        data-icon={tabsCollapsed ? "open" : compactWorkspace ? "close" : "collapse"}
+        onClick={() => {
+          setMobileHeaderVisible(true);
+          setTabsCollapsed((current) => !current);
+        }}
         title={tabsCollapsed ? messages.tabs.expand : messages.tabs.collapse}
         type="button"
       >
         {tabsCollapsed ? (
           <PanelLeftOpen aria-hidden="true" className="workspace-tabs-toggle-icon" size={22} strokeWidth={2} />
+        ) : compactWorkspace ? (
+          <X aria-hidden="true" className="workspace-tabs-toggle-icon" size={22} strokeWidth={2} />
         ) : (
           <PanelLeftClose aria-hidden="true" className="workspace-tabs-toggle-icon" size={22} strokeWidth={2} />
         )}
@@ -2611,6 +2796,7 @@ export function WorkspaceShell({
       className="workspace-page page-shell"
       data-file-drag-active={fileDragActive}
       data-mobile-header-visible={mobileHeaderVisible}
+      data-mobile-share-visible={showMobileShareButton}
       data-preview-controls-open={mobilePreviewControlsOpen}
       data-tabs-resizing={tabsResizing}
       data-tabs-collapsed={tabsCollapsed}
@@ -2653,7 +2839,7 @@ export function WorkspaceShell({
           onExportPdf={handleExportPdf}
           onActiveImportModeChange={setActiveImportMode}
           onFileImport={handleFileImport}
-          onModeChange={setCurrentMode}
+          onModeChange={handleWorkspaceModeChange}
           onOpenFolder={handleOpenFolder}
           onParseSource={handleParseSource}
           onPasteIntoEditor={handlePasteIntoEditor}
@@ -2663,7 +2849,18 @@ export function WorkspaceShell({
           onSourceChange={setCurrentSource}
           sourceValue={currentSource}
         />
-        {compactWorkspace && currentMode !== "editor" ? (
+        {showMobileShareButton ? (
+          <button
+            aria-label={messages.preview.immersiveReader}
+            className="toolbar-button workspace-preview-mobile-immersive-button"
+            onClick={() => setImmersiveReaderOpen(true)}
+            title={messages.preview.immersiveReader}
+            type="button"
+          >
+            <BookOpen aria-hidden="true" size={18} strokeWidth={2.2} />
+          </button>
+        ) : null}
+        {showMobileShareButton ? (
           <button
             aria-label={messages.toolbar.shareLink}
             className="toolbar-button workspace-preview-mobile-share-button"
@@ -2675,8 +2872,8 @@ export function WorkspaceShell({
           </button>
         ) : null}
       </div>
-      {!tabsCollapsed ? (
-        folderRootHandle ? (
+      {folderRootHandle ? (
+        !tabsCollapsed ? (
           <FolderRail
             activePath={activeFolderPath}
             files={folderFiles}
@@ -2695,38 +2892,43 @@ export function WorkspaceShell({
             selectedDirectory={selectedFolderDirectory}
             skippedCount={folderSkippedCount}
           />
-        ) : (
-          <aside className="workspace-tabs-rail" aria-label={messages.tabs.railLabel}>
-            <div className="workspace-tabs-list-actions">
-              {renderNewTabButton("workspace-new-tab-button--list")}
-            </div>
-            <div aria-label={messages.tabs.railLabel} className="workspace-tabs-list">
-              {tabItems.map((tab) => (
-                <div className="workspace-tab-row" data-active={tab.id === activeTabId} key={tab.id}>
-                  <button
-                    aria-current={tab.id === activeTabId ? "page" : undefined}
-                    className="workspace-tab-button"
-                    onClick={() => handleSelectTab(tab.id)}
-                    title={tab.title}
-                    type="button"
-                  >
-                    <span className="workspace-tab-title">{tab.title}</span>
-                    <span className="workspace-tab-meta">{tab.sourceLabel}</span>
-                  </button>
-                  <button
-                    aria-label={messages.tabs.close(tab.title)}
-                    className="workspace-tab-close"
-                    onClick={() => handleCloseTab(tab.id)}
-                    title={messages.tabs.close(tab.title)}
-                    type="button"
-                  >
-                    x
-                  </button>
-                </div>
-              ))}
-            </div>
-          </aside>
-        )
+        ) : null
+      ) : compactWorkspace || !tabsCollapsed ? (
+        <aside
+          aria-hidden={compactWorkspace && tabsCollapsed ? true : undefined}
+          aria-label={messages.tabs.railLabel}
+          className="workspace-tabs-rail"
+          data-open={!tabsCollapsed}
+        >
+          <div className="workspace-tabs-list-actions">
+            {renderNewTabButton("workspace-new-tab-button--list")}
+          </div>
+          <div aria-label={messages.tabs.railLabel} className="workspace-tabs-list">
+            {tabItems.map((tab) => (
+              <div className="workspace-tab-row" data-active={tab.id === activeTabId} key={tab.id}>
+                <button
+                  aria-current={tab.id === activeTabId ? "page" : undefined}
+                  className="workspace-tab-button"
+                  onClick={() => handleSelectTab(tab.id)}
+                  title={tab.title}
+                  type="button"
+                >
+                  <span className="workspace-tab-title">{tab.title}</span>
+                  <span className="workspace-tab-meta">{tab.sourceLabel}</span>
+                </button>
+                <button
+                  aria-label={messages.tabs.close(tab.title)}
+                  className="workspace-tab-close"
+                  onClick={() => handleCloseTab(tab.id)}
+                  title={messages.tabs.close(tab.title)}
+                  type="button"
+                >
+                  x
+                </button>
+              </div>
+            ))}
+          </div>
+        </aside>
       ) : null}
       {!tabsCollapsed ? (
         <div
@@ -2905,6 +3107,11 @@ export function WorkspaceShell({
           type="file"
           accept={workspaceFileInputAccept}
         />
+        <RecentActivityPanel
+          className="workspace-recent-panel"
+          messages={messages.recent}
+          testId="workspace-recent-panel"
+        />
         <div
           className="workspace-grid"
           data-mode={currentMode}
@@ -2957,6 +3164,15 @@ export function WorkspaceShell({
               {!compactWorkspace ? (
                 <div className="workspace-pane-header workspace-pane-header--preview">
                   <div className="workspace-preview-header-controls">
+                    <button
+                      aria-label={messages.preview.immersiveReader}
+                      className="toolbar-button workspace-preview-immersive-button"
+                      onClick={() => setImmersiveReaderOpen(true)}
+                      title={messages.preview.immersiveReader}
+                      type="button"
+                    >
+                      <BookOpen aria-hidden="true" className="workspace-preview-control-icon" size={18} strokeWidth={2.2} />
+                    </button>
                     <WorkspaceThemeSelector messages={messages.preview} onThemeChange={setTheme} theme={theme} />
                     <WorkspacePreviewTypographyControls
                       font={previewFont}
@@ -3076,8 +3292,38 @@ export function WorkspaceShell({
             headings={headings}
             messages={messages.preview}
             onNavigate={handleTocNavigate}
+            onClose={() => setTocOpen(false)}
             onToggle={() => setTocOpen((current) => !current)}
             open={tocOpen}
+          />
+        ) : null}
+        {currentMode !== "editor" && immersiveReaderOpen ? (
+          <ImmersiveReaderOverlay
+            documentTitle={documentTitle}
+            font={previewFont}
+            fontSize={previewFontSize}
+            headings={headings}
+            initialScrollTop={getCurrentPreviewScrollTop()}
+            lineHeight={previewLineHeight}
+            locale={locale}
+            margin={previewMargin}
+            markdown={previewMarkdown}
+            maxFontSize={maxPreviewFontSize}
+            maxLineHeight={maxPreviewLineHeight}
+            maxMargin={maxPreviewMargin}
+            messages={messages.preview}
+            minFontSize={minPreviewFontSize}
+            minLineHeight={minPreviewLineHeight}
+            minMargin={minPreviewMargin}
+            onClose={() => setImmersiveReaderOpen(false)}
+            onFontChange={setPreviewFont}
+            onFontSizeChange={(nextFontSize) => setPreviewFontSize(clampPreviewFontSize(nextFontSize))}
+            onLineHeightChange={(nextLineHeight) => setPreviewLineHeight(clampPreviewLineHeight(nextLineHeight))}
+            onLinkClick={handlePreviewLinkClick}
+            onMarginChange={(nextMargin) => setPreviewMargin(clampPreviewMargin(nextMargin))}
+            onThemeChange={setTheme}
+            readerStyle={previewReaderStyle}
+            theme={theme}
           />
         ) : null}
       </section>

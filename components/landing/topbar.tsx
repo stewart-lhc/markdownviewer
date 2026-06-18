@@ -1,5 +1,7 @@
 import { BrandLink } from "@/components/brand/brand-link";
 import { LanguageSwitcher } from "@/components/i18n/language-switcher";
+import { MobileTopbarMenu } from "@/components/landing/mobile-topbar-menu";
+import { SiteThemeSwitcher } from "@/components/landing/site-theme-switcher";
 import { localizePath, type Locale } from "@/lib/i18n/locales";
 import type { LandingMessages } from "@/lib/i18n/messages";
 
@@ -28,24 +30,27 @@ export function LandingTopbar({ currentPath, locale, messages }: LandingTopbarPr
     <header className="topbar">
       <BrandLink className="brand" label="Markdownviewer" title="Markdownviewer" />
       <nav className="topbar-actions" aria-label={messages.primary}>
-        <LanguageSwitcher currentLocale={locale} path={currentPath} />
-        <a aria-label={messages.github} className="ghost-link ghost-link--icon" href={githubRepositoryUrl}>
-          <GithubMark />
-        </a>
-        <a
-          aria-current={isCurrentPath(currentPath, "/changelog") ? "page" : undefined}
-          className="ghost-link"
-          href={localizePath("/changelog", locale)}
-        >
-          {messages.changelog}
-        </a>
-        <a
-          aria-current={isCurrentPath(currentPath, "/pricing") ? "page" : undefined}
-          className="ghost-link"
-          href={localizePath("/pricing", locale)}
-        >
-          {messages.pricing}
-        </a>
+        <div className="topbar-actions__desktop">
+          <SiteThemeSwitcher locale={locale} />
+          <LanguageSwitcher currentLocale={locale} path={currentPath} />
+          <a aria-label={messages.github} className="ghost-link ghost-link--icon" href={githubRepositoryUrl}>
+            <GithubMark />
+          </a>
+          <a
+            aria-current={isCurrentPath(currentPath, "/changelog") ? "page" : undefined}
+            className="ghost-link"
+            href={localizePath("/changelog", locale)}
+          >
+            {messages.changelog}
+          </a>
+          <a
+            aria-current={isCurrentPath(currentPath, "/pricing") ? "page" : undefined}
+            className="ghost-link"
+            href={localizePath("/pricing", locale)}
+          >
+            {messages.pricing}
+          </a>
+        </div>
         <a
           aria-current={isCurrentPath(currentPath, "/workspace") ? "page" : undefined}
           className="ghost-link ghost-link--primary"
@@ -53,6 +58,13 @@ export function LandingTopbar({ currentPath, locale, messages }: LandingTopbarPr
         >
           {messages.workspace}
         </a>
+        <MobileTopbarMenu
+          currentPath={currentPath}
+          githubIcon={<GithubMark />}
+          githubRepositoryUrl={githubRepositoryUrl}
+          locale={locale}
+          messages={messages}
+        />
       </nav>
     </header>
   );

@@ -273,6 +273,15 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
           />
         );
       },
+      table({ children, node, ...props }) {
+        const sourcePosition = readSourcePosition(node as HastNodeWithProperties | undefined);
+
+        return (
+          <div className="markdown-table-scroll" data-sourcepos={sourcePosition} tabIndex={0}>
+            <table {...props}>{children}</table>
+          </div>
+        );
+      },
       input({ checked, node: _node, type, ...props }) {
         if (type !== "checkbox") {
           return <input {...props} checked={checked} type={type} />;

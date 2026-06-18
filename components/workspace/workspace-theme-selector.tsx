@@ -36,7 +36,11 @@ export function WorkspaceThemeSelector({ compact = false, messages, onThemeChang
   }
 
   return (
-    <div className="toolbar-overflow toolbar-overflow--themes workspace-preview-template" ref={themeMenuRef}>
+    <div
+      className="toolbar-overflow toolbar-overflow--themes workspace-preview-template"
+      data-compact={compact ? "true" : undefined}
+      ref={themeMenuRef}
+    >
       <button
         aria-expanded={themeMenuOpen}
         aria-haspopup="menu"

@@ -1,6 +1,16 @@
-import { render, screen } from "@testing-library/react";
-import { afterEach } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { afterEach, vi } from "vitest";
 import { MarkdownRenderer } from "@/components/markdown/markdown-renderer";
+
+const mermaidMock = vi.hoisted(() => ({
+  initialize: vi.fn(),
+  render: vi.fn()
+}));
+
+vi.mock("mermaid", () => ({
+  default: mermaidMock
+}));
 
 const source = `
 # Demo
@@ -23,6 +33,8 @@ Inline math $a^2 + b^2 = c^2$
 
 afterEach(() => {
   document.head.querySelector('link[data-markdownviewer-katex="true"]')?.remove();
+  mermaidMock.initialize.mockReset();
+  mermaidMock.render.mockReset();
 });
 
 describe("MarkdownRenderer", () => {
@@ -59,6 +71,17 @@ describe("MarkdownRenderer", () => {
     expect(paragraph).toHaveAttribute("data-sourcepos", expect.stringContaining("3:"));
   });
 
+  it("wraps rendered tables in a keyboard-scrollable horizontal container", () => {
+    render(<MarkdownRenderer markdown={"| Product | Signal | Long English note |\n| --- | --- | --- |\n| A | B | orchestrator planner reliability |"} />);
+
+    const table = screen.getByRole("table");
+    const scroller = table.closest(".markdown-table-scroll");
+
+    expect(scroller).toBeInTheDocument();
+    expect(scroller).toHaveAttribute("tabindex", "0");
+    expect(scroller).toHaveAttribute("data-sourcepos", expect.stringContaining("1:"));
+  });
+
   it("shows a simplified mermaid summary in compact previews", () => {
     render(<MarkdownRenderer markdown={"```mermaid\ngraph TD\n  A[Paste] --> B[Preview]\n  B --> C[Share]\n```"} variant="compact" />);
 
@@ -67,6 +90,40 @@ describe("MarkdownRenderer", () => {
     expect(screen.getByText("Preview")).toBeInTheDocument();
     expect(screen.getByText("Share")).toBeInTheDocument();
     expect(screen.queryByText(/rendered/i)).not.toBeInTheDocument();
+  });
+
+  it("renders mermaid diagrams through the legacy callback API", async () => {
+    const user = userEvent.setup();
+    const bindFunctions = vi.fn();
+    mermaidMock.render.mockImplementation((_id, _chart, callback) => {
+      callback('<svg data-testid="rendered-mermaid" viewBox="0 0 100 40"><text>Flow</text></svg>', bindFunctions);
+      return undefined;
+    });
+
+    const { container } = render(
+      <MarkdownRenderer markdown={"```mermaid\ngraph TD\n  A[Start] --> B[Finish]\n```"} />
+    );
+
+    await user.click(screen.getByRole("button", { name: /^render$/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/rendered/i)).toBeInTheDocument();
+      expect(screen.getByTestId("rendered-mermaid")).toBeInTheDocument();
+    });
+    expect(mermaidMock.initialize).toHaveBeenCalledWith(
+      expect.objectContaining({
+        securityLevel: "strict",
+        startOnLoad: false,
+        theme: "neutral"
+      })
+    );
+    expect(mermaidMock.render).toHaveBeenCalledWith(
+      expect.stringMatching(/^mermaid-/),
+      expect.stringContaining("A[Start] --> B[Finish]"),
+      expect.any(Function),
+      expect.any(HTMLElement)
+    );
+    expect(bindFunctions).toHaveBeenCalledWith(container.querySelector(".mermaid-svg"));
   });
 
   it("keeps syntax-highlighted markup inside fenced code blocks", () => {

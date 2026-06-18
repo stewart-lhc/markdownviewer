@@ -8,11 +8,129 @@ type MermaidBlockProps = {
   variant?: "default" | "compact";
 };
 
+type MermaidRenderResult = {
+  bindFunctions?: (element: Element) => void;
+  svg: string;
+};
+
+type MermaidApi = {
+  initialize: (config: Record<string, unknown>) => void;
+  render: (
+    id: string,
+    text: string,
+    callback?: (svg: string, bindFunctions?: (element: Element) => void) => void,
+    container?: HTMLElement
+  ) => Promise<MermaidRenderResult> | MermaidRenderResult | string | void;
+};
+
+const mermaidRenderTimeoutMs = 8000;
+
 function extractFlowLabels(chart: string) {
   const matches = [...chart.matchAll(/\[(.+?)\]/g)];
   const labels = matches.map((match) => match[1].trim()).filter(Boolean);
 
   return labels.length ? Array.from(new Set(labels)).slice(0, 4) : [];
+}
+
+function createMermaidRenderContainer() {
+  const container = document.createElement("div");
+
+  container.setAttribute("aria-hidden", "true");
+  container.style.position = "absolute";
+  container.style.left = "-10000px";
+  container.style.top = "0";
+  container.style.width = "1px";
+  container.style.height = "1px";
+  container.style.overflow = "hidden";
+  container.style.pointerEvents = "none";
+  document.body.append(container);
+
+  return container;
+}
+
+function normalizeMermaidRenderResult(result: MermaidRenderResult | string | void) {
+  if (typeof result === "string") {
+    return { svg: result };
+  }
+
+  if (result && typeof result.svg === "string") {
+    return result;
+  }
+
+  return undefined;
+}
+
+function renderMermaidChart(mermaid: MermaidApi, id: string, chart: string) {
+  return new Promise<MermaidRenderResult>((resolve, reject) => {
+    const container = createMermaidRenderContainer();
+    let settled = false;
+
+    function cleanup(timeoutId: number) {
+      window.clearTimeout(timeoutId);
+      window.setTimeout(() => {
+        container.remove();
+      }, 0);
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      container.remove();
+      reject(new Error("Mermaid render timed out."));
+    }, mermaidRenderTimeoutMs);
+
+    function finish(result: MermaidRenderResult | string | void) {
+      if (settled) {
+        return;
+      }
+
+      const normalizedResult = normalizeMermaidRenderResult(result);
+
+      if (!normalizedResult) {
+        settled = true;
+        cleanup(timeoutId);
+        reject(new Error("Mermaid render did not return SVG output."));
+        return;
+      }
+
+      settled = true;
+      cleanup(timeoutId);
+      resolve(normalizedResult);
+    }
+
+    function fail(error: unknown) {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      cleanup(timeoutId);
+      reject(error);
+    }
+
+    try {
+      const renderResult = mermaid.render(
+        id,
+        chart,
+        (svg, bindFunctions) => finish({ svg, bindFunctions }),
+        container
+      );
+
+      if (renderResult && typeof (renderResult as Promise<MermaidRenderResult>).then === "function") {
+        void (renderResult as Promise<MermaidRenderResult>).then(finish).catch(fail);
+        return;
+      }
+
+      if (renderResult !== undefined) {
+        finish(renderResult as MermaidRenderResult | string);
+      }
+    } catch (error) {
+      fail(error);
+    }
+  });
 }
 
 export const MermaidBlock = memo(function MermaidBlock({ chart, sourcePosition, variant = "default" }: MermaidBlockProps) {
@@ -22,6 +140,8 @@ export const MermaidBlock = memo(function MermaidBlock({ chart, sourcePosition, 
   const chartId = useId().replace(/:/g, "-");
   const labels = useMemo(() => extractFlowLabels(chart), [chart]);
   const frameRef = useRef<HTMLDivElement>(null);
+  const svgRef = useRef<HTMLDivElement>(null);
+  const bindFunctionsRef = useRef<MermaidRenderResult["bindFunctions"]>(undefined);
 
   useEffect(() => {
     if (variant === "compact" || shouldRender) {
@@ -60,16 +180,17 @@ export const MermaidBlock = memo(function MermaidBlock({ chart, sourcePosition, 
 
     async function renderChart() {
       try {
-        const mermaid = (await import("mermaid")).default;
+        const mermaid = (await import("mermaid")).default as MermaidApi;
         mermaid.initialize({
           startOnLoad: false,
           theme: "neutral",
           securityLevel: "strict"
         });
 
-        const result = await mermaid.render(`mermaid-${chartId}`, chart);
+        const result = await renderMermaidChart(mermaid, `mermaid-${chartId}`, chart);
 
         if (!cancelled) {
+          bindFunctionsRef.current = result.bindFunctions;
           setSvg(result.svg);
           setError(undefined);
         }
@@ -86,6 +207,14 @@ export const MermaidBlock = memo(function MermaidBlock({ chart, sourcePosition, 
       cancelled = true;
     };
   }, [chart, chartId, shouldRender, variant]);
+
+  useEffect(() => {
+    if (!svg || !svgRef.current || !bindFunctionsRef.current) {
+      return;
+    }
+
+    bindFunctionsRef.current(svgRef.current);
+  }, [svg]);
 
   if (variant === "compact") {
     return (
@@ -122,7 +251,7 @@ export const MermaidBlock = memo(function MermaidBlock({ chart, sourcePosition, 
         )}
       </div>
       {svg ? (
-        <div className="mermaid-svg" dangerouslySetInnerHTML={{ __html: svg }} />
+        <div className="mermaid-svg" dangerouslySetInnerHTML={{ __html: svg }} ref={svgRef} />
       ) : (
         <pre>{error ? `${error}\n\n${chart}` : chart}</pre>
       )}

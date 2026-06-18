@@ -6,7 +6,12 @@ declare module "mermaid" {
 
   type MermaidApi = {
     initialize: (config: Record<string, unknown>) => void;
-    render: (id: string, text: string) => Promise<MermaidRenderResult>;
+    render: (
+      id: string,
+      text: string,
+      callback?: (svg: string, bindFunctions?: (element: Element) => void) => void,
+      container?: HTMLElement
+    ) => Promise<MermaidRenderResult> | MermaidRenderResult | string | void;
   };
 
   const mermaid: MermaidApi;

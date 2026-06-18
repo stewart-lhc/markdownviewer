@@ -14,13 +14,19 @@ describe("homepage", () => {
     );
     expect(screen.getByLabelText(/markdown source url/i)).toHaveAttribute("name", "source");
     expect(screen.getByRole("button", { name: /^open$/i })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /updates/i })).toHaveAttribute("href", "/changelog");
-    expect(screen.getByRole("link", { name: /pricing/i })).toHaveAttribute("href", "/pricing");
+    expect(screen.getAllByRole("link", { name: /updates/i }).some((link) => link.getAttribute("href") === "/changelog")).toBe(true);
+    expect(screen.getAllByRole("link", { name: /pricing/i }).some((link) => link.getAttribute("href") === "/pricing")).toBe(true);
+    expect(screen.getAllByRole("group", { name: /color mode/i }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("button", { name: /system/i })[0]).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getAllByRole("button", { name: /light/i }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("button", { name: /dark/i }).length).toBeGreaterThan(0);
+    expect(screen.getByRole("button", { name: /open navigation breadcrumbs/i })).toBeInTheDocument();
     expect(container.querySelector(".topbar-actions .github-mark")).not.toBeNull();
-    expect(container.querySelector(".topbar-actions > .ghost-link:last-child")).toHaveClass("ghost-link--primary");
+    expect(container.querySelector(".topbar-actions > .ghost-link.ghost-link--primary")).not.toBeNull();
+    expect(container.querySelector(".topbar-actions > .ghost-link.ghost-link--primary + .topbar-breadcrumbs")).not.toBeNull();
     expect(screen.getByRole("heading", { level: 2, name: /recent features/i })).toBeInTheDocument();
-    expect(screen.getByText("26.610")).toBeInTheDocument();
-    expect(screen.getAllByText(/desktop workspace reading controls/i).length).toBeGreaterThan(0);
+    expect(screen.getByText("26.617")).toBeInTheDocument();
+    expect(screen.getAllByText(/share growth, theme polish, screenshots, and mobile navigation/i).length).toBeGreaterThan(0);
     expect(container.querySelector(".workflow-link-bar")).not.toBeInTheDocument();
     expect(container.querySelector(".site-footer__workflows")).toBeInTheDocument();
     expect(within(container.querySelector(".site-footer__workflows") as HTMLElement).getByRole("link", { name: /readme viewer online/i })).toHaveAttribute(
@@ -33,6 +39,20 @@ describe("homepage", () => {
     expect(within(preview as HTMLElement).getByRole("heading", { level: 1, name: /markdown feature atlas/i })).toBeInTheDocument();
     expect(container.querySelector(".hero-preview .code-frame")).toBeInTheDocument();
     expect(container.querySelector(".hero-preview .mermaid-compact")).toBeInTheDocument();
+
+    const featureScreenshots = Array.from(container.querySelectorAll(".feature-card__media img"));
+    expect(featureScreenshots).toHaveLength(8);
+    expect(featureScreenshots.every((image) => image.getAttribute("loading") === "eager")).toBe(true);
+    expect(featureScreenshots.map((image) => image.getAttribute("src"))).toEqual([
+      "/feature-screenshots/live-preview.webp",
+      "/feature-screenshots/folder-workspace.webp",
+      "/feature-screenshots/pwa-file-open.webp",
+      "/feature-screenshots/persistent-tabs.webp",
+      "/feature-screenshots/document-conversion.webp",
+      "/feature-screenshots/technical-rendering.webp",
+      "/feature-screenshots/share-export.webp",
+      "/feature-screenshots/readme-ai-workspace.webp"
+    ]);
   });
 
   it("renders a formal site footer with company and legal links", () => {
@@ -69,9 +89,10 @@ describe("homepage", () => {
 
     expect(screen.getByRole("heading", { level: 1, name: /在线 markdown 查看器/i })).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: /工作区/i })[0]).toHaveAttribute("href", "/zh-CN/workspace");
-    expect(screen.getByRole("link", { name: "en" })).toHaveAttribute("href", "/");
+    expect(screen.getAllByRole("link", { name: "en" }).some((link) => link.getAttribute("href") === "/")).toBe(true);
     expect(screen.getAllByRole("link", { name: /更新/i })[0]).toHaveAttribute("href", "/zh-CN/changelog");
-    expect(screen.getByRole("link", { name: /定价/i })).toHaveAttribute("href", "/zh-CN/pricing");
+    expect(screen.getAllByRole("link", { name: /定价/i }).some((link) => link.getAttribute("href") === "/zh-CN/pricing")).toBe(true);
+    expect(screen.getAllByRole("group", { name: /颜色模式/i }).length).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: /^打开$/i })).toBeInTheDocument();
   });
 });

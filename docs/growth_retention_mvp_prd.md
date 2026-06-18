@@ -305,6 +305,74 @@ M5. Markdown Check / AI Markdown QA Lite
 M6. Open in MarkdownViewer / README Badge
 ```
 
+### 5.3 2026-06-17 实现状态审计与下一 MVP 收敛
+
+本节用于合并 2026-06-17 的代码审计结果和下一轮 MVP 决策。结论是：原始增长留存 PRD 还没有完整做完，但已经具备若干可复用基础。下一轮不应一次性补齐 6 个模块，而应先收敛到能同时验证分享增长和本地回访的最小闭环。
+
+#### 5.3.1 当前完成状态
+
+| 模块 | 当前状态 | 代码侧证据 | 结论 |
+|---|---|---|---|
+| M1. 增长与留存数据底座 | 部分完成 | 已有 `lib/analytics/product-events.ts`，workspace 分享成功弹层已记录 `pro_feature_clicked`，Waitlist 已有局部提交事件 | 只有前端事件透传，没有统一 visitor/session、核心事件表、漏斗和回填策略 |
+| M2. 首页和 Workspace 首屏任务入口重构 | 部分完成 | 首页已有 Paste/File/Sample/URL 入口；workspace 已有 starter document 和多种导入能力 | 不是 PRD 定义的三主任务入口，workspace 空状态和 `entryIntent` 仍未闭环 |
+| M3. Recent Workspace / Continue Last Session | 部分完成 | workspace tabs 已用 localStorage 保存和恢复 | 只恢复编辑标签页，没有用户可见的 Recent 面板、Continue Last Session、Pin/Remove |
+| M4. Share Page Growth Loop | 部分完成 | 分享页顶部已有 `Open in workspace`；分享成功弹层已有 Share Pro 意图链接 | 缺少底部增长 CTA、`Edit a Copy`、`Use as Template`、分享链路来源追踪和本地回访记录 |
+| M5. Markdown Check / AI Markdown QA Lite | 未开始 | 当前代码没有 checker/linter 规则引擎和 issue panel | 暂不纳入下一轮实现 |
+| M6. Open in MarkdownViewer / README Badge | 部分完成 | `?source=` 可打开 raw/GitHub blob/Gist/raw URL | 缺少 GitHub repo URL 到 README 的解析、badge 生成器和 `source=github_badge` 来源标记 |
+
+#### 5.3.2 下一 MVP 决策
+
+下一轮 MVP 命名为 **Share Growth Loop + Local Recent**。
+
+目标不是补齐完整商业化、账号或协作体系，而是把已经存在的分享页、workspace、本地 tab 保存和 Pro intent 探针串成一个可衡量闭环：
+
+```text
+reader opens share
+→ reader clicks Edit a Copy / Use as Template
+→ workspace opens a safe local copy
+→ user creates or edits a document
+→ user creates another share
+→ local Recent exposes the return path
+```
+
+#### 5.3.3 下一 MVP 必做范围
+
+P0 必做：
+
+- 为分享阅读页补齐顶部和底部 CTA：`Open in workspace`、`Edit a Copy`、`Use as Template`。
+- `Edit a Copy` 打开 workspace 中的本地副本，不覆盖原分享内容。
+- `Use as Template` 打开 workspace 中的模板派生文档，内容来自原分享，但状态和来源明确标记为 template-derived。
+- 为分享页到 workspace 的动作记录来源：`share_reader_opened`、`share_reader_open_workspace_clicked`、`share_reader_edit_copy_clicked`、`share_reader_use_template_clicked`。
+- 分享成功后记录 `share_created`，并保留现有 Share Pro 意图：password、expiration、noindex、custom slug。
+- 增加 Local Recent：记录最近创建的 share、从 share 复制/模板打开的文档、最近转换成功的文档。
+- 首页和 workspace 空状态显示轻量 Continue 区域，最多 3 条，不引入账号和云同步。
+- 为用户生成分享确认默认索引策略。若继续允许搜索引擎索引，必须在文档中说明；若默认 `noindex`，则需要同步 metadata 行为和增长口径。
+
+P1 可做：
+
+- Recent item 支持 remove。
+- Recent item 支持 pin，但不阻塞 P0。
+- 分享成功弹层展示最近分享入口。
+- 将 `entryIntent` 写入 workspace 初始状态，供后续 M2 重构继续使用。
+
+明确不做：
+
+- 不做登录、云端 My Shares、团队空间。
+- 不做真实密码、过期时间、自定义 slug，只保留 Pro intent 探针。
+- 不做完整 Markdown Check。
+- 不做 README Badge 和 GitHub repo README 解析。
+- 不做后端事件仓库或增长看板，先以前端事件和可测试数据结构打通口径。
+
+#### 5.3.4 成功标准
+
+- 分享页读者在不登录的情况下，可以明确选择“打开工作区”、“编辑副本”或“作为模板使用”。
+- 从分享页进入 workspace 后，文档不会覆盖原分享，source 能区分 open/copy/template。
+- workspace 分享成功后，本地 Recent 能出现该 share。
+- 从分享页 copy/template 打开的文档会进入本地 Recent。
+- 首页或 workspace 能展示最多 3 条 Continue 入口。
+- `trackProductEvent` 至少覆盖 share reader CTA、workspace share created、Share Pro intent。
+- 新增路径有 Vitest 覆盖，`pnpm test` 和 `pnpm build` 通过。
+
 ---
 
 # 6. M1：增长与留存数据底座
@@ -1311,6 +1379,19 @@ Generate README Badge
 # 12. MVP 实施计划
 
 ## 12.1 分阶段路线
+
+2026-06-17 修订：由于当前实现已具备分享页、workspace、本地 tab 恢复和 Share Pro intent 的基础能力，下一轮实施从收敛版 Phase 2 开始，即 **Share Growth Loop + Local Recent**。原 Phase 0/1 中的完整 analytics 后端、完整首页三入口重构，以及原 Phase 3/4 的 Markdown Check、README Badge 暂不进入本轮。
+
+本轮实施映射：
+
+| 本轮任务 | 对应原模块 | 处理方式 |
+|---|---|---|
+| 事件命名和 source 标记 | M1 | 做 M1-lite，不建后端仓库 |
+| 本地 Recent/Continue | M3 | 作为核心交付 |
+| 分享页 CTA 和 copy/template | M4 | 作为核心交付 |
+| 首页/workspace 轻量 Continue | M2/M3 | 只做回访入口，不重做全首屏 |
+| Markdown Check | M5 | 延后 |
+| README Badge | M6 | 延后 |
 
 ### Phase 0：准备与基础治理，建议 2–3 天
 

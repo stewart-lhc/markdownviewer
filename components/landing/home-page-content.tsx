@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { BrandLink } from "@/components/brand/brand-link";
+import { ContinuePanel } from "@/components/landing/continue-panel";
 import { FeatureGrid } from "@/components/landing/feature-grid";
 import { Hero } from "@/components/landing/hero";
 import { LiveSample } from "@/components/landing/live-sample";
+import { SourceStrip } from "@/components/landing/source-strip";
 import { LandingTopbar } from "@/components/landing/topbar";
 import { defaultLocale, localizePath, type Locale } from "@/lib/i18n/locales";
 import { getMessages, type Messages } from "@/lib/i18n/messages";
@@ -113,21 +115,24 @@ export function HomePageContent({ locale = defaultLocale }: HomePageContentProps
           <Hero locale={locale} messages={t.landing} />
           <LiveSample ribbon={t.landing.hero.sampleRibbon} />
         </div>
+        <ContinuePanel messages={t.workspace.recent} />
+        <section className="source-band" aria-label={t.landing.sources.ariaLabel}>
+          <p>{locale === defaultLocale ? "Bring the source you already have." : "把你已有的来源直接带进来。"}</p>
+          <SourceStrip ariaLabel={t.landing.sources.ariaLabel} sources={t.landing.sources.items} />
+        </section>
 
         <section className="section section--updates">
           <div className="section-head">
-            <div>
-              <p className="eyebrow">{t.landing.updates.eyebrow}</p>
-              <h2 className="section-title">{t.landing.updates.title}</h2>
-            </div>
+            <p className="eyebrow">{t.landing.updates.eyebrow}</p>
+            <h2 className="section-title">{t.landing.updates.title}</h2>
             <p className="section-copy">{t.landing.updates.copy}</p>
           </div>
           <div className="update-grid">
-            {productUpdates.slice(0, 3).map((update) => {
+            {productUpdates.slice(0, 3).map((update, index) => {
               const copy = getProductUpdateText(update, locale);
 
               return (
-                <article className="surface-card update-card" key={update.version}>
+                <article className={`surface-card update-card${index === 0 ? " update-card--lead" : ""}`} key={update.version}>
                   <span>{update.version}</span>
                   <h3>{copy.title}</h3>
                   <p>{copy.summary}</p>
@@ -142,21 +147,15 @@ export function HomePageContent({ locale = defaultLocale }: HomePageContentProps
 
         <section className="section">
           <div className="section-head">
-            <div>
-              <p className="eyebrow">{t.landing.features.eyebrow}</p>
-              <h2 className="section-title">{t.landing.features.title}</h2>
-            </div>
+            <h2 className="section-title">{t.landing.features.title}</h2>
             <p className="section-copy">{t.landing.features.copy}</p>
           </div>
           <FeatureGrid features={t.landing.features.items} />
         </section>
 
-        <section className="section">
+        <section className="section section--workflows">
           <div className="section-head">
-            <div>
-              <p className="eyebrow">{t.landing.intents.eyebrow}</p>
-              <h2 className="section-title">{t.landing.intents.title}</h2>
-            </div>
+            <h2 className="section-title">{t.landing.intents.title}</h2>
             <p className="section-copy">{t.landing.intents.copy}</p>
           </div>
           <div className="intent-grid">
@@ -172,10 +171,7 @@ export function HomePageContent({ locale = defaultLocale }: HomePageContentProps
         {locale === defaultLocale ? (
           <section className="section">
             <div className="section-head">
-              <div>
-                <p className="eyebrow">Popular Markdown workflows</p>
-                <h2 className="section-title">More focused ways to preview Markdown online.</h2>
-              </div>
+              <h2 className="section-title">More focused ways to preview Markdown online.</h2>
               <p className="section-copy">
                 Start from the Markdown task you searched for, then open the same live workspace with the right context.
               </p>
@@ -195,12 +191,9 @@ export function HomePageContent({ locale = defaultLocale }: HomePageContentProps
 
         <section className="section section--compact" aria-labelledby="markdown-viewer-faq">
           <div className="section-head">
-            <div>
-              <p className="eyebrow">{t.landing.faq.eyebrow}</p>
-              <h2 className="section-title" id="markdown-viewer-faq">
-                {t.landing.faq.title}
-              </h2>
-            </div>
+            <h2 className="section-title" id="markdown-viewer-faq">
+              {t.landing.faq.title}
+            </h2>
           </div>
           <div className="faq-grid">
             {t.landing.faq.items.map((faq) => (

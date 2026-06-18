@@ -1,5 +1,4 @@
 import { HeroImportActions } from "@/components/landing/hero-import-actions";
-import { SourceStrip } from "@/components/landing/source-strip";
 import type { Locale } from "@/lib/i18n/locales";
 import type { LandingMessages } from "@/lib/i18n/messages";
 
@@ -11,13 +10,10 @@ type HeroProps = {
 export function Hero({ locale, messages }: HeroProps) {
   return (
     <div className="hero-copy">
-      <div>
-        <span className="eyebrow">{messages.hero.eyebrow}</span>
-        <h1>{messages.hero.title}</h1>
-        <p>{messages.hero.body}</p>
-        <HeroImportActions locale={locale} />
-      </div>
-      <SourceStrip ariaLabel={messages.sources.ariaLabel} sources={messages.sources.items} />
+      <span className="eyebrow">{messages.hero.eyebrow}</span>
+      <h1>{messages.hero.title}</h1>
+      <p>{messages.hero.body}</p>
+      <HeroImportActions locale={locale} />
     </div>
   );
 }

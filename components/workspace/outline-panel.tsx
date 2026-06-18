@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type WheelEvent as ReactWheelEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type WheelEvent as ReactWheelEvent } from "react";
 import { ListTree, X } from "lucide-react";
 import type { WorkspaceMessages } from "@/lib/i18n/messages";
 import { ExtractedHeading } from "@/lib/markdown/extract-headings";
@@ -9,15 +9,17 @@ type OutlinePanelProps = {
   headings: ExtractedHeading[];
   documentTitle: string;
   messages: WorkspaceMessages["preview"];
+  onClose: () => void;
   open: boolean;
   onNavigate: (id: string) => void;
   onToggle: () => void;
 };
 
-export function OutlinePanel({ headings, documentTitle, messages, onNavigate, onToggle, open }: OutlinePanelProps) {
+export function OutlinePanel({ headings, documentTitle, messages, onClose, onNavigate, onToggle, open }: OutlinePanelProps) {
   const [activeId, setActiveId] = useState<string | null>(headings[0]?.id ?? null);
   const hasHeadings = headings.length > 0;
   const headingIds = useMemo(() => headings.map((heading) => heading.id), [headings]);
+  const panelRootRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!hasHeadings) {
@@ -85,6 +87,28 @@ export function OutlinePanel({ headings, documentTitle, messages, onNavigate, on
     };
   }, [hasHeadings, headingIds]);
 
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    function handlePointerDown(event: PointerEvent) {
+      const target = event.target;
+
+      if (!(target instanceof Node) || panelRootRef.current?.contains(target)) {
+        return;
+      }
+
+      onClose();
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+    };
+  }, [onClose, open]);
+
   if (!hasHeadings) {
     return null;
   }
@@ -108,7 +132,7 @@ export function OutlinePanel({ headings, documentTitle, messages, onNavigate, on
   }
 
   return (
-    <div className="workspace-toc" data-open={open} data-testid="floating-toc">
+    <div className="workspace-toc" data-open={open} data-testid="floating-toc" ref={panelRootRef}>
       <button
         aria-expanded={open}
         aria-label={open ? messages.closeContents : messages.contents}

@@ -63,7 +63,50 @@ describe("resolveInitialWorkspaceDocument", () => {
       share: "starter-doc"
     });
 
-    expect(result.sourceInput).toBe("");
+    expect(result.sourceInput).toBe("share:starter-doc:open");
     expect(result.markdown).toMatch(/Markdown Feature Atlas/);
+    expect(result.statusMessage).toBe("Opened shared Markdown in the workspace.");
+  });
+
+  it("marks shared documents opened as editable copies", async () => {
+    const result = await resolveInitialWorkspaceDocument({
+      share: "starter-doc",
+      shareAction: "copy"
+    });
+
+    expect(result.sourceInput).toBe("share:starter-doc:copy");
+    expect(result.markdown).toMatch(/Markdown Feature Atlas/);
+    expect(result.statusMessage).toBe("Opened an editable copy of this shared Markdown.");
+  });
+
+  it("marks shared documents opened as templates", async () => {
+    const result = await resolveInitialWorkspaceDocument({
+      share: "starter-doc",
+      shareAction: "template"
+    });
+
+    expect(result.sourceInput).toBe("share:starter-doc:template");
+    expect(result.markdown).toMatch(/Markdown Feature Atlas/);
+    expect(result.statusMessage).toBe("Opened this shared Markdown as a template.");
+  });
+
+  it("falls back to open for unknown share actions", async () => {
+    const result = await resolveInitialWorkspaceDocument({
+      share: "starter-doc",
+      shareAction: "overwrite"
+    });
+
+    expect(result.sourceInput).toBe("share:starter-doc:open");
+    expect(result.markdown).toMatch(/Markdown Feature Atlas/);
+  });
+
+  it("does not mark a missing shared document as a source", async () => {
+    const result = await resolveInitialWorkspaceDocument({
+      share: "definitely-missing-share"
+    });
+
+    expect(result.sourceInput).toBe("");
+    expect(result.markdown).toBe("");
+    expect(result.statusMessage).toBe("Shared document not found.");
   });
 });

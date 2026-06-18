@@ -8,6 +8,7 @@ node_modules
 .codex-temp/
 .playwright-mcp/
 .codex-*.png
+.codegraph/
 test-results/
 .data/
 .next-dev-*.log
