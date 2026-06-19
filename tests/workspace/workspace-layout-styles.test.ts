@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-const css = readFileSync("D:/GitHub/markdownviewer/app/globals.css", "utf8");
+const css = readFileSync("app/globals.css", "utf8").replace(/\r\n/g, "\n");
 
 describe("workspace core canvas styles", () => {
   it("uses a resizable split layout without a dedicated outline column", () => {
@@ -121,7 +121,8 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain(".toolbar-mobile-settings-strip .workspace-preview-type-controls {");
     expect(css).toContain(".toolbar-mobile-settings-strip .workspace-preview-font-list {");
     expect(css).toContain(".workspace-preview-bottom-bar {");
-    expect(css).toContain("display: block !important;");
+    expect(css).toContain("display: grid !important;");
+    expect(css).toContain("padding-bottom: calc(62px + env(safe-area-inset-bottom, 0px)) !important;");
     expect(css).toContain(".workspace-page .workspace-preview-bottom-bar {");
     expect(css).toContain(".workspace-page[data-preview-controls-open=\"true\"] .workspace-preview-bottom-bar {");
     expect(css).toContain(".workspace-preview-mobile-share-button {");
@@ -135,12 +136,16 @@ describe("workspace core canvas styles", () => {
     expect(css).not.toContain(".workspace-page[data-preview-controls-open=\"true\"] .workspace-toc {");
     expect(css).toContain('.workspace-toc[data-open="false"] .workspace-toc-panel {\n    transform: translate(8px, -50%);');
     expect(css).toContain("grid-template-columns: repeat(6, minmax(0, 1fr));");
+    expect(css).toContain("min-height: calc(56px + env(safe-area-inset-bottom, 0px));");
+    expect(css).toContain("border-radius: 0;");
+    expect(css).toContain("box-shadow: none;");
     expect(css).toContain(".workspace-preview-bottom-bar .toolbar-overflow {");
     expect(css).toContain("justify-self: stretch !important;");
     expect(css).toContain(
       ".workspace-preview-bottom-bar .workspace-preview-size-control,\n  .workspace-preview-bottom-bar .workspace-preview-line-height-control {"
     );
     expect(css).toContain("display: contents !important;");
+    expect(css).toContain("min-height: 42px;");
     expect(css).toContain(".workspace-preview-control-icon {");
     expect(css).toContain(".workspace-preview-step-icon {");
     expect(css).toContain('.workspace-preview-template[data-compact="true"] > .toolbar-button,');

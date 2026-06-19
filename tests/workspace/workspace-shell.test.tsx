@@ -291,12 +291,17 @@ describe("WorkspaceShell interactions", () => {
 
     expect(templateButton).toBeInTheDocument();
     expect(templateButton.closest(".toolbar")).toBeNull();
-    expect(templateButton.querySelector(".workspace-preview-control-icon")).toBeNull();
+    expect(templateButton.querySelector(".workspace-preview-control-icon")).not.toBeNull();
     expect(
       templateButton.closest(".workspace-pane-header--preview")
     ).not.toBeNull();
     expect(
       within(screen.getByTestId("preview-panel")).getByLabelText(/^preview font$/i).closest(".workspace-pane-header--preview")
+    ).not.toBeNull();
+    expect(
+      within(screen.getByTestId("preview-panel"))
+        .getByLabelText(/^preview font$/i)
+        .querySelector(".workspace-preview-control-icon")
     ).not.toBeNull();
     expect(
       within(screen.getByTestId("preview-panel")).getByRole("button", { name: /increase preview font size/i })
@@ -305,12 +310,13 @@ describe("WorkspaceShell interactions", () => {
       within(screen.getByTestId("preview-panel"))
         .getByRole("button", { name: /increase preview font size/i })
         .querySelector(".workspace-preview-step-icon")
-    ).toBeNull();
+    ).not.toBeNull();
     expect(
       within(screen.getByTestId("preview-panel"))
         .getByRole("button", { name: /share link/i })
         .querySelector(".workspace-preview-share-label-full")
-    ).not.toBeNull();
+    ).toBeNull();
+    expect(within(screen.getByTestId("preview-panel")).getByRole("button", { name: /share link/i })).toHaveTextContent("");
     expect(screen.queryByRole("button", { name: /^url$/i })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /contents/i }).closest(".workspace-toc")).not.toBeNull();
     expect(
@@ -1049,14 +1055,14 @@ describe("WorkspaceShell interactions", () => {
     expect(page.style.getPropertyValue("--workspace-tabs-width")).toBe("190px");
 
     fireEvent.pointerDown(resizer, {
-      clientX: 270,
+      clientX: 240,
       pointerId: 1
     });
 
     await waitFor(() => {
       expect(page).toHaveAttribute("data-tabs-resizing", "true");
-      expect(page.style.getPropertyValue("--workspace-tabs-width")).toBe("220px");
-      expect(resizer).toHaveAttribute("aria-valuenow", "220");
+      expect(page.style.getPropertyValue("--workspace-tabs-width")).toBe("190px");
+      expect(resizer).toHaveAttribute("aria-valuenow", "190");
     });
 
     fireEvent.pointerMove(window, {
@@ -1078,6 +1084,31 @@ describe("WorkspaceShell interactions", () => {
     await waitFor(() => {
       expect(page).toHaveAttribute("data-tabs-resizing", "false");
       expect(window.localStorage.getItem(workspaceTabsWidthStorageKey)).toBe("328");
+    });
+  });
+
+  it("collapses the workspace tabs sidebar when dragged past the minimum width", async () => {
+    window.localStorage.removeItem(workspaceTabsWidthStorageKey);
+
+    const { container } = render(<WorkspaceShell markdown="# Collapse tabs" sourceInput="" />);
+
+    const page = container.querySelector(".workspace-page") as HTMLDivElement;
+    const resizer = screen.getByRole("separator", { name: /resize left sidebar/i });
+
+    expect(page.style.getPropertyValue("--workspace-tabs-width")).toBe("190px");
+
+    fireEvent.pointerDown(resizer, {
+      clientX: 240,
+      pointerId: 1
+    });
+    fireEvent.pointerMove(window, {
+      clientX: 110
+    });
+
+    await waitFor(() => {
+      expect(page).toHaveAttribute("data-tabs-collapsed", "true");
+      expect(page).toHaveAttribute("data-tabs-resizing", "false");
+      expect(screen.queryByRole("separator", { name: /resize left sidebar/i })).not.toBeInTheDocument();
     });
   });
 

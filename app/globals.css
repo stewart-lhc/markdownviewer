@@ -7066,7 +7066,7 @@ html[data-theme] .workspace-reader-body .markdown-body h4,
   }
 
   .workspace-page[data-preview-controls-open="true"] .workspace-shell-card {
-    padding-bottom: calc(78px + env(safe-area-inset-bottom, 0px)) !important;
+    padding-bottom: calc(62px + env(safe-area-inset-bottom, 0px)) !important;
   }
 
   .workspace-reader-body {
@@ -7088,16 +7088,16 @@ html[data-theme] .workspace-reader-body .markdown-body h4,
     right: 0 !important;
     bottom: 0 !important;
     z-index: 60 !important;
-    display: block !important;
-    min-height: calc(70px + env(safe-area-inset-bottom, 0px));
-    padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px));
-    border-radius: 20px 20px 0 0;
-    border: 1px solid var(--workspace-shell-border);
+    box-sizing: border-box;
+    display: grid !important;
+    align-items: center;
+    min-height: calc(56px + env(safe-area-inset-bottom, 0px));
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
+    border: 0;
+    border-radius: 0;
     background:
       linear-gradient(180deg, color-mix(in srgb, var(--panel-strong) 94%, white 4%), var(--panel-strong));
-    box-shadow:
-      0 -18px 42px rgba(0, 0, 0, 0.34),
-      inset 0 1px 0 var(--workspace-card-border);
+    box-shadow: none;
     overflow: visible;
   }
 
@@ -7181,7 +7181,7 @@ html[data-theme] .workspace-reader-body .markdown-body h4,
   }
 
   .workspace-preview-bottom-toggle[aria-expanded="true"] {
-    bottom: calc(82px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(64px + env(safe-area-inset-bottom, 0px));
     background: var(--toolbar-button-active-bg);
     color: var(--toolbar-button-active-ink);
   }
@@ -7244,7 +7244,8 @@ html[data-theme] .workspace-reader-body .markdown-body h4,
   .workspace-preview-bottom-controls {
     display: grid;
     grid-template-columns: repeat(6, minmax(0, 1fr));
-    gap: 6px;
+    gap: 8px;
+    width: 100%;
     overflow-x: visible;
     overflow-y: visible;
     scrollbar-width: auto;
@@ -7278,14 +7279,14 @@ html[data-theme] .workspace-reader-body .markdown-body h4,
   }
 
   .workspace-preview-bottom-bar .toolbar-button {
-    min-height: 50px;
+    min-height: 42px;
     display: inline-grid;
     place-items: center;
     border: 1px solid var(--toolbar-button-border);
-    border-radius: 16px;
+    border-radius: 14px;
     background:
       linear-gradient(180deg, color-mix(in srgb, var(--toolbar-button-bg) 90%, white 8%), var(--toolbar-button-bg));
-    box-shadow: 0 10px 22px rgba(23, 23, 26, 0.1);
+    box-shadow: none;
     font-size: 0.72rem;
     white-space: nowrap;
   }
@@ -7341,14 +7342,14 @@ html[data-theme] .workspace-reader-body .markdown-body h4,
   .workspace-preview-bottom-bar .workspace-preview-size-control,
   .workspace-preview-bottom-bar .workspace-preview-line-height-control {
     display: contents !important;
-    min-height: 50px;
+    min-height: 42px;
   }
 
   .workspace-preview-bottom-bar .workspace-preview-size-button,
   .workspace-preview-bottom-bar .workspace-preview-line-height-button {
     width: 100%;
     min-width: 0;
-    min-height: 50px;
+    min-height: 42px;
     padding-inline: 0;
   }
 
@@ -7363,7 +7364,7 @@ html[data-theme] .workspace-reader-body .markdown-body h4,
     top: auto !important;
     left: 10px !important;
     right: 10px !important;
-    bottom: calc(66px + env(safe-area-inset-bottom, 0px)) !important;
+    bottom: calc(58px + env(safe-area-inset-bottom, 0px)) !important;
     width: auto !important;
     max-height: min(54vh, 420px);
     border-radius: 16px;

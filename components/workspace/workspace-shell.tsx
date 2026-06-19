@@ -179,6 +179,7 @@ const splitMaxPercent = 72;
 const defaultTabsWidth = 190;
 const minTabsWidth = 150;
 const maxTabsWidth = 360;
+const tabsCollapseDragThreshold = minTabsWidth - 28;
 const defaultPreviewFont: WorkspacePreviewFont = "system";
 const defaultPreviewFontSize = 15;
 const minPreviewFontSize = 13;
@@ -839,6 +840,7 @@ export function WorkspaceShell({
   const shareCopyResetTimeoutRef = useRef<number | undefined>(undefined);
   const skipNextModePersistRef = useRef(false);
   const skipNextTabsWidthPersistRef = useRef(false);
+  const tabsResizeStartRef = useRef<{ clientX: number; width: number } | null>(null);
   const lastEditorSelectionStartRef = useRef(0);
   const suppressPreviewScrollSyncRef = useRef(false);
   const lastMobilePreviewScrollTopRef = useRef(0);
@@ -2462,18 +2464,30 @@ export function WorkspaceShell({
 
   function updateTabsWidthFromClientX(clientX: number) {
     const page = pageRef.current;
+    const resizeStart = tabsResizeStartRef.current;
 
-    if (!page) {
+    if (resizeStart) {
+      const nextWidth = resizeStart.width + clientX - resizeStart.clientX;
+
+      if (nextWidth < tabsCollapseDragThreshold) {
+        tabsResizeStartRef.current = null;
+        setTabsResizing(false);
+        setMobileHeaderVisible(true);
+        setTabsCollapsed(true);
+        return;
+      }
+
+      setTabsWidth(clampTabsWidth(nextWidth));
       return;
     }
 
-    const rect = page.getBoundingClientRect();
+    if (page) {
+      const rect = page.getBoundingClientRect();
 
-    if (rect.width <= 0) {
-      return;
+      if (rect.width > 0) {
+        setTabsWidth(clampTabsWidth(clientX - rect.left));
+      }
     }
-
-    setTabsWidth(clampTabsWidth(clientX - rect.left));
   }
 
   function handleSplitResizePointerDown(event: ReactPointerEvent<HTMLDivElement>) {
@@ -2486,7 +2500,10 @@ export function WorkspaceShell({
   function handleTabsResizePointerDown(event: ReactPointerEvent<HTMLDivElement>) {
     event.preventDefault();
     event.currentTarget.setPointerCapture?.(event.pointerId);
-    updateTabsWidthFromClientX(event.clientX);
+    tabsResizeStartRef.current = {
+      clientX: event.clientX,
+      width: tabsWidth
+    };
     setTabsResizing(true);
   }
 
@@ -2528,6 +2545,13 @@ export function WorkspaceShell({
 
     if (event.key === "ArrowLeft") {
       event.preventDefault();
+
+      if (tabsWidth - step < minTabsWidth) {
+        setMobileHeaderVisible(true);
+        setTabsCollapsed(true);
+        return;
+      }
+
       setTabsWidth((current) => clampTabsWidth(current - step));
       return;
     }
@@ -2590,6 +2614,7 @@ export function WorkspaceShell({
     }
 
     function stopResizing() {
+      tabsResizeStartRef.current = null;
       setTabsResizing(false);
     }
 
@@ -3193,8 +3218,9 @@ export function WorkspaceShell({
                     >
                       <BookOpen aria-hidden="true" className="workspace-preview-control-icon" size={18} strokeWidth={2.2} />
                     </button>
-                    <WorkspaceThemeSelector messages={messages.preview} onThemeChange={setTheme} theme={theme} />
+                    <WorkspaceThemeSelector compact messages={messages.preview} onThemeChange={setTheme} theme={theme} />
                     <WorkspacePreviewTypographyControls
+                      compact
                       font={previewFont}
                       fontSize={previewFontSize}
                       lineHeight={previewLineHeight}
@@ -3214,12 +3240,14 @@ export function WorkspaceShell({
                       onMarginChange={(nextMargin) => setPreviewMargin(clampPreviewMargin(nextMargin))}
                     />
                   </div>
-                  <button className="toolbar-button workspace-preview-share-button" onClick={handleShare} type="button">
+                  <button
+                    aria-label={messages.toolbar.shareLink}
+                    className="toolbar-button workspace-preview-share-button"
+                    onClick={handleShare}
+                    title={messages.toolbar.shareLink}
+                    type="button"
+                  >
                     <Share2 aria-hidden="true" size={16} strokeWidth={2} />
-                    <span className="workspace-preview-share-label-full">{messages.toolbar.shareLink}</span>
-                    <span className="workspace-preview-share-label-compact">
-                      {locale === "zh-CN" ? "分享" : "Share"}
-                    </span>
                   </button>
                 </div>
               ) : null}
