@@ -15,6 +15,35 @@ export type ProductUpdate = {
 
 export const productUpdates: ProductUpdate[] = [
   {
+    version: "26.620",
+    date: "2026-06-20",
+    en: {
+      title: "Platform-aware keyboard shortcuts",
+      summary:
+        "Markdownviewer added desktop keyboard shortcuts across the workspace, editor, preview reader, and share reader, with Mac/Windows shortcut hints and a dedicated shortcut help popup.",
+      highlights: [
+        "Added workspace shortcuts for new tabs, imports, folder opening, save, share, export, search, sidebar toggling, mode switching, contents, immersive reading, typography, and pane focus.",
+        "Added editor shortcut hints for common formatting actions while preserving the existing rich and raw editor behavior.",
+        "Added share-reader shortcuts for reading controls and share actions using modified combinations instead of global single-letter keys.",
+        "Tooltips now show the active platform shortcut, and the shortcut help popup lists both Mac and Windows combinations.",
+        "Shortcut platform detection now updates after client mount to avoid Mac/Windows hydration mismatches.",
+        "HTML export from editor-only mode now waits for the preview to mount before downloading, preventing empty shortcut-triggered exports."
+      ]
+    },
+    "zh-CN": {
+      title: "平台感知快捷键",
+      summary: "Markdownviewer 为 workspace、编辑器、预览阅读器和分享阅读器新增桌面快捷键，并通过 tooltip 与专门弹窗区分 Mac / Windows 快捷键。",
+      highlights: [
+        "新增 workspace 快捷键，覆盖新建 tab、导入、打开文件夹、保存、分享、导出、搜索、sidebar、模式切换、目录、沉浸阅读、排版调整和面板聚焦。",
+        "编辑器常用格式化动作现在会显示快捷键提示，同时保留现有 rich/raw 编辑行为。",
+        "分享阅读器新增阅读控制和分享动作快捷键，并使用带修饰键的组合，避免全局单字母误触。",
+        "按钮 tooltip 会显示当前平台快捷键，快捷键弹窗同时列出 Mac 和 Windows 组合。",
+        "快捷键平台识别改为 client mount 后更新，避免 Mac / Windows 首屏 hydration mismatch。",
+        "editor-only 模式下触发 HTML 导出时会先等待预览挂载，避免快捷键导出空 HTML。"
+      ]
+    }
+  },
+  {
     version: "26.619",
     date: "2026-06-19",
     en: {

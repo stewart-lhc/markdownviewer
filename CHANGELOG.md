@@ -2,6 +2,23 @@
 
 All notable changes to this project are documented in this file.
 
+## 26.620 - 2026-06-20
+
+### Added
+
+- Added platform-aware keyboard shortcuts across the workspace, editor toolbar, preview reader, and share reader.
+- Added a dedicated keyboard shortcuts popup that lists workspace, view, reading, editor, and context shortcuts with Mac and Windows columns.
+- Added shortcut hints to toolbar buttons, reader controls, share actions, typography controls, tabs, dialogs, and overlay close affordances.
+
+### Changed
+
+- Changed shortcut labels to resolve safely after client mount so Mac users see Command-style hints without hydration mismatches.
+- Changed share-reader shortcuts to use modified key combinations instead of global single-letter actions.
+
+### Fixed
+
+- Fixed shortcut-triggered HTML export from editor-only mode so the workspace mounts the preview before exporting instead of downloading empty HTML.
+
 ## 26.619 - 2026-06-19
 
 ### Changed

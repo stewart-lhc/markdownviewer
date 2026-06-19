@@ -11,7 +11,7 @@
 
 [Live Markdown Viewer](https://markdownviewer.run/) - [Open the Workspace](https://markdownviewer.run/workspace) - [Changelog](https://markdownviewer.run/changelog) - [Star the Project](https://github.com/stewart-lhc/markdownviewer)
 
-Current product update: **26.619**. Current package release: **v0.2.0**. See [CHANGELOG.md](CHANGELOG.md) and the live [Changelog](https://markdownviewer.run/changelog) for release notes and update history.
+Current product update: **26.620**. Current package release: **v0.2.0**. See [CHANGELOG.md](CHANGELOG.md) and the live [Changelog](https://markdownviewer.run/changelog) for release notes and update history.
 
 </div>
 
@@ -54,6 +54,7 @@ It is designed to be more than a plain textarea preview. Markdownviewer gives RE
 - **Early-access waitlists** - collect verified email interest for future Share Pro and Converter API workflows without putting the free workspace behind a paywall.
 - **Full share-page reader** - shared documents keep the logo, table of contents, typography controls, themes, font size controls, preview margin controls, and open-in-workspace behavior.
 - **Immersive reading** - open workspace previews and shared documents in a book-style reader with text, typography controls, navigation, and a thin progress bar.
+- **Platform-aware keyboard shortcuts** - use desktop shortcuts for workspace, reading, editor, sharing, export, and navigation actions, with Mac/Windows labels in tooltips and a dedicated shortcut help popup.
 - **Installable PWA** - install Markdownviewer from supported browsers, use the mobile install prompt, and open `.md` files with it on compatible desktop Chromium browsers.
 - **Export** - export polished HTML or print/PDF from the preview workspace.
 - **Chinese localization** - use localized landing and workspace routes at `/zh-CN`.
@@ -65,6 +66,7 @@ It is designed to be more than a plain textarea preview. Markdownviewer gives RE
 
 | Version | Date | Product update |
 | --- | --- | --- |
+| **26.620** | 2026-06-20 | Added platform-aware keyboard shortcuts across the workspace, editor, preview reader, and share reader; surfaced Mac and Windows shortcut hints in tooltips and a dedicated help popup; and fixed editor-only HTML export so shortcut-triggered exports wait for the preview before downloading. |
 | **26.619** | 2026-06-19 | Polished the workspace reader chrome with icon-only preview and share controls, steadier left-sidebar resizing with drag-to-collapse, mobile tab and contents panels that dismiss predictably, stable Mermaid rendering during scroll, richer default editing in split/editor mode, and a tighter full-width mobile preview control bar. |
 | **26.617** | 2026-06-17 | Added share-page edit-copy and use-as-template actions, local Recent/Continue panels, System/Light/Dark controls, real feature screenshots, a readable dark palette, taller mobile live preview, and a refined mobile breadcrumbs menu with Workspace directly beside the trigger. |
 | **26.612** | 2026-06-12 | Added automatic light/dark site theming from the system color scheme and separate workspace template memory for the most recent light and dark templates. |
@@ -268,6 +270,7 @@ MIT License. See [LICENSE](LICENSE).
 - **本地 Recent / Continue** - 最近创建的分享、从分享打开的副本/模板和转换后的文档会保存在浏览器本地，并出现在首页和工作区。
 - **完整分享页阅读器** - 分享文档保留 LOGO、目录、排版控制、主题、字号、预览留白控制，以及在 workspace 中打开的入口。
 - **沉浸式阅读** - 将 workspace 预览和分享文档打开为书本式阅读层，只保留正文、排版控制、导航和一条细进度条。
+- **平台感知快捷键** - 为 workspace、阅读、编辑、分享、导出和导航动作提供桌面快捷键，并在 tooltip 与独立快捷键弹窗中区分 Mac / Windows。
 - **可安装 PWA** - 可从支持的浏览器安装 Markdownviewer，移动端提供安装提示；兼容的桌面 Chromium 浏览器还可以通过系统文件打开 `.md`。
 - **导出能力** - 可以从预览工作区导出 HTML，或打印/保存 PDF。
 - **中文界面** - 提供 `/zh-CN` 的本地化首页和工作区。
@@ -279,6 +282,7 @@ MIT License. See [LICENSE](LICENSE).
 
 | 版本 | 日期 | 产品更新 |
 | --- | --- | --- |
+| **26.620** | 2026-06-20 | 新增覆盖 workspace、编辑器、预览阅读器和分享阅读器的平台感知快捷键；tooltip 与专门快捷键弹窗会区分 Mac / Windows；并修复 editor-only 模式下快捷键导出 HTML 时可能导出空内容的问题。 |
 | **26.619** | 2026-06-19 | 优化 workspace 阅读控制层：预览和分享控制全部改为图标，左侧 sidebar 拖拽不再抖动并支持向左拖到阈值后自动收起，移动端 tab 与目录面板点击外部会稳定关闭，Mermaid 滚动时不再闪烁，split/editor 默认回到 rich 编辑，并压低移动端底部预览控制栏让按钮等宽铺满。 |
 | **26.617** | 2026-06-17 | 新增分享页编辑副本、作为模板使用、本地 Recent/Continue、System / Light / Dark 控制、真实功能截图、可读深色配色、更高的移动端 live preview，并修复移动端 breadcrumbs 菜单，让 Workspace 紧挨触发按钮左侧。 |
 | **26.612** | 2026-06-12 | 新增跟随系统色彩偏好的自动亮/暗站点主题，并为 workspace 分别记住最近使用的亮色模板和暗色模板。 |
