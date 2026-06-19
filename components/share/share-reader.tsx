@@ -250,29 +250,13 @@ export function ShareReader({
       {immersiveReaderOpen ? (
         <ImmersiveReaderOverlay
           documentTitle={documentTitle}
-          font={previewFont}
-          fontSize={previewFontSize}
           headings={headings}
           initialScrollTop={previewRef.current?.scrollTop ?? 0}
-          lineHeight={previewLineHeight}
           locale={locale}
-          margin={previewMargin}
           markdown={markdown}
-          maxFontSize={maxPreviewFontSize}
-          maxLineHeight={maxPreviewLineHeight}
-          maxMargin={maxPreviewMargin}
           messages={messages.preview}
-          minFontSize={minPreviewFontSize}
-          minLineHeight={minPreviewLineHeight}
-          minMargin={minPreviewMargin}
           onClose={() => setImmersiveReaderOpen(false)}
-          onFontChange={setPreviewFont}
-          onFontSizeChange={(nextFontSize) => setPreviewFontSize(clampPreviewFontSize(nextFontSize))}
-          onLineHeightChange={(nextLineHeight) => setPreviewLineHeight(clampPreviewLineHeight(nextLineHeight))}
-          onMarginChange={(nextMargin) => setPreviewMargin(clampPreviewMargin(nextMargin))}
-          onThemeChange={setTheme}
           readerStyle={previewReaderStyle}
-          theme={theme}
         />
       ) : null}
     </>

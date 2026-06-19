@@ -3320,30 +3320,14 @@ export function WorkspaceShell({
         {currentMode !== "editor" && immersiveReaderOpen ? (
           <ImmersiveReaderOverlay
             documentTitle={documentTitle}
-            font={previewFont}
-            fontSize={previewFontSize}
             headings={headings}
             initialScrollTop={getCurrentPreviewScrollTop()}
-            lineHeight={previewLineHeight}
             locale={locale}
-            margin={previewMargin}
             markdown={previewMarkdown}
-            maxFontSize={maxPreviewFontSize}
-            maxLineHeight={maxPreviewLineHeight}
-            maxMargin={maxPreviewMargin}
             messages={messages.preview}
-            minFontSize={minPreviewFontSize}
-            minLineHeight={minPreviewLineHeight}
-            minMargin={minPreviewMargin}
             onClose={() => setImmersiveReaderOpen(false)}
-            onFontChange={setPreviewFont}
-            onFontSizeChange={(nextFontSize) => setPreviewFontSize(clampPreviewFontSize(nextFontSize))}
-            onLineHeightChange={(nextLineHeight) => setPreviewLineHeight(clampPreviewLineHeight(nextLineHeight))}
             onLinkClick={handlePreviewLinkClick}
-            onMarginChange={(nextMargin) => setPreviewMargin(clampPreviewMargin(nextMargin))}
-            onThemeChange={setTheme}
             readerStyle={previewReaderStyle}
-            theme={theme}
           />
         ) : null}
       </section>

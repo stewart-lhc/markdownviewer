@@ -1131,6 +1131,14 @@ describe("WorkspaceShell interactions", () => {
     expect(within(dialog).getByTestId("immersive-reader-progress")).toBeInTheDocument();
     expect(within(dialog).queryByRole("button", { name: /share link/i })).not.toBeInTheDocument();
     expect(within(dialog).queryByText(/continue in workspace/i)).not.toBeInTheDocument();
+    expect(within(dialog).queryByRole("button", { name: /reading settings/i })).not.toBeInTheDocument();
+
+    const chrome = dialog.querySelector(".immersive-reader-chrome") as HTMLElement;
+    const contentsButton = within(dialog).getByRole("button", { name: /contents/i });
+
+    expect(within(chrome).getByRole("button", { name: /close immersive reading/i })).toBeInTheDocument();
+    expect(within(chrome).queryByRole("button", { name: /contents/i })).not.toBeInTheDocument();
+    expect(contentsButton).toHaveClass("workspace-toc-trigger");
 
     await user.click(within(dialog).getByRole("button", { name: /close immersive reading/i }));
 

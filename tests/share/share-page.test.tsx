@@ -82,6 +82,8 @@ describe("share page", () => {
     expect(within(dialog).getByRole("heading", { level: 1, name: /markdown feature atlas/i })).toBeInTheDocument();
     expect(within(dialog).getByTestId("immersive-reader-progress")).toBeInTheDocument();
     expect(within(dialog).queryByRole("link", { name: /open in workspace/i })).not.toBeInTheDocument();
+    expect(within(dialog).queryByRole("button", { name: /reading settings/i })).not.toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: /contents/i })).toHaveClass("workspace-toc-trigger");
   });
 
   it("renders a Chinese shared document shell", async () => {
