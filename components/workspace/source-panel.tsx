@@ -27,6 +27,7 @@ import {
 import { applyMarkdownAction, type MarkdownEditorAction } from "@/lib/workspace/editor-actions";
 import type { WorkspaceMessages } from "@/lib/i18n/messages";
 import { getEditorActionShortcutLabel, getEditorShortcutCommand } from "@/lib/workspace/editor-shortcuts";
+import { getShortcutPlatform, type ShortcutPlatform } from "@/lib/workspace/keyboard-shortcuts";
 import type { StackeditEditor } from "@/lib/workspace/stackedit-cledit";
 
 export type SourcePanelMode = "paste" | "file" | "url";
@@ -152,6 +153,7 @@ export function SourcePanel({
   const suppressEditorScrollSyncTimerRef = useRef<number | null>(null);
   const restoreWindowScrollFrameRef = useRef<number | null>(null);
   const [editorToolsMenuOpen, setEditorToolsMenuOpen] = useState(false);
+  const [shortcutPlatform, setShortcutPlatform] = useState<ShortcutPlatform>("windows");
   const [visibleEditorActionCount, setVisibleEditorActionCount] = useState(editorActions.length);
   const visibleEditorActions = editorActions.slice(0, visibleEditorActionCount);
   const overflowEditorActions = editorActions.slice(visibleEditorActionCount);
@@ -161,6 +163,10 @@ export function SourcePanel({
   onEditorScrollRef.current = onEditorScroll;
   onEditorSelectionChangeRef.current = onEditorSelectionChange;
   onMarkdownChangeRef.current = onMarkdownChange;
+
+  useEffect(() => {
+    setShortcutPlatform(getShortcutPlatform());
+  }, []);
 
   useLayoutEffect(() => {
     setEditorSurfaceRef(editorRef, editorPresentationMode === "rich" ? richEditorRef.current : rawEditorRef.current);
@@ -515,6 +521,12 @@ export function SourcePanel({
     });
   }
 
+  function getEditorActionTitle(action: MarkdownEditorAction) {
+    const shortcutLabel = getEditorActionShortcutLabel(action, shortcutPlatform);
+
+    return shortcutLabel ? `${messages.actions[action]} (${shortcutLabel})` : messages.actions[action];
+  }
+
   function handleRichEditorShortcut(event: ReactKeyboardEvent<HTMLDivElement>) {
     const editor = stackeditEditorRef.current;
 
@@ -612,7 +624,7 @@ export function SourcePanel({
                   key={entry.action}
                   onClick={() => handleEditorAction(entry.action)}
                   onMouseDown={(event) => event.preventDefault()}
-                  title={getEditorActionShortcutLabel(entry.action) ? `${messages.actions[entry.action]} (${getEditorActionShortcutLabel(entry.action)})` : messages.actions[entry.action]}
+                  title={getEditorActionTitle(entry.action)}
                   type="button"
                 >
                   <Icon aria-hidden="true" strokeWidth={2.35} />
@@ -650,9 +662,9 @@ export function SourcePanel({
                             <Icon strokeWidth={2.35} />
                           </span>
                           <span>{messages.actions[entry.action]}</span>
-                          {getEditorActionShortcutLabel(entry.action) ? (
+                          {getEditorActionShortcutLabel(entry.action, shortcutPlatform) ? (
                             <span className="editor-tools-menu-shortcut">
-                              {getEditorActionShortcutLabel(entry.action)}
+                              {getEditorActionShortcutLabel(entry.action, shortcutPlatform)}
                             </span>
                           ) : null}
                         </button>

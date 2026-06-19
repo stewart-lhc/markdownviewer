@@ -1,4 +1,11 @@
 import type { MarkdownEditorAction } from "@/lib/workspace/editor-actions";
+import {
+  editorShortcutDefinitions,
+  formatShortcut,
+  getShortcutById,
+  type ShortcutId,
+  type ShortcutPlatform
+} from "@/lib/workspace/keyboard-shortcuts";
 
 export type EditorShortcutCommand =
   | { type: "action"; action: MarkdownEditorAction }
@@ -14,7 +21,17 @@ type EditorShortcutEvent = {
   shiftKey: boolean;
 };
 
-const actionShortcutLabels: Partial<Record<MarkdownEditorAction, string>> = {
+const actionShortcutIds: Partial<Record<MarkdownEditorAction, ShortcutId>> = {
+  bold: "editor-bold",
+  italic: "editor-italic",
+  link: "editor-link",
+  heading: "editor-heading",
+  strike: "editor-strike",
+  bulletList: "editor-bullet-list",
+  orderedList: "editor-ordered-list"
+};
+
+const legacyActionShortcutLabels: Partial<Record<MarkdownEditorAction, string>> = {
   bold: "Ctrl/Cmd+B",
   italic: "Ctrl/Cmd+I",
   link: "Ctrl/Cmd+K",
@@ -84,6 +101,18 @@ export function getEditorShortcutCommand(event: EditorShortcutEvent): EditorShor
   return null;
 }
 
-export function getEditorActionShortcutLabel(action: MarkdownEditorAction) {
-  return actionShortcutLabels[action] ?? null;
+export function getEditorActionShortcutLabel(action: MarkdownEditorAction, platform?: ShortcutPlatform) {
+  const shortcutId = actionShortcutIds[action];
+
+  if (!shortcutId) {
+    return null;
+  }
+
+  if (!platform) {
+    return legacyActionShortcutLabels[action] ?? null;
+  }
+
+  const shortcut = getShortcutById(editorShortcutDefinitions, shortcutId);
+
+  return shortcut ? formatShortcut(shortcut.combo, platform) : null;
 }

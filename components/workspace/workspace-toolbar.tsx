@@ -5,12 +5,20 @@ import { Clipboard, Columns2, Eye, FileUp, FolderOpen, Link, MoreHorizontal, Pen
 import type { SourcePanelMode } from "@/components/workspace/source-panel";
 import type { WorkspaceMessages } from "@/lib/i18n/messages";
 import { convertedDocumentAccept, workspaceFileInputAccept } from "@/lib/workspace/convert-document";
+import {
+  getShortcutById,
+  shortcutTitle,
+  workspaceShortcutDefinitions,
+  type ShortcutId,
+  type ShortcutPlatform
+} from "@/lib/workspace/keyboard-shortcuts";
 
 type WorkspaceToolbarProps = {
   activeImportMode: SourcePanelMode;
   compact?: boolean;
   mode: "preview" | "split" | "editor";
   messages: WorkspaceMessages["toolbar"];
+  shortcutPlatform?: ShortcutPlatform;
   showImportActions?: boolean;
   sourceValue: string;
   onActiveImportModeChange: (mode: SourcePanelMode) => void;
@@ -27,6 +35,18 @@ type WorkspaceToolbarProps = {
 };
 
 const modes: WorkspaceToolbarProps["mode"][] = ["preview", "split", "editor"];
+
+const modeShortcutIds: Record<WorkspaceToolbarProps["mode"], ShortcutId> = {
+  editor: "editor-mode",
+  preview: "preview-mode",
+  split: "split-mode"
+};
+
+function getToolbarShortcutTitle(label: string, shortcutId: ShortcutId, platform: ShortcutPlatform) {
+  const shortcut = getShortcutById(workspaceShortcutDefinitions, shortcutId);
+
+  return shortcut ? shortcutTitle(label, shortcut.combo, platform) : label;
+}
 
 function getModeIcon(mode: WorkspaceToolbarProps["mode"]) {
   if (mode === "preview") {
@@ -45,6 +65,7 @@ export function WorkspaceToolbar({
   compact = false,
   mode,
   messages,
+  shortcutPlatform = "windows",
   showImportActions = true,
   sourceValue,
   onActiveImportModeChange,
@@ -153,6 +174,7 @@ export function WorkspaceToolbar({
           aria-haspopup="menu"
           className="toolbar-button toolbar-compact-import-button"
           onClick={() => setImportMenuOpen((open) => !open)}
+          title={messages.importAction}
           type="button"
         >
           <FileUp aria-hidden="true" size={18} strokeWidth={2} />
@@ -172,6 +194,7 @@ export function WorkspaceToolbar({
                 className="toolbar-menu-button"
                 onClick={() => runAction(activatePaste)}
                 role="menuitemradio"
+                title={getToolbarShortcutTitle(messages.paste, "paste-markdown", shortcutPlatform)}
                 type="button"
               >
                 {messages.paste}
@@ -181,6 +204,7 @@ export function WorkspaceToolbar({
                 className="toolbar-menu-button"
                 onClick={() => runAction(activateFile)}
                 role="menuitemradio"
+                title={getToolbarShortcutTitle(messages.file, "new-tab-file", shortcutPlatform)}
                 type="button"
               >
                 {messages.file}
@@ -198,6 +222,7 @@ export function WorkspaceToolbar({
                 className="toolbar-menu-button"
                 onClick={() => runAction(activateUrl)}
                 role="menuitemradio"
+                title={messages.url}
                 type="button"
               >
                 {messages.url}
@@ -206,6 +231,7 @@ export function WorkspaceToolbar({
                 className="toolbar-menu-button"
                 onClick={() => runAction(activateFolder)}
                 role="menuitem"
+                title={getToolbarShortcutTitle(messages.openFolder, "open-folder", shortcutPlatform)}
                 type="button"
               >
                 {messages.openFolder}
@@ -221,6 +247,7 @@ export function WorkspaceToolbar({
           className="toolbar-button"
           data-active={activeImportMode === "paste"}
           onClick={activatePaste}
+          title={getToolbarShortcutTitle(messages.paste, "paste-markdown", shortcutPlatform)}
           type="button"
         >
           <Clipboard aria-hidden="true" size={16} strokeWidth={2} />
@@ -230,6 +257,7 @@ export function WorkspaceToolbar({
           className="toolbar-button"
           data-active={activeImportMode === "file"}
           onClick={activateFile}
+          title={getToolbarShortcutTitle(messages.file, "new-tab-file", shortcutPlatform)}
           type="button"
         >
           <FileUp aria-hidden="true" size={16} strokeWidth={2} />
@@ -247,6 +275,7 @@ export function WorkspaceToolbar({
           className="toolbar-button"
           data-active={activeImportMode === "url"}
           onClick={activateUrl}
+          title={messages.url}
           type="button"
         >
           <Link aria-hidden="true" size={16} strokeWidth={2} />
@@ -255,6 +284,7 @@ export function WorkspaceToolbar({
         <button
           className="toolbar-button"
           onClick={activateFolder}
+          title={getToolbarShortcutTitle(messages.openFolder, "open-folder", shortcutPlatform)}
           type="button"
         >
           <FolderOpen aria-hidden="true" size={16} strokeWidth={2} />
@@ -353,6 +383,7 @@ export function WorkspaceToolbar({
             data-active={entry === mode}
             key={entry}
             onClick={() => onModeChange(entry)}
+            title={getToolbarShortcutTitle(messages.modes[entry], modeShortcutIds[entry], shortcutPlatform)}
             type="button"
           >
             {compact ? (
@@ -370,16 +401,16 @@ export function WorkspaceToolbar({
       </div>
       {compact && showImportActions ? (
         <div className="toolbar-mobile-quick-actions" role="group" aria-label={messages.importOptions}>
-          <button aria-label={messages.paste} className="toolbar-button" onClick={activatePaste} type="button">
+          <button aria-label={messages.paste} className="toolbar-button" onClick={activatePaste} title={getToolbarShortcutTitle(messages.paste, "paste-markdown", shortcutPlatform)} type="button">
             <Clipboard aria-hidden="true" size={18} strokeWidth={2} />
           </button>
-          <button aria-label={messages.file} className="toolbar-button" onClick={activateFile} type="button">
+          <button aria-label={messages.file} className="toolbar-button" onClick={activateFile} title={getToolbarShortcutTitle(messages.file, "new-tab-file", shortcutPlatform)} type="button">
             <FileUp aria-hidden="true" size={18} strokeWidth={2} />
           </button>
-          <button aria-label={messages.url} className="toolbar-button" onClick={activateUrl} type="button">
+          <button aria-label={messages.url} className="toolbar-button" onClick={activateUrl} title={messages.url} type="button">
             <Link aria-hidden="true" size={18} strokeWidth={2} />
           </button>
-          <button aria-label={messages.openFolder} className="toolbar-button" onClick={activateFolder} type="button">
+          <button aria-label={messages.openFolder} className="toolbar-button" onClick={activateFolder} title={getToolbarShortcutTitle(messages.openFolder, "open-folder", shortcutPlatform)} type="button">
             <FolderOpen aria-hidden="true" size={18} strokeWidth={2} />
           </button>
         </div>
@@ -390,6 +421,7 @@ export function WorkspaceToolbar({
           aria-haspopup="menu"
           className="toolbar-button toolbar-button--overflow"
           onClick={() => setMenuOpen((open) => !open)}
+          title={messages.more}
           type="button"
         >
           {compact ? (
@@ -415,6 +447,7 @@ export function WorkspaceToolbar({
                   <button
                     className="toolbar-menu-button toolbar-menu-mobile-action"
                     onClick={() => runAction(activatePaste)}
+                    title={getToolbarShortcutTitle(messages.paste, "paste-markdown", shortcutPlatform)}
                     type="button"
                   >
                     <Clipboard aria-hidden="true" size={16} strokeWidth={2} />
@@ -423,6 +456,7 @@ export function WorkspaceToolbar({
                   <button
                     className="toolbar-menu-button toolbar-menu-mobile-action"
                     onClick={() => runAction(activateFile)}
+                    title={getToolbarShortcutTitle(messages.file, "new-tab-file", shortcutPlatform)}
                     type="button"
                   >
                     <FileUp aria-hidden="true" size={16} strokeWidth={2} />
@@ -431,6 +465,7 @@ export function WorkspaceToolbar({
                   <button
                     className="toolbar-menu-button toolbar-menu-mobile-action"
                     onClick={() => runAction(activateUrl)}
+                    title={messages.url}
                     type="button"
                   >
                     <Link aria-hidden="true" size={16} strokeWidth={2} />
@@ -439,6 +474,7 @@ export function WorkspaceToolbar({
                   <button
                     className="toolbar-menu-button toolbar-menu-mobile-action"
                     onClick={() => runAction(activateFolder)}
+                    title={getToolbarShortcutTitle(messages.openFolder, "open-folder", shortcutPlatform)}
                     type="button"
                   >
                     <FolderOpen aria-hidden="true" size={16} strokeWidth={2} />
@@ -446,18 +482,18 @@ export function WorkspaceToolbar({
                   </button>
                 </>
               ) : null}
-              <button className="toolbar-menu-button" onClick={() => runAction(activateFolder)} type="button">
+              <button className="toolbar-menu-button" onClick={() => runAction(activateFolder)} title={getToolbarShortcutTitle(messages.openFolder, "open-folder", shortcutPlatform)} type="button">
                 <FolderOpen aria-hidden="true" size={16} strokeWidth={2} />
                 <span>{messages.openFolder}</span>
               </button>
-              <button className="toolbar-menu-button" onClick={() => runAction(onSaveToDisk)} type="button">
+              <button className="toolbar-menu-button" onClick={() => runAction(onSaveToDisk)} title={getToolbarShortcutTitle(messages.saveToDisk, "save", shortcutPlatform)} type="button">
                 <Save aria-hidden="true" size={16} strokeWidth={2} />
                 <span>{messages.saveToDisk}</span>
               </button>
-              <button className="toolbar-menu-button" onClick={() => runAction(onExportHtml)} type="button">
+              <button className="toolbar-menu-button" onClick={() => runAction(onExportHtml)} title={getToolbarShortcutTitle(messages.exportHtml, "export-html", shortcutPlatform)} type="button">
                 {messages.exportHtml}
               </button>
-              <button className="toolbar-menu-button" onClick={() => runAction(onExportPdf)} type="button">
+              <button className="toolbar-menu-button" onClick={() => runAction(onExportPdf)} title={getToolbarShortcutTitle(messages.exportPdf, "export-pdf", shortcutPlatform)} type="button">
                 {messages.exportPdf}
               </button>
             </div>
