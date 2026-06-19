@@ -7,6 +7,8 @@ describe("changelog page", () => {
     render(<ChangelogPage />);
 
     expect(screen.getByRole("heading", { level: 1, name: /markdownviewer changelog/i })).toBeInTheDocument();
+    expect(screen.getByText("26.619")).toBeInTheDocument();
+    expect(screen.getByText(/workspace chrome, reader controls, and mermaid stability/i)).toBeInTheDocument();
     expect(screen.getByText("26.617")).toBeInTheDocument();
     expect(screen.getByText(/share growth, theme polish, screenshots, and mobile navigation/i)).toBeInTheDocument();
     expect(screen.queryByText("26.617.5")).not.toBeInTheDocument();
@@ -26,6 +28,8 @@ describe("changelog page", () => {
     render(<ChineseChangelogPage />);
 
     expect(screen.getByRole("heading", { level: 1, name: /markdownviewer 更新日志/i })).toBeInTheDocument();
+    expect(screen.getByText("26.619")).toBeInTheDocument();
+    expect(screen.getByText(/workspace 控制层、阅读控制和 mermaid 稳定性/i)).toBeInTheDocument();
     expect(screen.getByText("26.617")).toBeInTheDocument();
     expect(screen.getByText(/分享增长、主题修复、真实截图和移动端导航/i)).toBeInTheDocument();
     expect(screen.queryByText("26.617.5")).not.toBeInTheDocument();

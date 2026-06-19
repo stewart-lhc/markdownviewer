@@ -15,6 +15,39 @@ export type ProductUpdate = {
 
 export const productUpdates: ProductUpdate[] = [
   {
+    version: "26.619",
+    date: "2026-06-19",
+    en: {
+      title: "Workspace chrome, reader controls, and Mermaid stability",
+      summary:
+        "Markdownviewer tightened the workspace reader chrome with icon-only controls, steadier sidebar resizing, predictable mobile overlays, stable Mermaid diagrams, and a cleaner mobile preview control bar.",
+      highlights: [
+        "Desktop and mobile preview controls now use the same icon-first language for theme, typography, margin, and sharing actions.",
+        "The left workspace sidebar no longer jumps on pointer-down and now collapses when dragged past the minimum width.",
+        "Mobile tab and contents overlays now close predictably when the reader taps outside the active panel.",
+        "Mermaid diagrams now settle in preview instead of staying in a rendering state or flashing while the document scrolls.",
+        "Wide mobile tables keep horizontal scrolling instead of squeezing too many columns into the viewport.",
+        "Editor and split mode transitions now default back to rich editing.",
+        "The mobile preview bottom control bar is shorter, fills the available width with equal buttons, and no longer shows the dark top edge.",
+        "Immersive reading keeps the normal preview width and line-height, removes the extra settings button, and leaves only a lightly transparent centered close action."
+      ]
+    },
+    "zh-CN": {
+      title: "Workspace 控制层、阅读控制和 Mermaid 稳定性",
+      summary: "Markdownviewer 优化了 workspace 阅读控制层：统一图标按钮、稳定 sidebar 拖拽、修复移动端覆盖层关闭、稳定 Mermaid 图表，并压低移动端预览底部控制栏。",
+      highlights: [
+        "桌面端和移动端预览控制统一为图标优先，包括主题、排版、留白和分享动作。",
+        "左侧 workspace sidebar 点击分隔条不再跳动，并支持向左拖过最小宽度后自动整栏收起。",
+        "移动端 tab 和目录覆盖层现在点击面板外部会稳定关闭。",
+        "Mermaid 图表不再卡在 rendering 状态，也不会在文档滚动时反复闪烁。",
+        "移动端宽表格保留横向滚动，不再强行挤压过多列。",
+        "切换到 editor 或 split mode 时默认回到 rich 编辑。",
+        "移动端预览底部控制栏更矮，按钮等宽铺满，并移除了顶部黑边。",
+        "沉浸阅读保持原预览宽度和行距，移除额外设置按钮，中间只保留带透明度的关闭按钮。"
+      ]
+    }
+  },
+  {
     version: "26.617",
     date: "2026-06-17",
     en: {

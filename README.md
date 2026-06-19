@@ -11,7 +11,7 @@
 
 [Live Markdown Viewer](https://markdownviewer.run/) - [Open the Workspace](https://markdownviewer.run/workspace) - [Changelog](https://markdownviewer.run/changelog) - [Star the Project](https://github.com/stewart-lhc/markdownviewer)
 
-Current product update: **26.617**. Current package release: **v0.2.0**. See [CHANGELOG.md](CHANGELOG.md) and the live [Changelog](https://markdownviewer.run/changelog) for release notes and update history.
+Current product update: **26.619**. Current package release: **v0.2.0**. See [CHANGELOG.md](CHANGELOG.md) and the live [Changelog](https://markdownviewer.run/changelog) for release notes and update history.
 
 </div>
 
@@ -65,6 +65,7 @@ It is designed to be more than a plain textarea preview. Markdownviewer gives RE
 
 | Version | Date | Product update |
 | --- | --- | --- |
+| **26.619** | 2026-06-19 | Polished the workspace reader chrome with icon-only preview and share controls, steadier left-sidebar resizing with drag-to-collapse, mobile tab and contents panels that dismiss predictably, stable Mermaid rendering during scroll, richer default editing in split/editor mode, and a tighter full-width mobile preview control bar. |
 | **26.617** | 2026-06-17 | Added share-page edit-copy and use-as-template actions, local Recent/Continue panels, System/Light/Dark controls, real feature screenshots, a readable dark palette, taller mobile live preview, and a refined mobile breadcrumbs menu with Workspace directly beside the trigger. |
 | **26.612** | 2026-06-12 | Added automatic light/dark site theming from the system color scheme and separate workspace template memory for the most recent light and dark templates. |
 | **26.611** | 2026-06-11 | Added early-access waitlist capture with email confirmation, a `/pricing` waitlist page, Resend delivery, and Neon/Postgres production storage with D1 and local development fallbacks. |
@@ -278,6 +279,7 @@ MIT License. See [LICENSE](LICENSE).
 
 | 版本 | 日期 | 产品更新 |
 | --- | --- | --- |
+| **26.619** | 2026-06-19 | 优化 workspace 阅读控制层：预览和分享控制全部改为图标，左侧 sidebar 拖拽不再抖动并支持向左拖到阈值后自动收起，移动端 tab 与目录面板点击外部会稳定关闭，Mermaid 滚动时不再闪烁，split/editor 默认回到 rich 编辑，并压低移动端底部预览控制栏让按钮等宽铺满。 |
 | **26.617** | 2026-06-17 | 新增分享页编辑副本、作为模板使用、本地 Recent/Continue、System / Light / Dark 控制、真实功能截图、可读深色配色、更高的移动端 live preview，并修复移动端 breadcrumbs 菜单，让 Workspace 紧挨触发按钮左侧。 |
 | **26.612** | 2026-06-12 | 新增跟随系统色彩偏好的自动亮/暗站点主题，并为 workspace 分别记住最近使用的亮色模板和暗色模板。 |
 | **26.611** | 2026-06-11 | 新增 `/pricing` 早期访问 waitlist、邮箱确认、Resend 发送，以及 Neon/Postgres 生产存储，并保留 D1 和本地开发 fallback。 |

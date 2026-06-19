@@ -2,6 +2,24 @@
 
 All notable changes to this project are documented in this file.
 
+## 26.619 - 2026-06-19
+
+### Changed
+
+- Reworked workspace preview controls into the same icon-first control language on desktop and mobile, including the theme, typography, margin, and share actions.
+- Changed editor and split mode transitions to default back to rich editing so formatting tools open on the styled editing surface.
+- Tightened the mobile preview bottom control bar so its buttons fill the available width, the bar is shorter, and the former dark top edge is removed.
+- Simplified immersive reading chrome by keeping only the centered close action in the top overlay and restoring the contents trigger to its original right-side floating position.
+- Kept immersive reading at the normal preview width and line-height instead of narrowing the document while reading.
+
+### Fixed
+
+- Fixed left-sidebar resizing so pointer-down no longer jumps the separator, and dragging past the minimum width collapses the whole sidebar.
+- Fixed mobile tab and contents overlays so tapping outside the active panel closes it predictably.
+- Fixed Mermaid preview rendering so diagrams settle instead of staying in a rendering state or flashing while the reader scrolls.
+- Fixed wide mobile tables by preserving horizontal scrolling instead of forcing too many columns into the viewport.
+- Fixed the desktop preview share button and header controls so text labels no longer reappear beside the icons.
+
 ## 26.617 - 2026-06-17
 
 ### Added

@@ -25,8 +25,8 @@ describe("homepage", () => {
     expect(container.querySelector(".topbar-actions > .ghost-link.ghost-link--primary")).not.toBeNull();
     expect(container.querySelector(".topbar-actions > .ghost-link.ghost-link--primary + .topbar-breadcrumbs")).not.toBeNull();
     expect(screen.getByRole("heading", { level: 2, name: /recent features/i })).toBeInTheDocument();
-    expect(screen.getByText("26.617")).toBeInTheDocument();
-    expect(screen.getAllByText(/share growth, theme polish, screenshots, and mobile navigation/i).length).toBeGreaterThan(0);
+    expect(screen.getByText("26.619")).toBeInTheDocument();
+    expect(screen.getAllByText(/workspace chrome, reader controls, and mermaid stability/i).length).toBeGreaterThan(0);
     expect(container.querySelector(".workflow-link-bar")).not.toBeInTheDocument();
     expect(container.querySelector(".site-footer__workflows")).toBeInTheDocument();
     expect(within(container.querySelector(".site-footer__workflows") as HTMLElement).getByRole("link", { name: /readme viewer online/i })).toHaveAttribute(
