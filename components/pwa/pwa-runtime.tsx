@@ -71,7 +71,7 @@ export function PwaRuntime() {
   useEffect(() => {
     setInstallPromptReady(false);
 
-    if (!canShowInstallPrompt(pathname)) {
+    if (!pathname || !canShowInstallPrompt(pathname)) {
       return;
     }
 

@@ -374,6 +374,74 @@ describe("WorkspaceShell interactions", () => {
     });
   });
 
+  it("shows platform-aware shortcut help and handles workspace view shortcuts", async () => {
+    const user = userEvent.setup();
+
+    render(<WorkspaceShell markdown="# Shortcut map\n\nReadable." sourceInput="" />);
+
+    const shortcutButton = screen.getByRole("button", { name: /keyboard shortcuts/i });
+
+    expect(shortcutButton).toHaveAttribute("title", "Keyboard shortcuts (Ctrl+/)");
+
+    await user.click(shortcutButton);
+
+    const dialog = screen.getByRole("dialog", { name: /keyboard shortcuts/i });
+
+    expect(within(dialog).getByText("New tab")).toBeInTheDocument();
+    expect(within(dialog).getByText("Ctrl+N")).toBeInTheDocument();
+    expect(within(dialog).getByText("Switch to editor")).toBeInTheDocument();
+
+    fireEvent.keyDown(window, { key: "Escape", code: "Escape" });
+
+    expect(screen.queryByRole("dialog", { name: /keyboard shortcuts/i })).not.toBeInTheDocument();
+
+    fireEvent.keyDown(window, { key: "3", code: "Digit3", ctrlKey: true, altKey: true });
+
+    await waitFor(() => {
+      expect(screen.getByTestId("workspace-grid")).toHaveAttribute("data-mode", "editor");
+    });
+  });
+
+  it("exports HTML from editor-only mode after mounting the preview", async () => {
+    const exportedBlobs: Blob[] = [];
+    const createObjectURL = vi.fn((blob: Blob) => {
+      exportedBlobs.push(blob);
+      return "blob:editor-export";
+    });
+    const revokeObjectURL = vi.fn();
+
+    Object.defineProperty(URL, "createObjectURL", {
+      configurable: true,
+      value: createObjectURL
+    });
+    Object.defineProperty(URL, "revokeObjectURL", {
+      configurable: true,
+      value: revokeObjectURL
+    });
+
+    render(<WorkspaceShell markdown="# Export from editor\n\nBody copy." mode="editor" sourceInput="" />);
+
+    expect(screen.getByTestId("workspace-grid")).toHaveAttribute("data-mode", "editor");
+    expect(screen.queryByTestId("preview-panel")).not.toBeInTheDocument();
+
+    fireEvent.keyDown(window, { key: "E", code: "KeyE", ctrlKey: true, shiftKey: true });
+
+    await waitFor(() => {
+      expect(createObjectURL).toHaveBeenCalledTimes(1);
+    });
+
+    expect(screen.getByTestId("workspace-grid")).toHaveAttribute("data-mode", "split");
+    const exportedHtml = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.addEventListener("load", () => resolve(String(reader.result)));
+      reader.addEventListener("error", () => reject(reader.error));
+      reader.readAsText(exportedBlobs[0]);
+    });
+
+    expect(exportedHtml).toContain("Export from editor");
+  });
+
   it("restores the last dark template for a dark system and remembers light selections separately", async () => {
     const user = userEvent.setup();
     mockSystemColorScheme("dark");
@@ -636,7 +704,9 @@ describe("WorkspaceShell interactions", () => {
 
     await user.click(screen.getByRole("treeitem", { name: "guide.md" }));
 
-    expect(confirm).toHaveBeenCalledTimes(2);
+    await waitFor(() => {
+      expect(confirm).toHaveBeenCalledTimes(2);
+    });
     expect(confirm).toHaveBeenNthCalledWith(1, expect.stringMatching(/save changes/i));
     expect(confirm).toHaveBeenNthCalledWith(2, expect.stringMatching(/discard unsaved/i));
     expect(within(screen.getByTestId("preview-panel")).getByRole("heading", { name: "Keep me" })).toBeInTheDocument();
@@ -1131,6 +1201,14 @@ describe("WorkspaceShell interactions", () => {
     expect(within(dialog).getByTestId("immersive-reader-progress")).toBeInTheDocument();
     expect(within(dialog).queryByRole("button", { name: /share link/i })).not.toBeInTheDocument();
     expect(within(dialog).queryByText(/continue in workspace/i)).not.toBeInTheDocument();
+    expect(within(dialog).queryByRole("button", { name: /reading settings/i })).not.toBeInTheDocument();
+
+    const chrome = dialog.querySelector(".immersive-reader-chrome") as HTMLElement;
+    const contentsButton = within(dialog).getByRole("button", { name: /contents/i });
+
+    expect(within(chrome).getByRole("button", { name: /close immersive reading/i })).toBeInTheDocument();
+    expect(within(chrome).queryByRole("button", { name: /contents/i })).not.toBeInTheDocument();
+    expect(contentsButton).toHaveClass("workspace-toc-trigger");
 
     await user.click(within(dialog).getByRole("button", { name: /close immersive reading/i }));
 

@@ -13,9 +13,10 @@ type OutlinePanelProps = {
   open: boolean;
   onNavigate: (id: string) => void;
   onToggle: () => void;
+  triggerTitle?: string;
 };
 
-export function OutlinePanel({ headings, documentTitle, messages, onClose, onNavigate, onToggle, open }: OutlinePanelProps) {
+export function OutlinePanel({ headings, documentTitle, messages, onClose, onNavigate, onToggle, open, triggerTitle }: OutlinePanelProps) {
   const [activeId, setActiveId] = useState<string | null>(headings[0]?.id ?? null);
   const hasHeadings = headings.length > 0;
   const headingIds = useMemo(() => headings.map((heading) => heading.id), [headings]);
@@ -138,6 +139,7 @@ export function OutlinePanel({ headings, documentTitle, messages, onClose, onNav
         aria-label={open ? messages.closeContents : messages.contents}
         className="workspace-toc-trigger"
         onClick={onToggle}
+        title={triggerTitle ?? (open ? messages.closeContents : messages.contents)}
         type="button"
       >
         {open ? (

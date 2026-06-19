@@ -151,6 +151,18 @@ export type Messages = {
       remove: string;
       title: string;
     };
+    shortcuts: {
+      actions: Record<string, string>;
+      button: string;
+      categories: Record<string, string>;
+      close: string;
+      currentPlatform: (platform: string) => string;
+      description: string;
+      kicker: string;
+      mac: string;
+      title: string;
+      windows: string;
+    };
     preview: {
       close: string;
       closeContents: string;
@@ -491,6 +503,63 @@ export const messages: Record<Locale, Messages> = {
         },
         remove: "Remove",
         title: "Continue"
+      },
+      shortcuts: {
+        actions: {
+          "close-overlay": "Close popup or reader",
+          "decrease-font": "Decrease preview font",
+          "decrease-line-height": "Decrease line height",
+          "decrease-margin": "Narrow preview margin",
+          "editor-bold": "Bold",
+          "editor-bullet-list": "Bulleted list",
+          "editor-heading": "Heading",
+          "editor-italic": "Italic",
+          "editor-link": "Link",
+          "editor-ordered-list": "Numbered list",
+          "editor-redo": "Redo",
+          "editor-select-all": "Select all editor text",
+          "editor-strike": "Strikethrough",
+          "editor-undo": "Undo",
+          "editor-mode": "Switch to editor",
+          "export-html": "Export HTML",
+          "export-pdf": "Export PDF",
+          "focus-next-pane": "Focus next pane",
+          "focus-previous-pane": "Focus previous pane",
+          "folder-search": "Search folder files",
+          "immersive-reader": "Open immersive reading",
+          "increase-font": "Increase preview font",
+          "increase-line-height": "Increase line height",
+          "increase-margin": "Widen preview margin",
+          "new-tab": "New tab",
+          "new-tab-file": "Open file in a new tab",
+          "open-folder": "Open folder",
+          "paste-markdown": "Paste Markdown",
+          "preview-mode": "Switch to preview",
+          "save": "Save to disk",
+          "share": "Create share link",
+          "share-edit-copy": "Edit a copy",
+          "share-open-workspace": "Open in workspace",
+          "share-use-template": "Use as template",
+          "shortcut-help": "Show keyboard shortcuts",
+          "split-mode": "Switch to split view",
+          "toggle-contents": "Toggle contents",
+          "toggle-sidebar": "Toggle sidebar"
+        },
+        button: "Keyboard shortcuts",
+        categories: {
+          context: "Context",
+          editor: "Editor",
+          reading: "Reading",
+          view: "View",
+          workspace: "Workspace"
+        },
+        close: "Close keyboard shortcuts",
+        currentPlatform: (platform) => `Showing ${platform} shortcuts`,
+        description: "Shortcuts follow common desktop patterns and avoid text-entry conflicts when the editor is active.",
+        kicker: "Desktop control",
+        mac: "Mac",
+        title: "Keyboard shortcuts",
+        windows: "Windows / Linux"
       },
       toolbar: {
         blank: "Blank",
@@ -892,6 +961,63 @@ export const messages: Record<Locale, Messages> = {
         },
         remove: "移除",
         title: "继续"
+      },
+      shortcuts: {
+        actions: {
+          "close-overlay": "关闭弹窗或阅读器",
+          "decrease-font": "减小预览字号",
+          "decrease-line-height": "减小预览行距",
+          "decrease-margin": "收窄预览留白",
+          "editor-bold": "加粗",
+          "editor-bullet-list": "无序列表",
+          "editor-heading": "标题",
+          "editor-italic": "斜体",
+          "editor-link": "链接",
+          "editor-ordered-list": "有序列表",
+          "editor-redo": "重做",
+          "editor-select-all": "全选编辑器文本",
+          "editor-strike": "删除线",
+          "editor-undo": "撤销",
+          "editor-mode": "切到编辑器",
+          "export-html": "导出 HTML",
+          "export-pdf": "导出 PDF",
+          "focus-next-pane": "聚焦下一个窗格",
+          "focus-previous-pane": "聚焦上一个窗格",
+          "folder-search": "搜索文件夹文件",
+          "immersive-reader": "打开沉浸式阅读",
+          "increase-font": "增大预览字号",
+          "increase-line-height": "增大预览行距",
+          "increase-margin": "加宽预览留白",
+          "new-tab": "新建标签",
+          "new-tab-file": "在新标签打开文件",
+          "open-folder": "打开文件夹",
+          "paste-markdown": "粘贴 Markdown",
+          "preview-mode": "切到预览",
+          "save": "保存到磁盘",
+          "share": "生成分享链接",
+          "share-edit-copy": "编辑副本",
+          "share-open-workspace": "在工作区打开",
+          "share-use-template": "作为模板使用",
+          "shortcut-help": "查看快捷键",
+          "split-mode": "切到分屏",
+          "toggle-contents": "显示/隐藏目录",
+          "toggle-sidebar": "显示/隐藏侧栏"
+        },
+        button: "快捷键",
+        categories: {
+          context: "上下文",
+          editor: "编辑器",
+          reading: "阅读",
+          view: "视图",
+          workspace: "工作区"
+        },
+        close: "关闭快捷键",
+        currentPlatform: (platform) => `当前显示 ${platform} 快捷键`,
+        description: "快捷键遵循桌面端常用习惯，并在编辑器输入时避开文本输入冲突。",
+        kicker: "桌面操作",
+        mac: "Mac",
+        title: "快捷键",
+        windows: "Windows / Linux"
       },
       toolbar: {
         blank: "空白",

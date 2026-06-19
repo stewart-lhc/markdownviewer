@@ -6,84 +6,47 @@ import {
   useRef,
   useState,
   type CSSProperties,
-  type PointerEvent as ReactPointerEvent
+  type PointerEvent as ReactPointerEvent,
+  type WheelEvent as ReactWheelEvent
 } from "react";
-import { ListTree, Type, X } from "lucide-react";
+import { ListTree, X } from "lucide-react";
 import { MarkdownRenderer } from "@/components/markdown/markdown-renderer";
-import {
-  WorkspacePreviewTypographyControls,
-  type WorkspacePreviewFont
-} from "@/components/workspace/workspace-preview-typography-controls";
-import { WorkspaceThemeSelector } from "@/components/workspace/workspace-theme-selector";
 import type { Locale } from "@/lib/i18n/locales";
 import type { WorkspaceMessages } from "@/lib/i18n/messages";
 import type { ExtractedHeading } from "@/lib/markdown/extract-headings";
-import type { WorkspaceTheme } from "@/lib/workspace/themes";
 
 type ImmersiveReaderOverlayProps = {
   documentTitle: string;
-  font: WorkspacePreviewFont;
-  fontSize: number;
   headings: ExtractedHeading[];
   initialScrollTop?: number;
-  lineHeight: number;
   locale: Locale;
-  margin: number;
   markdown: string;
-  maxFontSize: number;
-  maxLineHeight: number;
-  maxMargin: number;
   messages: WorkspaceMessages["preview"];
-  minFontSize: number;
-  minLineHeight: number;
-  minMargin: number;
   onClose: () => void;
-  onFontChange: (font: WorkspacePreviewFont) => void;
-  onFontSizeChange: (fontSize: number) => void;
-  onLineHeightChange: (lineHeight: number) => void;
   onLinkClick?: (href: string) => boolean | void;
-  onMarginChange: (margin: number) => void;
-  onThemeChange: (theme: WorkspaceTheme) => void;
   readerStyle: CSSProperties;
-  theme: WorkspaceTheme;
 };
 
 export function ImmersiveReaderOverlay({
   documentTitle,
-  font,
-  fontSize,
   headings,
   initialScrollTop = 0,
-  lineHeight,
   locale,
-  margin,
   markdown,
-  maxFontSize,
-  maxLineHeight,
-  maxMargin,
   messages,
-  minFontSize,
-  minLineHeight,
-  minMargin,
   onClose,
-  onFontChange,
-  onFontSizeChange,
-  onLineHeightChange,
   onLinkClick,
-  onMarginChange,
-  onThemeChange,
-  readerStyle,
-  theme
+  readerStyle
 }: ImmersiveReaderOverlayProps) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const navRootRef = useRef<HTMLDivElement | null>(null);
   const hideControlsTimerRef = useRef<number | undefined>(undefined);
   const [activeHeadingId, setActiveHeadingId] = useState(headings[0]?.id ?? "");
   const [controlsVisible, setControlsVisible] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [settingsOpen, setSettingsOpen] = useState(false);
 
-  const controlsLockedOpen = navOpen || settingsOpen;
+  const controlsLockedOpen = navOpen;
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
@@ -112,9 +75,8 @@ export function ImmersiveReaderOverlay({
         return;
       }
 
-      if (navOpen || settingsOpen) {
+      if (navOpen) {
         setNavOpen(false);
-        setSettingsOpen(false);
         setControlsVisible(true);
         return;
       }
@@ -127,7 +89,29 @@ export function ImmersiveReaderOverlay({
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [navOpen, onClose, settingsOpen]);
+  }, [navOpen, onClose]);
+
+  useEffect(() => {
+    if (!navOpen) {
+      return;
+    }
+
+    function handlePointerDown(event: PointerEvent) {
+      const target = event.target;
+
+      if (!(target instanceof Node) || navRootRef.current?.contains(target)) {
+        return;
+      }
+
+      setNavOpen(false);
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+    };
+  }, [navOpen]);
 
   useEffect(() => {
     if (controlsLockedOpen) {
@@ -188,6 +172,24 @@ export function ImmersiveReaderOverlay({
     revealControls();
   }
 
+  function handlePanelWheel(event: ReactWheelEvent<HTMLElement>) {
+    const panel = event.currentTarget;
+
+    event.stopPropagation();
+
+    if (event.deltaY === 0) {
+      return;
+    }
+
+    const maxScrollTop = Math.max(0, panel.scrollHeight - panel.clientHeight);
+    const canScrollUp = panel.scrollTop > 0;
+    const canScrollDown = panel.scrollTop < maxScrollTop;
+
+    if ((event.deltaY < 0 && !canScrollUp) || (event.deltaY > 0 && !canScrollDown)) {
+      event.preventDefault();
+    }
+  }
+
   return (
     <div
       aria-label={messages.immersiveReader}
@@ -202,81 +204,55 @@ export function ImmersiveReaderOverlay({
         <span style={{ transform: `scaleX(${progress / 100})` }} />
       </div>
       <div className="immersive-reader-chrome">
-        {headings.length > 0 ? (
-          <button
-            aria-expanded={navOpen}
-            aria-label={messages.contents}
-            className="immersive-reader-icon-button"
-            onClick={() => {
-              setSettingsOpen(false);
-              setNavOpen((open) => !open);
-            }}
-            type="button"
-          >
-            <ListTree aria-hidden="true" size={20} strokeWidth={2} />
-          </button>
-        ) : null}
-        <button
-          aria-expanded={settingsOpen}
-          aria-label={messages.immersiveSettings}
-          className="immersive-reader-icon-button"
-          onClick={() => {
-            setNavOpen(false);
-            setSettingsOpen((open) => !open);
-          }}
-          type="button"
-        >
-          <Type aria-hidden="true" size={20} strokeWidth={2} />
-        </button>
         <button
           aria-label={messages.closeImmersiveReader}
           className="immersive-reader-icon-button"
           onClick={onClose}
+          title={`${messages.closeImmersiveReader} (Esc)`}
           type="button"
         >
           <X aria-hidden="true" size={20} strokeWidth={2} />
         </button>
       </div>
-      {navOpen ? (
-        <aside aria-label={messages.contents} className="immersive-reader-panel immersive-reader-panel--contents">
-          <nav className="immersive-reader-contents">
-            {headings.map((heading) => (
-              <button
-                aria-current={activeHeadingId === heading.id ? "location" : undefined}
-                className="immersive-reader-content-item"
-                data-depth={heading.depth}
-                key={`${heading.id}-${heading.depth}`}
-                onClick={() => navigateToHeading(heading.id)}
-                type="button"
-              >
-                {heading.text}
-              </button>
-            ))}
-          </nav>
-        </aside>
-      ) : null}
-      {settingsOpen ? (
-        <aside aria-label={messages.immersiveSettings} className="immersive-reader-panel immersive-reader-panel--settings">
-          <WorkspaceThemeSelector compact messages={messages} onThemeChange={onThemeChange} theme={theme} />
-          <WorkspacePreviewTypographyControls
-            compact
-            font={font}
-            fontSize={fontSize}
-            lineHeight={lineHeight}
-            margin={margin}
-            maxFontSize={maxFontSize}
-            maxLineHeight={maxLineHeight}
-            maxMargin={maxMargin}
-            messages={messages}
-            minFontSize={minFontSize}
-            minLineHeight={minLineHeight}
-            minMargin={minMargin}
-            onFontChange={onFontChange}
-            onFontSizeChange={onFontSizeChange}
-            onLineHeightChange={onLineHeightChange}
-            onMarginChange={onMarginChange}
-          />
-        </aside>
+      {headings.length > 0 ? (
+        <div className="workspace-toc immersive-reader-toc" data-open={navOpen} ref={navRootRef}>
+          <button
+            aria-expanded={navOpen}
+            aria-label={navOpen ? messages.closeContents : messages.contents}
+            className="workspace-toc-trigger"
+            onClick={() => setNavOpen((open) => !open)}
+            title={navOpen ? messages.closeContents : messages.contents}
+            type="button"
+          >
+            {navOpen ? (
+              <X aria-hidden="true" className="workspace-toc-trigger-icon" size={20} strokeWidth={2} />
+            ) : (
+              <ListTree aria-hidden="true" className="workspace-toc-trigger-icon" size={20} strokeWidth={2} />
+            )}
+          </button>
+          <aside
+            aria-hidden={!navOpen}
+            aria-label={messages.contents}
+            className="workspace-toc-panel"
+            onWheel={handlePanelWheel}
+          >
+            <div className="workspace-toc-title">{documentTitle}</div>
+            <div className="outline-list">
+              {headings.map((heading) => (
+                <button
+                  aria-current={activeHeadingId === heading.id ? "location" : undefined}
+                  className="outline-item"
+                  data-depth={heading.depth}
+                  key={`${heading.id}-${heading.depth}`}
+                  onClick={() => navigateToHeading(heading.id)}
+                  type="button"
+                >
+                  {heading.text}
+                </button>
+              ))}
+            </div>
+          </aside>
+        </div>
       ) : null}
       <div
         className="workspace-reader-body immersive-reader-scroll"

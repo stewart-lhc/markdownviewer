@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import SharePage from "@/app/share/[id]/page";
 import ChineseSharePage from "@/app/zh-CN/share/[id]/page";
@@ -30,6 +30,7 @@ describe("share page", () => {
     expect(screen.getAllByRole("button", { name: /template: paper/i }).length).toBeGreaterThan(0);
     expect(screen.getAllByLabelText(/preview font/i).length).toBeGreaterThan(0);
     expect(screen.getAllByRole("button", { name: /immersive reading/i }).length).toBeGreaterThan(0);
+    expect(screen.getByRole("button", { name: /keyboard shortcuts/i })).toHaveAttribute("title", "Keyboard shortcuts (Ctrl+/)");
     expect(screen.getByRole("button", { name: /contents/i })).toBeInTheDocument();
     expect(screen.getByTestId("preview-scroll-region")).toHaveStyle({
       "--workspace-preview-inline-margin": "25%"
@@ -46,6 +47,41 @@ describe("share page", () => {
     expect(screen.getByTestId("preview-scroll-region")).toHaveStyle({
       "--workspace-preview-font-size": "16px"
     });
+
+    await user.click(screen.getByRole("button", { name: /keyboard shortcuts/i }));
+
+    const shortcutsDialog = screen.getByRole("dialog", { name: /keyboard shortcuts/i });
+
+    expect(within(shortcutsDialog).getByText("Edit a copy")).toBeInTheDocument();
+    expect(within(shortcutsDialog).getByText("Use as template")).toBeInTheDocument();
+    expect(within(shortcutsDialog).getByText("Ctrl+Alt+E")).toBeInTheDocument();
+    expect(within(shortcutsDialog).getByText("Ctrl+Alt+T")).toBeInTheDocument();
+
+    fireEvent.keyDown(window, { key: "Escape", code: "Escape" });
+
+    expect(screen.queryByRole("dialog", { name: /keyboard shortcuts/i })).not.toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(dataLayer).toContainEqual({
+        event: "share_reader_opened",
+        document_title: "Markdown Feature Atlas",
+        share_id: "starter-doc"
+      });
+    });
+
+    dataLayer.length = 0;
+    fireEvent.keyDown(window, { key: "e", code: "KeyE" });
+    expect(dataLayer).not.toContainEqual({
+      event: "share_reader_edit_copy_clicked",
+      share_id: "starter-doc",
+      source: "share_reader"
+    });
+
+    fireEvent.keyDown(window, { key: ">", code: "Period", ctrlKey: true, shiftKey: true });
+
+    expect(screen.getByTestId("preview-scroll-region")).toHaveStyle({
+      "--workspace-preview-font-size": "17px"
+    });
     expect(screen.getAllByRole("link", { name: /open in workspace/i })[0]).toHaveAttribute(
       "href",
       "/workspace?share=starter-doc&shareAction=open"
@@ -58,14 +94,6 @@ describe("share page", () => {
       "href",
       "/workspace?share=starter-doc&shareAction=template"
     );
-
-    await waitFor(() => {
-      expect(dataLayer).toContainEqual({
-        event: "share_reader_opened",
-        document_title: "Markdown Feature Atlas",
-        share_id: "starter-doc"
-      });
-    });
 
     await user.click(screen.getByRole("link", { name: /edit a copy/i }));
 
@@ -82,6 +110,8 @@ describe("share page", () => {
     expect(within(dialog).getByRole("heading", { level: 1, name: /markdown feature atlas/i })).toBeInTheDocument();
     expect(within(dialog).getByTestId("immersive-reader-progress")).toBeInTheDocument();
     expect(within(dialog).queryByRole("link", { name: /open in workspace/i })).not.toBeInTheDocument();
+    expect(within(dialog).queryByRole("button", { name: /reading settings/i })).not.toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: /contents/i })).toHaveClass("workspace-toc-trigger");
   });
 
   it("renders a Chinese shared document shell", async () => {

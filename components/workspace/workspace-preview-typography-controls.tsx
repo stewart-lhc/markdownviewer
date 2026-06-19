@@ -44,6 +44,15 @@ type WorkspacePreviewTypographyControlsProps = {
   onFontSizeChange: (fontSize: number) => void;
   onLineHeightChange: (lineHeight: number) => void;
   onMarginChange: (margin: number) => void;
+  shortcutTitles?: Partial<Record<
+    | "decreaseFont"
+    | "increaseFont"
+    | "decreaseLineHeight"
+    | "increaseLineHeight"
+    | "decreaseMargin"
+    | "increaseMargin",
+    string
+  >>;
   showMarginControl?: boolean;
 };
 
@@ -144,6 +153,7 @@ export function WorkspacePreviewTypographyControls({
   onFontSizeChange,
   onLineHeightChange,
   onMarginChange,
+  shortcutTitles,
   showMarginControl = true
 }: WorkspacePreviewTypographyControlsProps) {
   const [fontMenuOpen, setFontMenuOpen] = useState(false);
@@ -226,6 +236,7 @@ export function WorkspacePreviewTypographyControls({
           className="toolbar-button workspace-preview-size-button"
           disabled={fontSize <= minFontSize}
           onClick={() => onFontSizeChange(fontSize - 1)}
+          title={shortcutTitles?.decreaseFont ?? messages.decreaseFont}
           type="button"
         >
           {compact ? <PreviewStepIcon Icon={ALargeSmall} sign="minus" /> : "A-"}
@@ -238,6 +249,7 @@ export function WorkspacePreviewTypographyControls({
           className="toolbar-button workspace-preview-size-button"
           disabled={fontSize >= maxFontSize}
           onClick={() => onFontSizeChange(fontSize + 1)}
+          title={shortcutTitles?.increaseFont ?? messages.increaseFont}
           type="button"
         >
           {compact ? <PreviewStepIcon Icon={ALargeSmall} sign="plus" /> : "A+"}
@@ -249,6 +261,7 @@ export function WorkspacePreviewTypographyControls({
           className="toolbar-button workspace-preview-line-height-button"
           disabled={lineHeight <= minLineHeight}
           onClick={() => onLineHeightChange(lineHeight - 5)}
+          title={shortcutTitles?.decreaseLineHeight ?? messages.decreaseLineHeight}
           type="button"
         >
           {compact ? <PreviewStepIcon Icon={AlignVerticalSpaceAround} sign="minus" /> : "L-"}
@@ -261,6 +274,7 @@ export function WorkspacePreviewTypographyControls({
           className="toolbar-button workspace-preview-line-height-button"
           disabled={lineHeight >= maxLineHeight}
           onClick={() => onLineHeightChange(lineHeight + 5)}
+          title={shortcutTitles?.increaseLineHeight ?? messages.increaseLineHeight}
           type="button"
         >
           {compact ? <PreviewStepIcon Icon={AlignVerticalSpaceAround} sign="plus" /> : "L+"}
@@ -273,6 +287,7 @@ export function WorkspacePreviewTypographyControls({
             className="toolbar-button workspace-preview-margin-button"
             disabled={margin <= minMargin}
             onClick={() => onMarginChange(margin - 1)}
+            title={shortcutTitles?.decreaseMargin ?? messages.decreaseMargin}
             type="button"
           >
             {compact ? <PreviewStepIcon Icon={AlignHorizontalSpaceAround} sign="minus" /> : "M-"}
@@ -285,6 +300,7 @@ export function WorkspacePreviewTypographyControls({
             className="toolbar-button workspace-preview-margin-button"
             disabled={margin >= maxMargin}
             onClick={() => onMarginChange(margin + 1)}
+            title={shortcutTitles?.increaseMargin ?? messages.increaseMargin}
             type="button"
           >
             {compact ? <PreviewStepIcon Icon={AlignHorizontalSpaceAround} sign="plus" /> : "M+"}

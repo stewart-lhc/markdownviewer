@@ -205,10 +205,12 @@ describe("workspace core canvas styles", () => {
     expect(css).toContain(".immersive-reader-progress {");
     expect(css).toContain("height: 2px;");
     expect(css).toContain('.immersive-reader-overlay[data-controls-visible="true"] .immersive-reader-chrome,');
+    expect(css).toContain(".immersive-reader-toc {");
     expect(css).toContain(".immersive-reader-scroll {");
     expect(css).toContain("height: 100dvh;");
+    expect(css).toContain("padding-inline: clamp(12px, var(--workspace-preview-inline-margin), 72px);");
     expect(css).toContain(".immersive-reader-document {");
-    expect(css).toContain("max-width: min(76ch, 100%);");
+    expect(css).toContain("max-width: 100%;");
   });
 
   it("uses theme-aware workspace scrollbars for editor and preview panes", () => {

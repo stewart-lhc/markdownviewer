@@ -21,6 +21,7 @@ import {
   FileUp,
   FolderOpen,
   BookOpen,
+  Keyboard,
   PanelLeftClose,
   PanelLeftOpen,
   Share2,
@@ -53,6 +54,7 @@ import { MarkdownRenderer } from "@/components/markdown/markdown-renderer";
 import { ImmersiveReaderOverlay } from "@/components/workspace/immersive-reader-overlay";
 import { OutlinePanel } from "@/components/workspace/outline-panel";
 import { RecentActivityPanel } from "@/components/workspace/recent-activity-panel";
+import { ShortcutHelpDialog } from "@/components/workspace/shortcut-help";
 import { EditorPresentationMode, SourcePanel, SourcePanelMode } from "@/components/workspace/source-panel";
 import {
   convertDocumentToMarkdown,
@@ -88,6 +90,17 @@ import {
   type WorkspaceColorScheme,
   type WorkspaceTheme
 } from "@/lib/workspace/themes";
+import {
+  editorShortcutDefinitions,
+  getShortcutById,
+  getShortcutPlatform,
+  isEditableShortcutTarget,
+  matchesShortcut,
+  shortcutTitle,
+  workspaceShortcutDefinitions,
+  type ShortcutId,
+  type ShortcutPlatform
+} from "@/lib/workspace/keyboard-shortcuts";
 
 type WorkspaceMode = "preview" | "split" | "editor";
 
@@ -817,6 +830,8 @@ export function WorkspaceShell({
   const [mobileHeaderVisible, setMobileHeaderVisible] = useState(true);
   const [mobilePreviewControlsOpen, setMobilePreviewControlsOpen] = useState(false);
   const [immersiveReaderOpen, setImmersiveReaderOpen] = useState(false);
+  const [shortcutHelpOpen, setShortcutHelpOpen] = useState(false);
+  const [shortcutPlatform, setShortcutPlatform] = useState<ShortcutPlatform>("windows");
   const [tabsStorageReady, setTabsStorageReady] = useState(false);
   const [tocOpen, setTocOpen] = useState(false);
   const [folderRootHandle, setFolderRootHandle] = useState<FileSystemDirectoryHandle | null>(null);
@@ -835,6 +850,7 @@ export function WorkspaceShell({
   const editorRef = useRef<HTMLElement | null>(null);
   const previewRef = useRef<HTMLDivElement | null>(null);
   const newTabFileInputRef = useRef<HTMLInputElement | null>(null);
+  const pendingHtmlExportRef = useRef(false);
   const statusAutoDismissTimeoutRef = useRef<number | undefined>(undefined);
   const shareCopyResetTimeoutRef = useRef<number | undefined>(undefined);
   const skipNextModePersistRef = useRef(false);
@@ -942,6 +958,37 @@ export function WorkspaceShell({
     "--workspace-preview-line-height": `${previewLineHeight / 100}`,
     "--workspace-preview-inline-margin": getPreviewMarginCss(previewMargin)
   } as CSSProperties;
+  const shortcutHelpDefinitions = useMemo(
+    () => [...workspaceShortcutDefinitions, ...editorShortcutDefinitions],
+    []
+  );
+
+  useEffect(() => {
+    setShortcutPlatform(getShortcutPlatform());
+  }, []);
+
+  useEffect(() => {
+    if (!pendingHtmlExportRef.current || currentMode === "editor" || !previewRef.current) {
+      return;
+    }
+
+    pendingHtmlExportRef.current = false;
+    exportCurrentPreviewHtml();
+  }, [currentMode, headings, messages.document.defaultExportTitle, messages.status.exportedHtml, previewMarkdown, theme]);
+
+  function getWorkspaceShortcutTitle(label: string, id: ShortcutId) {
+    const shortcut = getShortcutById(workspaceShortcutDefinitions, id);
+
+    return shortcut ? shortcutTitle(label, shortcut.combo, shortcutPlatform) : label;
+  }
+  const previewTypographyShortcutTitles = {
+    decreaseFont: getWorkspaceShortcutTitle(messages.preview.decreaseFont, "decrease-font"),
+    increaseFont: getWorkspaceShortcutTitle(messages.preview.increaseFont, "increase-font"),
+    decreaseLineHeight: getWorkspaceShortcutTitle(messages.preview.decreaseLineHeight, "decrease-line-height"),
+    increaseLineHeight: getWorkspaceShortcutTitle(messages.preview.increaseLineHeight, "increase-line-height"),
+    decreaseMargin: getWorkspaceShortcutTitle(messages.preview.decreaseMargin, "decrease-margin"),
+    increaseMargin: getWorkspaceShortcutTitle(messages.preview.increaseMargin, "increase-margin")
+  };
 
   function collapseTabsForReading() {
     if (compactWorkspace) {
@@ -1578,19 +1625,197 @@ export function WorkspaceShell({
 
   useEffect(() => {
     function handleWorkspaceShortcut(event: KeyboardEvent) {
-      if (!(event.ctrlKey || event.metaKey)) {
+      if (event.isComposing) {
         return;
       }
 
-      if (event.key.toLowerCase() === "s") {
+      const shortcut = workspaceShortcutDefinitions.find((definition) =>
+        matchesShortcut(event, definition.combo, shortcutPlatform)
+      );
+
+      if (!shortcut) {
+        return;
+      }
+
+      const editableTarget = isEditableShortcutTarget(event.target);
+      const allowedInEditable = new Set<ShortcutId>([
+        "close-overlay",
+        "export-html",
+        "export-pdf",
+        "new-tab",
+        "new-tab-file",
+        "open-folder",
+        "save",
+        "share"
+      ]);
+
+      if (editableTarget && !allowedInEditable.has(shortcut.id)) {
+        return;
+      }
+
+      if (shortcut.id === "close-overlay") {
+        if (shortcutHelpOpen) {
+          event.preventDefault();
+          setShortcutHelpOpen(false);
+          return;
+        }
+
+        if (shareUrl) {
+          event.preventDefault();
+          setShareUrl("");
+          return;
+        }
+
+        if (newTabDialogOpen) {
+          event.preventDefault();
+          setNewTabDialogOpen(false);
+          return;
+        }
+
+        if (tocOpen) {
+          event.preventDefault();
+          setTocOpen(false);
+          return;
+        }
+
+        if (immersiveReaderOpen) {
+          event.preventDefault();
+          setImmersiveReaderOpen(false);
+        }
+
+        return;
+      }
+
+      if (shortcut.id === "shortcut-help") {
+        event.preventDefault();
+        setShortcutHelpOpen(true);
+        return;
+      }
+
+      if (shortcut.id === "new-tab") {
+        event.preventDefault();
+        handleNewTab();
+        return;
+      }
+
+      if (shortcut.id === "new-tab-file") {
+        event.preventDefault();
+        handleNewTabFile();
+        return;
+      }
+
+      if (shortcut.id === "open-folder") {
+        event.preventDefault();
+        void handleNewTabFolder();
+        return;
+      }
+
+      if (shortcut.id === "paste-markdown") {
+        event.preventDefault();
+        if (showToolbarImportActions) {
+          void handlePasteIntoEditor();
+        } else {
+          void handleNewTabPaste();
+        }
+        return;
+      }
+
+      if (shortcut.id === "save") {
         event.preventDefault();
         void saveCurrentFolderFile();
         return;
       }
 
-      if (event.key.toLowerCase() === "k" && folderRootHandle) {
+      if (shortcut.id === "share") {
         event.preventDefault();
-        setFolderSearchOpen(true);
+        void handleShare();
+        return;
+      }
+
+      if (shortcut.id === "export-html") {
+        event.preventDefault();
+        handleExportHtml();
+        return;
+      }
+
+      if (shortcut.id === "export-pdf") {
+        event.preventDefault();
+        handleExportPdf();
+        return;
+      }
+
+      if (shortcut.id === "folder-search") {
+        event.preventDefault();
+        if (folderRootHandle) {
+          setFolderSearchOpen(true);
+        } else {
+          setStatusMessage(messages.folder.openFolder);
+        }
+        return;
+      }
+
+      if (shortcut.id === "toggle-sidebar") {
+        event.preventDefault();
+        setMobileHeaderVisible(true);
+        setTabsCollapsed((current) => !current);
+        return;
+      }
+
+      if (shortcut.id === "preview-mode" || shortcut.id === "split-mode" || shortcut.id === "editor-mode") {
+        event.preventDefault();
+        handleWorkspaceModeChange(
+          shortcut.id === "preview-mode" ? "preview" : shortcut.id === "split-mode" ? "split" : "editor"
+        );
+        return;
+      }
+
+      if (shortcut.id === "toggle-contents") {
+        if (currentMode === "editor" || !hasHeadings) {
+          return;
+        }
+
+        event.preventDefault();
+        setTocOpen((current) => !current);
+        return;
+      }
+
+      if (shortcut.id === "immersive-reader") {
+        if (currentMode === "editor") {
+          return;
+        }
+
+        event.preventDefault();
+        setImmersiveReaderOpen(true);
+        return;
+      }
+
+      if (shortcut.id === "increase-font" || shortcut.id === "decrease-font") {
+        event.preventDefault();
+        setPreviewFontSize((current) =>
+          clampPreviewFontSize(current + (shortcut.id === "increase-font" ? 1 : -1))
+        );
+        return;
+      }
+
+      if (shortcut.id === "increase-line-height" || shortcut.id === "decrease-line-height") {
+        event.preventDefault();
+        setPreviewLineHeight((current) =>
+          clampPreviewLineHeight(current + (shortcut.id === "increase-line-height" ? 5 : -5))
+        );
+        return;
+      }
+
+      if (shortcut.id === "increase-margin" || shortcut.id === "decrease-margin") {
+        event.preventDefault();
+        setPreviewMargin((current) =>
+          clampPreviewMargin(current + (shortcut.id === "increase-margin" ? 1 : -1))
+        );
+        return;
+      }
+
+      if (shortcut.id === "focus-next-pane" || shortcut.id === "focus-previous-pane") {
+        event.preventDefault();
+        focusWorkspacePane(shortcut.id === "focus-previous-pane");
       }
     }
 
@@ -1599,7 +1824,20 @@ export function WorkspaceShell({
     return () => {
       window.removeEventListener("keydown", handleWorkspaceShortcut);
     };
-  }, [activeFolderPath, currentMarkdown, folderRootHandle, saveState]);
+  }, [
+    currentMode,
+    folderRootHandle,
+    hasHeadings,
+    immersiveReaderOpen,
+    messages.folder.openFolder,
+    newTabDialogOpen,
+    shareUrl,
+    shortcutHelpOpen,
+    shortcutPlatform,
+    showToolbarImportActions,
+    tabsCollapsed,
+    tocOpen
+  ]);
 
   useEffect(() => {
     const pendingHash = pendingFolderHashRef.current;
@@ -2327,12 +2565,22 @@ export function WorkspaceShell({
     }
   }
 
-  function handleExportHtml() {
+  function exportCurrentPreviewHtml() {
     const previewMarkup = previewRef.current?.innerHTML ?? "";
     const firstHeading = headings[0]?.text ?? messages.document.defaultExportTitle;
 
     exportMarkdownHtml(previewMarkup, firstHeading, theme);
     setStatusMessage(messages.status.exportedHtml);
+  }
+
+  function handleExportHtml() {
+    if (!previewRef.current) {
+      pendingHtmlExportRef.current = true;
+      handleWorkspaceModeChange("split");
+      return;
+    }
+
+    exportCurrentPreviewHtml();
   }
 
   function handleExportPdf() {
@@ -2727,6 +2975,37 @@ export function WorkspaceShell({
     return true;
   }, []);
 
+  function focusWorkspacePane(reverse = false) {
+    const page = pageRef.current;
+    const focusTargets = [
+      !tabsCollapsed
+        ? page?.querySelector<HTMLElement>(
+            ".workspace-folder-file[data-active='true'], .workspace-tab-button[aria-current='page']"
+          ) ?? page?.querySelector<HTMLElement>(".workspace-folder-file, .workspace-tab-button")
+        : page?.querySelector<HTMLElement>(".workspace-tabs-toggle-button"),
+      currentMode !== "preview" ? editorRef.current : null,
+      currentMode !== "editor" ? previewRef.current : null
+    ].filter((target): target is HTMLElement => Boolean(target));
+
+    if (focusTargets.length === 0) {
+      return;
+    }
+
+    const activeElement = document.activeElement;
+    const currentIndex = focusTargets.findIndex(
+      (target) => target === activeElement || (activeElement instanceof Node && target.contains(activeElement))
+    );
+    const offset = reverse ? -1 : 1;
+    const nextIndex =
+      currentIndex === -1
+        ? reverse
+          ? focusTargets.length - 1
+          : 0
+        : (currentIndex + offset + focusTargets.length) % focusTargets.length;
+
+    focusTargets[nextIndex]?.focus();
+  }
+
   function renderTabsToggleButton() {
     return (
       <button
@@ -2739,7 +3018,7 @@ export function WorkspaceShell({
           setMobileHeaderVisible(true);
           setTabsCollapsed((current) => !current);
         }}
-        title={tabsCollapsed ? messages.tabs.expand : messages.tabs.collapse}
+        title={getWorkspaceShortcutTitle(tabsCollapsed ? messages.tabs.expand : messages.tabs.collapse, "toggle-sidebar")}
         type="button"
       >
         {tabsCollapsed ? (
@@ -2771,7 +3050,7 @@ export function WorkspaceShell({
         aria-label={messages.tabs.newTab}
         className={["workspace-new-tab-button", className].filter(Boolean).join(" ")}
         onClick={handleNewTab}
-        title={messages.tabs.newTab}
+        title={getWorkspaceShortcutTitle(messages.tabs.newTab, "new-tab")}
         type="button"
       >
         +
@@ -2848,11 +3127,21 @@ export function WorkspaceShell({
         <div className="workspace-header-language">
           <LanguageSwitcher currentLocale={locale} path="/workspace" />
         </div>
+        <button
+          aria-label={messages.shortcuts.button}
+          className="toolbar-button workspace-shortcuts-button"
+          onClick={() => setShortcutHelpOpen(true)}
+          title={getWorkspaceShortcutTitle(messages.shortcuts.button, "shortcut-help")}
+          type="button"
+        >
+          <Keyboard aria-hidden="true" size={18} strokeWidth={2.2} />
+        </button>
         <WorkspaceToolbar
           activeImportMode={activeImportMode}
           compact={compactWorkspace}
           messages={messages.toolbar}
           mode={currentMode}
+          shortcutPlatform={shortcutPlatform}
           showImportActions={showToolbarImportActions}
           onConvertFile={handleConvertFile}
           onExportHtml={handleExportHtml}
@@ -2874,7 +3163,7 @@ export function WorkspaceShell({
             aria-label={messages.preview.immersiveReader}
             className="toolbar-button workspace-preview-mobile-immersive-button"
             onClick={() => setImmersiveReaderOpen(true)}
-            title={messages.preview.immersiveReader}
+            title={getWorkspaceShortcutTitle(messages.preview.immersiveReader, "immersive-reader")}
             type="button"
           >
             <BookOpen aria-hidden="true" size={18} strokeWidth={2.2} />
@@ -2885,7 +3174,7 @@ export function WorkspaceShell({
             aria-label={messages.toolbar.shareLink}
             className="toolbar-button workspace-preview-mobile-share-button"
             onClick={handleShare}
-            title={messages.toolbar.shareLink}
+            title={getWorkspaceShortcutTitle(messages.toolbar.shareLink, "share")}
             type="button"
           >
             <Share2 aria-hidden="true" size={18} strokeWidth={2.2} />
@@ -2998,6 +3287,7 @@ export function WorkspaceShell({
               aria-label={locale === "zh-CN" ? "关闭分享链接" : "Close share link"}
               className="workspace-popup-backdrop workspace-share-backdrop"
               onClick={() => setShareUrl("")}
+              title={getWorkspaceShortcutTitle(locale === "zh-CN" ? "关闭分享链接" : "Close share link", "close-overlay")}
               type="button"
             />
             <div
@@ -3012,6 +3302,7 @@ export function WorkspaceShell({
                   aria-label={locale === "zh-CN" ? "关闭分享链接" : "Close share link"}
                   className="workspace-share-link__close"
                   onClick={() => setShareUrl("")}
+                  title={getWorkspaceShortcutTitle(locale === "zh-CN" ? "关闭分享链接" : "Close share link", "close-overlay")}
                   type="button"
                 >
                   <X aria-hidden="true" size={18} strokeWidth={2} />
@@ -3070,6 +3361,7 @@ export function WorkspaceShell({
               aria-label={locale === "zh-CN" ? "关闭新建 tab" : "Close new tab dialog"}
               className="workspace-popup-backdrop workspace-new-tab-dialog-backdrop"
               onClick={() => setNewTabDialogOpen(false)}
+              title={getWorkspaceShortcutTitle(locale === "zh-CN" ? "关闭新建 tab" : "Close new tab dialog", "close-overlay")}
               type="button"
             />
             <div
@@ -3084,31 +3376,60 @@ export function WorkspaceShell({
                   aria-label={messages.preview.close}
                   className="workspace-new-tab-dialog-close"
                   onClick={() => setNewTabDialogOpen(false)}
+                  title={getWorkspaceShortcutTitle(messages.preview.close, "close-overlay")}
                   type="button"
                 >
                   <X aria-hidden="true" size={18} strokeWidth={2} />
                 </button>
               </div>
               <div className="workspace-new-tab-choices">
-                <button className="workspace-new-tab-choice" onClick={handleNewTabPaste} type="button">
+                <button
+                  className="workspace-new-tab-choice"
+                  onClick={handleNewTabPaste}
+                  title={getWorkspaceShortcutTitle(messages.toolbar.paste, "paste-markdown")}
+                  type="button"
+                >
                   <Clipboard aria-hidden="true" size={18} strokeWidth={2} />
                   <span>{messages.toolbar.paste}</span>
                 </button>
-                <button className="workspace-new-tab-choice" onClick={handleNewTabBlank} type="button">
+                <button
+                  className="workspace-new-tab-choice"
+                  onClick={handleNewTabBlank}
+                  title={getWorkspaceShortcutTitle(messages.tabs.newTab, "new-tab")}
+                  type="button"
+                >
                   <FileText aria-hidden="true" size={18} strokeWidth={2} />
                   <span>{messages.toolbar.blank}</span>
                 </button>
-                <button className="workspace-new-tab-choice" onClick={handleNewTabFile} type="button">
+                <button
+                  className="workspace-new-tab-choice"
+                  onClick={handleNewTabFile}
+                  title={getWorkspaceShortcutTitle(messages.toolbar.file, "new-tab-file")}
+                  type="button"
+                >
                   <FileUp aria-hidden="true" size={18} strokeWidth={2} />
                   <span>{messages.toolbar.file}</span>
                 </button>
-                <button className="workspace-new-tab-choice" onClick={handleNewTabFolder} type="button">
+                <button
+                  className="workspace-new-tab-choice"
+                  onClick={handleNewTabFolder}
+                  title={getWorkspaceShortcutTitle(messages.toolbar.openFolder, "open-folder")}
+                  type="button"
+                >
                   <FolderOpen aria-hidden="true" size={18} strokeWidth={2} />
                   <span>{messages.toolbar.openFolder}</span>
                 </button>
               </div>
             </div>
           </>
+        ) : null}
+        {shortcutHelpOpen ? (
+          <ShortcutHelpDialog
+            messages={messages.shortcuts}
+            onClose={() => setShortcutHelpOpen(false)}
+            platform={shortcutPlatform}
+            shortcuts={shortcutHelpDefinitions}
+          />
         ) : null}
         <input
           aria-label={`${messages.tabs.newTab} ${messages.toolbar.file}`}
@@ -3188,7 +3509,7 @@ export function WorkspaceShell({
                       aria-label={messages.preview.immersiveReader}
                       className="toolbar-button workspace-preview-immersive-button"
                       onClick={() => setImmersiveReaderOpen(true)}
-                      title={messages.preview.immersiveReader}
+                      title={getWorkspaceShortcutTitle(messages.preview.immersiveReader, "immersive-reader")}
                       type="button"
                     >
                       <BookOpen aria-hidden="true" className="workspace-preview-control-icon" size={18} strokeWidth={2.2} />
@@ -3212,9 +3533,15 @@ export function WorkspaceShell({
                         setPreviewLineHeight(clampPreviewLineHeight(nextLineHeight))
                       }
                       onMarginChange={(nextMargin) => setPreviewMargin(clampPreviewMargin(nextMargin))}
+                      shortcutTitles={previewTypographyShortcutTitles}
                     />
                   </div>
-                  <button className="toolbar-button workspace-preview-share-button" onClick={handleShare} type="button">
+                  <button
+                    className="toolbar-button workspace-preview-share-button"
+                    onClick={handleShare}
+                    title={getWorkspaceShortcutTitle(messages.toolbar.shareLink, "share")}
+                    type="button"
+                  >
                     <Share2 aria-hidden="true" size={16} strokeWidth={2} />
                     <span className="workspace-preview-share-label-full">{messages.toolbar.shareLink}</span>
                     <span className="workspace-preview-share-label-compact">
@@ -3240,6 +3567,7 @@ export function WorkspaceShell({
                 }}
                 ref={previewRef}
                 style={previewReaderStyle}
+                tabIndex={0}
               >
                 <MarkdownRenderer markdown={previewMarkdown} onLinkClick={handlePreviewLinkClick} />
               </div>
@@ -3267,6 +3595,7 @@ export function WorkspaceShell({
                           setPreviewLineHeight(clampPreviewLineHeight(nextLineHeight))
                         }
                         onMarginChange={(nextMargin) => setPreviewMargin(clampPreviewMargin(nextMargin))}
+                        shortcutTitles={previewTypographyShortcutTitles}
                         showMarginControl={false}
                       />
                     </div>
@@ -3315,35 +3644,20 @@ export function WorkspaceShell({
             onClose={() => setTocOpen(false)}
             onToggle={() => setTocOpen((current) => !current)}
             open={tocOpen}
+            triggerTitle={getWorkspaceShortcutTitle(tocOpen ? messages.preview.closeContents : messages.preview.contents, "toggle-contents")}
           />
         ) : null}
         {currentMode !== "editor" && immersiveReaderOpen ? (
           <ImmersiveReaderOverlay
             documentTitle={documentTitle}
-            font={previewFont}
-            fontSize={previewFontSize}
             headings={headings}
             initialScrollTop={getCurrentPreviewScrollTop()}
-            lineHeight={previewLineHeight}
             locale={locale}
-            margin={previewMargin}
             markdown={previewMarkdown}
-            maxFontSize={maxPreviewFontSize}
-            maxLineHeight={maxPreviewLineHeight}
-            maxMargin={maxPreviewMargin}
             messages={messages.preview}
-            minFontSize={minPreviewFontSize}
-            minLineHeight={minPreviewLineHeight}
-            minMargin={minPreviewMargin}
             onClose={() => setImmersiveReaderOpen(false)}
-            onFontChange={setPreviewFont}
-            onFontSizeChange={(nextFontSize) => setPreviewFontSize(clampPreviewFontSize(nextFontSize))}
-            onLineHeightChange={(nextLineHeight) => setPreviewLineHeight(clampPreviewLineHeight(nextLineHeight))}
             onLinkClick={handlePreviewLinkClick}
-            onMarginChange={(nextMargin) => setPreviewMargin(clampPreviewMargin(nextMargin))}
-            onThemeChange={setTheme}
             readerStyle={previewReaderStyle}
-            theme={theme}
           />
         ) : null}
       </section>
