@@ -700,7 +700,7 @@ export function SourcePanel({
           <div
             aria-label={messages.markdownLabel}
             aria-multiline="true"
-            className="workspace-editor-surface workspace-editor-surface--stackedit"
+            className="workspace-editor-surface workspace-editor-surface--stackedit notranslate"
             data-testid="editor-rich-surface"
             id="workspace-markdown-editor"
             onKeyDown={handleRichEditorShortcut}
@@ -715,11 +715,12 @@ export function SourcePanel({
             role="textbox"
             spellCheck={false}
             tabIndex={0}
+            translate="no"
           />
         ) : (
           <textarea
             aria-label={messages.markdownLabel}
-            className="textarea workspace-editor-input"
+            className="textarea workspace-editor-input notranslate"
             id="workspace-markdown-editor"
             onChange={(event) => {
               onMarkdownChangeRef.current(event.currentTarget.value);
@@ -739,6 +740,7 @@ export function SourcePanel({
               }
             }}
             spellCheck={false}
+            translate="no"
             value={markdown}
           />
         )}

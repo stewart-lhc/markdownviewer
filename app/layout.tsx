@@ -23,6 +23,51 @@ try {
   }
 } catch (error) {}
 `;
+const extensionDomMutationGuardScript = `
+(function () {
+  try {
+    if (window.__markdownviewerDomMutationGuard || typeof Node === "undefined") {
+      return;
+    }
+
+    window.__markdownviewerDomMutationGuard = true;
+
+    var nativeRemoveChild = Node.prototype.removeChild;
+    var nativeInsertBefore = Node.prototype.insertBefore;
+
+    // Translation and writing-assistant extensions can rewrite text nodes that
+    // React still owns. Treat those extension-induced parent mismatches as no-ops
+    // instead of letting React's commit phase crash the whole workspace.
+    Node.prototype.removeChild = function (child) {
+      if (!(child instanceof Node)) {
+        return nativeRemoveChild.call(this, child);
+      }
+
+      if (child && child.parentNode === this) {
+        return nativeRemoveChild.call(this, child);
+      }
+
+      if (child && child.parentNode) {
+        return nativeRemoveChild.call(child.parentNode, child);
+      }
+
+      return child;
+    };
+
+    Node.prototype.insertBefore = function (newNode, referenceNode) {
+      if (!(newNode instanceof Node) || (referenceNode && !(referenceNode instanceof Node))) {
+        return nativeInsertBefore.call(this, newNode, referenceNode);
+      }
+
+      if (referenceNode && referenceNode.parentNode !== this) {
+        return this.appendChild(newNode);
+      }
+
+      return nativeInsertBefore.call(this, newNode, referenceNode);
+    };
+  } catch (error) {}
+})();
+`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -93,6 +138,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: extensionDomMutationGuardScript }} />
         <script dangerouslySetInnerHTML={{ __html: siteThemeInitScript }} />
       </head>
       <body>

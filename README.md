@@ -11,7 +11,7 @@
 
 [Live Markdown Viewer](https://markdownviewer.run/) - [Open the Workspace](https://markdownviewer.run/workspace) - [Changelog](https://markdownviewer.run/changelog) - [Star the Project](https://github.com/stewart-lhc/markdownviewer)
 
-Current product update: **26.620**. Current package release: **v0.2.0**. See [CHANGELOG.md](CHANGELOG.md) and the live [Changelog](https://markdownviewer.run/changelog) for release notes and update history.
+Current product update: **26.630**. Current package release: **v0.2.0**. See [CHANGELOG.md](CHANGELOG.md) and the live [Changelog](https://markdownviewer.run/changelog) for release notes and update history.
 
 </div>
 
@@ -66,6 +66,7 @@ It is designed to be more than a plain textarea preview. Markdownviewer gives RE
 
 | Version | Date | Product update |
 | --- | --- | --- |
+| **26.630** | 2026-06-30 | Added browser-extension crash protection for the workspace and share readers when translation or writing-assistant extensions rewrite React-managed Markdown DOM during file opening or tab changes. |
 | **26.620** | 2026-06-20 | Added platform-aware keyboard shortcuts across the workspace, editor, preview reader, and share reader; surfaced Mac and Windows shortcut hints in tooltips and a dedicated help popup; and fixed editor-only HTML export so shortcut-triggered exports wait for the preview before downloading. |
 | **26.619** | 2026-06-19 | Polished the workspace reader chrome with icon-only preview and share controls, steadier left-sidebar resizing with drag-to-collapse, mobile tab and contents panels that dismiss predictably, stable Mermaid rendering during scroll, richer default editing in split/editor mode, and a tighter full-width mobile preview control bar. |
 | **26.617** | 2026-06-17 | Added share-page edit-copy and use-as-template actions, local Recent/Continue panels, System/Light/Dark controls, real feature screenshots, a readable dark palette, taller mobile live preview, and a refined mobile breadcrumbs menu with Workspace directly beside the trigger. |
@@ -282,6 +283,7 @@ MIT License. See [LICENSE](LICENSE).
 
 | 版本 | 日期 | 产品更新 |
 | --- | --- | --- |
+| **26.630** | 2026-06-30 | 新增浏览器扩展崩溃防护：当翻译或写作助手类扩展在打开文件、切换 tab 时改写 React 管理的 Markdown DOM，workspace 和分享阅读器不再被拖进错误页。 |
 | **26.620** | 2026-06-20 | 新增覆盖 workspace、编辑器、预览阅读器和分享阅读器的平台感知快捷键；tooltip 与专门快捷键弹窗会区分 Mac / Windows；并修复 editor-only 模式下快捷键导出 HTML 时可能导出空内容的问题。 |
 | **26.619** | 2026-06-19 | 优化 workspace 阅读控制层：预览和分享控制全部改为图标，左侧 sidebar 拖拽不再抖动并支持向左拖到阈值后自动收起，移动端 tab 与目录面板点击外部会稳定关闭，Mermaid 滚动时不再闪烁，split/editor 默认回到 rich 编辑，并压低移动端底部预览控制栏让按钮等宽铺满。 |
 | **26.617** | 2026-06-17 | 新增分享页编辑副本、作为模板使用、本地 Recent/Continue、System / Light / Dark 控制、真实功能截图、可读深色配色、更高的移动端 live preview，并修复移动端 breadcrumbs 菜单，让 Workspace 紧挨触发按钮左侧。 |

@@ -15,6 +15,30 @@ export type ProductUpdate = {
 
 export const productUpdates: ProductUpdate[] = [
   {
+    version: "26.630",
+    date: "2026-06-30",
+    en: {
+      title: "Browser extension crash guard for Markdown readers",
+      summary:
+        "Markdownviewer now protects the workspace and share readers from translation and writing-assistant extensions that rewrite React-managed Markdown DOM while files or tabs are changing.",
+      highlights: [
+        "Added an early DOM guard for extension-induced removeChild and insertBefore parent mismatches.",
+        "Marked Markdown preview and editor surfaces as non-translatable to reduce third-party DOM rewrites.",
+        "Kept local Markdown file opening, Mermaid rendering, and the preview reader stable when extension-mutated nodes are present."
+      ]
+    },
+    "zh-CN": {
+      title: "Markdown 阅读器浏览器扩展崩溃防护",
+      summary:
+        "Markdownviewer 现在可以防止翻译和写作助手类浏览器扩展在文件或 tab 切换时改写 React 管理的 Markdown DOM，从而拖垮 workspace 和分享阅读器。",
+      highlights: [
+        "新增首屏 DOM guard，处理扩展导致的 removeChild 和 insertBefore 父子关系错位。",
+        "将 Markdown 预览和编辑器 surface 标记为不可翻译，降低第三方扩展改写活动文档树的概率。",
+        "在存在扩展改写节点的情况下，保持本地 Markdown 文件打开、Mermaid 渲染和预览阅读器稳定。"
+      ]
+    }
+  },
+  {
     version: "26.620",
     date: "2026-06-20",
     en: {

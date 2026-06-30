@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
+## 26.630 - 2026-06-30
+
+### Fixed
+
+- Prevented translation and writing-assistant browser extensions from crashing the workspace or share readers when they rewrite React-managed Markdown DOM during file opening, tab changes, or reader updates.
+- Marked the Markdown preview and editor surfaces as non-translatable so browser extensions are less likely to mutate the active document tree.
+
 ## 26.620 - 2026-06-20
 
 ### Added

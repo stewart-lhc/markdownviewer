@@ -197,6 +197,7 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
   const hasMath = mathPattern.test(markdown);
   const className = [
     "markdown-body",
+    "notranslate",
     variant === "compact" && "markdown-body--compact",
     cjkPattern.test(markdown) && "markdown-body--cjk"
   ]
@@ -301,7 +302,7 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
   );
 
   return (
-    <div className={className}>
+    <div className={className} translate="no">
       <ReactMarkdown
         components={components}
         rehypePlugins={rehypePlugins}
