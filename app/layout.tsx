@@ -140,11 +140,11 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: extensionDomMutationGuardScript }} />
         <script dangerouslySetInnerHTML={{ __html: siteThemeInitScript }} />
+        <GoogleAnalytics measurementId={gaMeasurementId} />
       </head>
       <body>
         {children}
         <PwaRuntime />
-        <GoogleAnalytics measurementId={gaMeasurementId} />
       </body>
     </html>
   );
